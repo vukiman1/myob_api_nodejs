@@ -1,12 +1,10 @@
 import { ConfigType, registerAs } from '@nestjs/config'
 
-import * as dotenv from 'dotenv'
 
 import { DataSource, DataSourceOptions } from 'typeorm'
 
 import { env, envBoolean, envNumber } from '../global/env'
 import { User } from 'src/modules/user/entities/user.entity'
-dotenv.config({ path: __dirname + '/config.env' });
 
 
 const dataSourceOptions: DataSourceOptions = {
