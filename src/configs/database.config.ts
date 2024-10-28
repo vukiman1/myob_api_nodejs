@@ -9,8 +9,8 @@ import { User } from 'src/modules/user/entities/user.entity'
 
 const dataSourceOptions: DataSourceOptions = {
   type: 'postgres',
-  host: 'localhost',
-  port:6868,
+  host: 'db',
+  port:5432,
   username: 'postgres',
   password: 'postgres',
   database: 'MyJobAPI',
