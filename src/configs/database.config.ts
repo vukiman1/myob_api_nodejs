@@ -11,8 +11,8 @@ dotenv.config({ path: __dirname + '/config.env' });
 
 const dataSourceOptions: DataSourceOptions = {
   type: 'postgres',
-  host: 'localhost',
-  port:6868,
+  host: 'db',
+  port:5432,
   username: 'postgres',
   password: 'postgres',
   database: 'MyJobAPI',

@@ -12,6 +12,10 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+
+#docker
+pgdata
+
 # OS
 .DS_Store
 
