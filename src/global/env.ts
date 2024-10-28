@@ -1,8 +1,10 @@
-
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env' });
 
 export type BaseType = boolean | number | string | undefined | null
 function formatValue<T extends BaseType = string>(key: string, defaultValue: T, callback?: (value: string) => T): T {
     const value: string | undefined = process.env[key]
+
     if (typeof value === 'undefined')
       return defaultValue
   
@@ -11,6 +13,7 @@ function formatValue<T extends BaseType = string>(key: string, defaultValue: T, 
   
     return callback(value)
   }
+
 
 export function env(key: string, defaultValue: string = '') {
     return formatValue(key, defaultValue)

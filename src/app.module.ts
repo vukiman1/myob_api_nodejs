@@ -11,14 +11,12 @@ import { DataSourceOptions } from 'typeorm';
 
 @Module({
   imports: [
-    
     ConfigModule.forRoot({
       isGlobal: true,
       load: [...Object.values(config)],
       envFilePath: '.env',
     }),
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
         return configService.get<DataSourceOptions>('database');
