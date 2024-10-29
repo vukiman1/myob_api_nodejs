@@ -9,4 +9,5 @@ export const SwaggerConfig = registerAs(swaggerRegToken, () => ({
 }))
 
 
+
 export type ISwaggerConfig = ConfigType<typeof SwaggerConfig>
