@@ -42,7 +42,6 @@ export function setupSwagger(
     },
   })
 
-
   // started log
   const logger = new Logger('SwaggerModule')
   logger.log(`Document is running on ${baseUrl}:${port}/${path}`)

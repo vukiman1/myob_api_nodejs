@@ -5,8 +5,6 @@ import { env, envBoolean, envNumber } from '../global/env'
 export const appRegToken = 'app';
 
 
-
-
 export const AppConfig = registerAs(appRegToken, () => ({
   name: env('APP_NAME'),
   port: envNumber('APP_PORT', 3000),
