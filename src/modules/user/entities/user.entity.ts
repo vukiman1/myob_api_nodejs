@@ -11,38 +11,41 @@ import {
 @Entity()
 export class User {
   @PrimaryColumn()
-  user_id: string;
-
-  @Column()
-  userName: string;
-
-  @Column({ nullable: true })
-  fullName: string;
-
-
-  @Column({
-    default: 'https://kindycity.edu.vn/wp-content/uploads/2023/04/user-men.png',
-  })
-  avatar: string;
- 
-  @Column({ default: 'user' })
-  role: string;
+  id: string;
 
   @Column()
   email: string;
 
-  @Column({ nullable: true, length: 20 })
-  phone: string;
-
-  @Column({ nullable: true, length: 500 })
-  address: string;
-
-  @Column({ default: true })
-  isActive: boolean;
+  @Column({ nullable: true })
+  fullName: string;
 
   @Exclude()
   @Column()
-  passWord: string;
+  password: string;
+
+  @Column({ default: 1 })
+  isActive: boolean;
+
+  @Column({ default: 0 })
+  isSupperuser: boolean;
+
+
+  @Column({ default: 0 })
+  isStaff: boolean;
+
+  @Column({ default: 0 })
+  hasCompany: boolean;
+
+  @Column({ default: 'JOB_SEEKER' })
+  roleName: string
+
+  @Column({
+    default: 'https://res.cloudinary.com/myjob/image/upload/c_scale,h_200,w_200/myjob/Avatar/defaultAvatar.jpg',
+  })
+  avatarUrl: string;
+ 
+  @Column({ default: 'NULL' })
+  lastLogin: string;
 
   @CreateDateColumn()
   createdAt: Date;
