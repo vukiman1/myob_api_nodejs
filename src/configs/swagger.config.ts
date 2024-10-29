@@ -8,4 +8,5 @@ export const SwaggerConfig = registerAs(swaggerRegToken, () => ({
   path: `${env('SWAGGER_PATH')}`,
 }))
 
+
 export type ISwaggerConfig = ConfigType<typeof SwaggerConfig>

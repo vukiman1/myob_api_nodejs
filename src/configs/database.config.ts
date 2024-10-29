@@ -21,6 +21,7 @@ const dataSourceOptions: DataSourceOptions = {
 //   migrations: ['dist/migrations/*{.ts,.js}'],
 
 
+
 }
 export const dbRegToken = 'database'
 
