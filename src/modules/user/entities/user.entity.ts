@@ -8,7 +8,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-@Entity()
+@Entity('auth_user')
 export class User {
   @PrimaryGeneratedColumn()
   id: string;
@@ -25,6 +25,10 @@ export class User {
 
   @Column({ default: 1 })
   isActive: boolean;
+
+  @Column({ default: 1 })
+  isVerifyEmail:boolean
+  
 
   @Column({ default: 0 })
   isSupperuser: boolean;
@@ -43,7 +47,7 @@ export class User {
   })
   avatarUrl: string;
  
-  @Column({ default: 'NULL' })
+  @Column({ nullable: true  })
   lastLogin: string;
 
   @CreateDateColumn()

@@ -5,13 +5,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../user/entities/user.entity';
 import { UserModule } from '../user/user.module';
 import { UserService } from '../user/user.service';
+import { JobSeekerProfile } from '../info/entities/job_seeker_profle.entities';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
-    UserModule
+    TypeOrmModule.forFeature([User, JobSeekerProfile]),
+    UserModule,
+    JobSeekerProfile
   ],
   controllers: [AuthController],
-  providers: [AuthService, UserService],
+  providers: [AuthService, UserService, ],
 })
 export class AuthModule {}

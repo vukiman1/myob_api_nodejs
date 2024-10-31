@@ -9,6 +9,7 @@ import { DatabaseConfig } from './configs/database.config';
 import { User } from './modules/user/entities/user.entity';
 import { DataSourceOptions } from 'typeorm';
 import { AuthModule } from './modules/auth/auth.module';
+import { InfoModule } from './modules/info/info.module';
 
 @Module({
   imports: [
@@ -20,11 +21,17 @@ import { AuthModule } from './modules/auth/auth.module';
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
-        return configService.get<DataSourceOptions>('database');
+        const databaseConfig =  configService.get<DataSourceOptions>('database');
+        return {
+          ...databaseConfig,
+          autoLoadEntities: true,
+        };
       },
+  
     }),
     UserModule,
     AuthModule,
+    InfoModule,
   ],
   controllers: [AppController],
   providers: [AppService],

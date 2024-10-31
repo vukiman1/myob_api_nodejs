@@ -32,8 +32,8 @@ async function bootstrap() {
 
   const {baseUrl, port, globalPrefix } = configService.get('app')
   app.setGlobalPrefix(globalPrefix)
+  app.enableCors();
   await app.listen(port, async () => {
-
     const logger = new Logger('App Port')
       logger.log(`Server running on ${baseUrl}:${port}/${globalPrefix}`)
   });

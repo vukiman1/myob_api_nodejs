@@ -12,20 +12,24 @@ export class JobSeekerLoginDto {
     password: string
 }
 
+
 export class JobSeekerRegisterDto {  
     @ApiProperty({ example: 'example@example.com', description: 'Email của người dùng' })
     @IsNotEmpty()
     @IsEmail()
     email: string
 
+    @ApiProperty({ example: 'Kim An', description: 'Tên đầy đủ của người dùng' })
     @IsNotEmpty()
     @IsString()
     fullName: string
 
+    @ApiProperty({ example: 'KimAn@123', description: 'Mật khẩu của người dùng' })
     @IsNotEmpty()
     @IsStrongPassword()
     password: string
 
+    @ApiProperty({ example: 'KimAn@123', description: 'Xác nhận lại mật khẩu của người dùng' })
     @IsNotEmpty()
     @IsStrongPassword()
     confirmPassword: string

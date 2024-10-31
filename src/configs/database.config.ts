@@ -5,6 +5,7 @@ import { DataSource, DataSourceOptions } from 'typeorm'
 
 import { env, envBoolean, envNumber } from '../global/env'
 import { User } from 'src/modules/user/entities/user.entity'
+import { JobSeekerProfile } from 'src/modules/info/entities/job_seeker_profle.entities'
 
 
 const dataSourceOptions: DataSourceOptions = {
@@ -15,7 +16,7 @@ const dataSourceOptions: DataSourceOptions = {
   password: env('DB_PASSWORD', 'postgres'),
   database: env('DB_DATABASE', 'MyJobAPI'),
   synchronize: envBoolean('DB_SYNCHRONIZE', false),
-  entities: [User],
+  // entities: [User, JobSeekerProfile],
 //   migrations: ['dist/migrations/*{.ts,.js}'],
 }
 export const dbRegToken = 'database'
