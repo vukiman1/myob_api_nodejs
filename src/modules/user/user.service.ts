@@ -34,4 +34,9 @@ export class UserService {
   remove(id: number) {
     return `This action removes a #${id} user`;
   }
+
+  async findUserByEmail(email:string):Promise<User> {
+    return this.userRepository.findOne({ where: { email } });
+  }
+
 }

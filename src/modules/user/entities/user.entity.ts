@@ -5,12 +5,12 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 
 @Entity()
 export class User {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn()
   id: string;
 
   @Column()
@@ -28,7 +28,6 @@ export class User {
 
   @Column({ default: 0 })
   isSupperuser: boolean;
-
 
   @Column({ default: 0 })
   isStaff: boolean;
