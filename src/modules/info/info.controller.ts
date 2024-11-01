@@ -12,10 +12,10 @@ export class InfoController {
     return this.infoService.create(createInfoDto);
   }
 
-  @Get()
-  findAll() {
-    return this.infoService.findAll();
-  }
+  // @Get()
+  // findAll() {
+  //   return this.infoService.findOne();
+  // }
 
   @Get(':id')
   findOne(@Param('id') id: string) {

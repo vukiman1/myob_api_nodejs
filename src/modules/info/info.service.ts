@@ -8,9 +8,7 @@ export class InfoService {
     return 'This action adds a new info';
   }
 
-  findAll() {
-    return `This action returns all info`;
-  }
+
 
   findOne(id: number) {
     return `This action returns a #${id} info`;
