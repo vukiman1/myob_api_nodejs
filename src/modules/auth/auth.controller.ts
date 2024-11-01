@@ -38,10 +38,11 @@ export class AuthController {
   //user
   @UseGuards(AuthGuard('jwt'))
   @Get('user-info')
-  async getUserInfo(@Req() req): Promise<any> {
-    console.log(req.user)
-    return this.authService.get_user_info();
+  async getUserInfo(@Req() req: any): Promise<any> {
+    // console.log(req.user.roleName)
+    return this.authService.get_user_info(req.user.email);
   }
+
 
   @HttpCode(HttpStatus.OK)
   @Post('check-creds')

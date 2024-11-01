@@ -57,8 +57,12 @@ export class AuthService {
       }
       
       //all
-      async get_user_info():Promise<any> {
-        return {message: "ok"}
+      async get_user_info(email: string):Promise<any> {
+        const user = await this.userRepository.findOne({
+          where: { email },
+          relations: ['jobSeekerProfile'], // Liên kết với bảng JobSeekerProfile
+        });
+        return user
       }
       async check_creds_services(authCredDto:AuthCredDto):Promise<any> {
         const user = await this.findUserByEmail(authCredDto.email);
@@ -88,13 +92,14 @@ export class AuthService {
     async get_token_services(authGetTokenDto:AuthGetTokenDto):Promise<any> {
   
       const user = await this.validate_user(authGetTokenDto)
+  
       if (user) {
         return {
           errors: {},
           scope: "read write",
           token_type :"Bearer",
           refresh_token: this.jwtService.sign({ ...user }, { expiresIn: '7d' }),
-          access_token: this.jwtService.sign({ ...user }), // Tạo JWT token
+          access_token:  this.jwtService.sign({ ...user}), // Tạo JWT token
         };
       }
      
@@ -110,5 +115,10 @@ export class AuthService {
       }
   
       throw new NotFoundException(`User not found!`)
+    }
+
+
+    async get_user_info_services() {
+
     }
   }

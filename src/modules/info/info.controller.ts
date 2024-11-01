@@ -7,10 +7,10 @@ import { UpdateInfoDto } from './dto/update-info.dto';
 export class InfoController {
   constructor(private readonly infoService: InfoService) {}
 
-  @Post()
-  create(@Body() createInfoDto: CreateInfoDto) {
-    return this.infoService.create(createInfoDto);
-  }
+  // @Post()
+  // create(@Body() createInfoDto: CreateInfoDto) {
+  //   return this.infoService.create(createInfoDto);
+  // }
 
   // @Get()
   // findAll() {

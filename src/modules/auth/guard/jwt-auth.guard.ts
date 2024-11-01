@@ -11,10 +11,10 @@ export class AuthenticationGuard extends AuthGuard('jwt') {
           ignoreExpiration: false,
           secretOrKey: configService.get<string>('JWT_SECRET'),
         });
+        console.log('hi')
       }
-    
       async validate(payload: any) {
-
+        console.log('hi')
         // Payload chứa thông tin từ JWT, ví dụ như userId
         return { id: payload.id, email: payload.email };
       }

@@ -1,11 +1,13 @@
 
 import { Exclude } from '@nestjs/class-transformer';
+import { JobSeekerProfile } from 'src/modules/info/entities/job_seeker_profle.entities';
 import {
   Entity,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
   PrimaryGeneratedColumn,
+  OneToOne,
 } from 'typeorm';
 
 @Entity('auth_user')
@@ -49,6 +51,9 @@ export class User {
  
   @Column({ nullable: true  })
   lastLogin: string;
+
+  @OneToOne(() => JobSeekerProfile, (profile) => profile.user)
+  jobSeekerProfile: JobSeekerProfile;
 
   @CreateDateColumn()
   createdAt: Date;

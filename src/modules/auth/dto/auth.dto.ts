@@ -19,6 +19,7 @@ export class AuthGetTokenDto {
     @IsEmail()
     email: string
 
+    @ApiProperty({ example: 'JOB_SEEKER', description: 'Qu' })
     @IsNotEmpty()
     roleName: string
 

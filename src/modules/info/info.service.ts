@@ -4,7 +4,7 @@ import { UpdateInfoDto } from './dto/update-info.dto';
 
 @Injectable()
 export class InfoService {
-  create(createInfoDto: CreateInfoDto) {
+  get_user_info_services(createInfoDto: CreateInfoDto) {
     return 'This action adds a new info';
   }
 
