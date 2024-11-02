@@ -2,33 +2,31 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { MyjobService } from './myjob.service';
 import { CreateMyjobDto } from './dto/create-myjob.dto';
 import { UpdateMyjobDto } from './dto/update-myjob.dto';
+import { CreateBannerDto, UpdateBannerDto } from './dto/banner.dto';
 
 @Controller('myjob')
 export class MyjobController {
   constructor(private readonly myjobService: MyjobService) {}
 
-  @Post()
-  create(@Body() createMyjobDto: CreateMyjobDto) {
-    return this.myjobService.create(createMyjobDto);
+  @Post('web/banner')
+  createBanner(@Body() createBannerDto: CreateBannerDto) {
+    return this.myjobService.createBanner(createBannerDto);
   }
 
-  @Get()
-  findAll() {
-    return this.myjobService.findAll();
+  @Get('web/banner')
+  getBanner() {
+    return this.myjobService.getAllBaner();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.myjobService.findOne(+id);
-  }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateMyjobDto: UpdateMyjobDto) {
-    return this.myjobService.update(+id, updateMyjobDto);
+
+  @Patch('web/banner/:id')
+  updateBanner(@Param('id') id: string, @Body() updateBannerDto: UpdateBannerDto) {
+    return this.myjobService.updateBanner(id, updateBannerDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.myjobService.remove(+id);
+  removeBanner(@Param('id') id: string) {
+    return this.myjobService.removeBanner(id);
   }
 }

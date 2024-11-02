@@ -62,7 +62,22 @@ export class AuthService {
           where: { email },
           relations: ['jobSeekerProfile'], // Liên kết với bảng JobSeekerProfile
         });
-        return user
+        return {
+          id: user.id,
+          fullName: user.fullName,
+          email: user.email,
+          isActive: user.isActive,
+          isVerifyEmail: user.isVerifyEmail,
+          avatarUrl: user.avatarUrl,
+          roleName: user.roleName,
+          jobSeekerProfileId: user.jobSeekerProfile?.id,
+          jobSeekerProfile: {
+            id: user.jobSeekerProfile?.id,
+            phone: user.jobSeekerProfile?.phone,
+          },
+          companyId: null,
+          company: null
+        };
       }
       async check_creds_services(authCredDto:AuthCredDto):Promise<any> {
         const user = await this.findUserByEmail(authCredDto.email);

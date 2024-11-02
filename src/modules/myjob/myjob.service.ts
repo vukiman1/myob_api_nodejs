@@ -1,26 +1,52 @@
 import { Injectable } from '@nestjs/common';
 import { CreateMyjobDto } from './dto/create-myjob.dto';
 import { UpdateMyjobDto } from './dto/update-myjob.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Banner } from './entities/banner.entity';
+import { Repository } from 'typeorm';
+import { BannerDto, CreateBannerDto, UpdateBannerDto } from './dto/banner.dto';
 
 @Injectable()
 export class MyjobService {
-  create(createMyjobDto: CreateMyjobDto) {
-    return 'This action adds a new myjob';
+  
+  constructor(
+    @InjectRepository(Banner)
+    private bannerRepository: Repository<Banner>
+  ) {}
+  async createBanner(createBannerDto: CreateBannerDto) {
+    const newBanner = this.bannerRepository.create({  ...createBannerDto });
+    const savedUser = await this.bannerRepository.save(newBanner);
+    return savedUser
   }
 
-  findAll() {
-    return `This action returns all myjob`;
+
+  async getAllBaner() {
+    const banners = await this.bannerRepository.find({});
+    const activeBanners = banners.filter(banner => banner.isActive === true);
+    return activeBanners.map(banner => ({
+      id: banner.id,
+      imageUrl: banner.imageUrl,
+      buttonText: banner.buttonText,
+      description: banner.description,
+      buttonLink: banner.buttonLink,
+      isShowButton: banner.isShowButton,
+      descriptionLocation: banner.descriptionLocation
+    }));
   }
 
   findOne(id: number) {
     return `This action returns a #${id} myjob`;
   }
 
-  update(id: number, updateMyjobDto: UpdateMyjobDto) {
-    return `This action updates a #${id} myjob`;
+  async updateBanner(id: string, updateBannerDto: UpdateBannerDto):Promise<any> {
+    await this.bannerRepository.update(id, updateBannerDto);
+    return this.findBannerById(id)
   }
 
-  remove(id: number) {
+  removeBanner(id: string) {
     return `This action removes a #${id} myjob`;
+  }
+  async findBannerById(id: string): Promise<any> {
+    return this.bannerRepository.findOne({ where: {id} });
   }
 }

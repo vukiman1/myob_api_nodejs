@@ -2,19 +2,22 @@ import { ApiProperty } from "@nestjs/swagger"
 import { IsEmail, IsNotEmpty, IsString, IsStrongPassword } from "class-validator"
 
 export class JobSeekerLoginDto {
-    @ApiProperty({ example: 'example@example.com', description: 'Email của người dùng' })
+    @ApiProperty({ example: 'anvu@gmail.com', description: 'Email của người dùng' })
     @IsNotEmpty()
     @IsEmail()
     email: string
 
+    
+    @ApiProperty({ example: 'An@01022002', description: 'Mật khẩu của người dùng' })
     @IsNotEmpty()
     @IsStrongPassword()
     password: string
 }
 
 
+
 export class JobSeekerRegisterDto {  
-    @ApiProperty({ example: 'example@example.com', description: 'Email của người dùng' })
+    @ApiProperty({ example: 'anvu@gmail.com', description: 'Email của người dùng' })
     @IsNotEmpty()
     @IsEmail()
     email: string
@@ -24,12 +27,12 @@ export class JobSeekerRegisterDto {
     @IsString()
     fullName: string
 
-    @ApiProperty({ example: 'KimAn@123', description: 'Mật khẩu của người dùng' })
+    @ApiProperty({ example: 'An@01022002', description: 'Mật khẩu của người dùng' })
     @IsNotEmpty()
     @IsStrongPassword()
     password: string
 
-    @ApiProperty({ example: 'KimAn@123', description: 'Xác nhận lại mật khẩu của người dùng' })
+    @ApiProperty({ example: 'An@01022002', description: 'Xác nhận lại mật khẩu của người dùng' })
     @IsNotEmpty()
     @IsStrongPassword()
     confirmPassword: string

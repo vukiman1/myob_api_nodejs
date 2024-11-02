@@ -8,6 +8,7 @@ import { AuthGuard } from '@nestjs/passport';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+
   //Job Seaker
   @Post('job-seeker/register')
   async JobSeakerRegister(@Body() jobSeekerRegisterDto: JobSeekerRegisterDto):Promise<any> {
@@ -18,6 +19,7 @@ export class AuthController {
     };
   }
 
+  
   @Options('job-seeker/register')
   @HttpCode(204) // 204 No Content for OPTIONS requests
   jobSeakerRegisterOptions() {
@@ -54,6 +56,7 @@ export class AuthController {
     };
   }
 
+  
   @Post('token')
   async getToken(@Body() authGetTokenDto: AuthGetTokenDto):Promise<any> {
 
