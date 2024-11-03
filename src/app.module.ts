@@ -11,7 +11,10 @@ import { DataSourceOptions } from 'typeorm';
 import { AuthModule } from './modules/auth/auth.module';
 import { InfoModule } from './modules/info/info.module';
 import { MyjobModule } from './modules/myjob/myjob.module';
+<<<<<<< HEAD
 import { CommonModule } from './modules/common/common.module';
+=======
+>>>>>>> b8993b5a819001b5050bed3f36971d026aecf095
 
 @Module({
   imports: [
@@ -35,7 +38,10 @@ import { CommonModule } from './modules/common/common.module';
     AuthModule,
     InfoModule,
     MyjobModule,
+<<<<<<< HEAD
     CommonModule,
+=======
+>>>>>>> b8993b5a819001b5050bed3f36971d026aecf095
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -2,9 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { CreateMyjobDto } from './dto/create-myjob.dto';
 import { UpdateMyjobDto } from './dto/update-myjob.dto';
 import { InjectRepository } from '@nestjs/typeorm';
+<<<<<<< HEAD
 import { Banner } from './entities/banner.entity';
 import { Repository } from 'typeorm';
 import { BannerDto, CreateBannerDto, UpdateBannerDto } from './dto/banner.dto';
+=======
+import { Repository } from 'typeorm';
+import { BannerDto, CreateBannerDto, UpdateBannerDto } from './dto/banner.dto';
+import { Banner } from './entities/banner.entity';
+>>>>>>> b8993b5a819001b5050bed3f36971d026aecf095
 
 @Injectable()
 export class MyjobService {

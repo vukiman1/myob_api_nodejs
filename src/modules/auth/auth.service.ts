@@ -6,8 +6,13 @@ import { Repository } from 'typeorm';
 import { JobSeekerRegisterDto } from './dto/job_seaker-auth.dto';
 import { ErrorEnum } from 'src/constants/error-code.constant';
 import { JobSeekerProfile } from '../info/entities/job_seeker_profle.entities';
+<<<<<<< HEAD
 import { AuthCredDto, AuthGetTokenDto } from './dto/auth.dto';
 import { JwtService } from '@nestjs/jwt';
+=======
+import { JwtService } from '@nestjs/jwt';
+import { AuthCredDto, AuthGetTokenDto } from './dto/auth.dto';
+>>>>>>> b8993b5a819001b5050bed3f36971d026aecf095
 
 @Injectable()
 export class AuthService {
@@ -113,6 +118,10 @@ export class AuthService {
           errors: {},
           scope: "read write",
           token_type :"Bearer",
+<<<<<<< HEAD
+=======
+          backend: "backend",
+>>>>>>> b8993b5a819001b5050bed3f36971d026aecf095
           refresh_token: this.jwtService.sign({ ...user }, { expiresIn: '7d' }),
           access_token:  this.jwtService.sign({ ...user}), // Tạo JWT token
         };

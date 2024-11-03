@@ -8,9 +8,15 @@ import { UserService } from '../user/user.service';
 import { JobSeekerProfile } from '../info/entities/job_seeker_profle.entities';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+<<<<<<< HEAD
 import { ConfigKeyPaths } from 'src/configs';
 import { ISecurityConfig } from 'src/configs/security.config';
 import { JwtStrategy } from './strategies/jwt.strategy';
+=======
+import { ConfigKeyPaths, ISecurityConfig } from 'src/configs';
+import { JwtStrategy } from './strategies/jwt.strategy';
+
+>>>>>>> b8993b5a819001b5050bed3f36971d026aecf095
 
 @Module({
   imports: [
