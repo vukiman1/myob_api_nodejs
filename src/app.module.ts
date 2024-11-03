@@ -10,6 +10,7 @@ import { User } from './modules/user/entities/user.entity';
 import { DataSourceOptions } from 'typeorm';
 import { AuthModule } from './modules/auth/auth.module';
 import { InfoModule } from './modules/info/info.module';
+import { MyjobModule } from './modules/myjob/myjob.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { InfoModule } from './modules/info/info.module';
     UserModule,
     AuthModule,
     InfoModule,
+    MyjobModule,
   ],
   controllers: [AppController],
   providers: [AppService],
