@@ -14,8 +14,12 @@ export class MyjobController {
   }
 
   @Get('web/banner')
-  getBanner() {
-    return this.myjobService.getAllBaner();
+  async getBanner() {
+    const banners = await this.myjobService.getAllBaner()
+    return {
+      errors: {},
+      data: banners
+    }
   }
 
 

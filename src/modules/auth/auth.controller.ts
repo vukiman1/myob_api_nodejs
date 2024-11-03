@@ -42,7 +42,11 @@ export class AuthController {
   @Get('user-info')
   async getUserInfo(@Req() req: any): Promise<any> {
     // console.log(req.user.roleName)
-    return this.authService.get_user_info(req.user.email);
+    const user =  this.authService.get_user_info(req.user.email);
+    return {
+      errors: {},
+      data: user
+    }
   }
 
 
