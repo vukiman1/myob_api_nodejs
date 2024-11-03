@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
 import { MyjobService } from './myjob.service';
-import { CreateMyjobDto } from './dto/create-myjob.dto';
-import { UpdateMyjobDto } from './dto/update-myjob.dto';
 import { CreateBannerDto, UpdateBannerDto } from './dto/banner.dto';
+import { CreateFeedBackDto } from './dto/feedback.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('myjob')
 export class MyjobController {
@@ -13,21 +13,19 @@ export class MyjobController {
     return this.myjobService.createBanner(createBannerDto);
   }
 
+  @UseGuards(AuthGuard('jwt'))
+  @Post('web/feedbacks')
+  createFeedback(@Req() req: any, @Body() createFeedBackDto: CreateFeedBackDto) {
+    return this.myjobService.createFeedback(createFeedBackDto, req.user.email);
+  }
+
   @Get('web/banner')
   async getBanner() {
-<<<<<<< HEAD
-    const banners = await this.myjobService.getAllBaner()
-    return {
-      errors: {},
-      data: banners
-    }
-=======
     const banner = await this.myjobService.getAllBaner()
     return {
       errors: {},
       data: banner
   }
->>>>>>> b8993b5a819001b5050bed3f36971d026aecf095
   }
 
 

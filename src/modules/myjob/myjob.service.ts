@@ -1,28 +1,37 @@
 import { Injectable } from '@nestjs/common';
-import { CreateMyjobDto } from './dto/create-myjob.dto';
-import { UpdateMyjobDto } from './dto/update-myjob.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-<<<<<<< HEAD
-import { Banner } from './entities/banner.entity';
 import { Repository } from 'typeorm';
-import { BannerDto, CreateBannerDto, UpdateBannerDto } from './dto/banner.dto';
-=======
-import { Repository } from 'typeorm';
-import { BannerDto, CreateBannerDto, UpdateBannerDto } from './dto/banner.dto';
+import {  CreateBannerDto, UpdateBannerDto } from './dto/banner.dto';
 import { Banner } from './entities/banner.entity';
->>>>>>> b8993b5a819001b5050bed3f36971d026aecf095
+import { CreateFeedBackDto } from './dto/feedback.dto';
+import { Feedback } from './entities/feedback.entity';
+import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class MyjobService {
   
   constructor(
     @InjectRepository(Banner)
-    private bannerRepository: Repository<Banner>
+    private bannerRepository: Repository<Banner>,
+
+    @InjectRepository(Feedback)
+    private feedbackRepository: Repository<Feedback>, // Inject Feedback repository
+
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
   ) {}
   async createBanner(createBannerDto: CreateBannerDto) {
     const newBanner = this.bannerRepository.create({  ...createBannerDto });
-    const savedUser = await this.bannerRepository.save(newBanner);
-    return savedUser
+    const savedBanner = await this.bannerRepository.save(newBanner);
+    return savedBanner
+  } 
+  
+
+  async createFeedback(createFeedBackDto: CreateFeedBackDto, id: string) {
+    const newFeedback = this.feedbackRepository.create({  ...createFeedBackDto });
+
+    const savedFeedback = await this.feedbackRepository.save(newFeedback);
+    return savedFeedback
   }
 
 
