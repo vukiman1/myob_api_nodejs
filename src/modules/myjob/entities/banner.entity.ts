@@ -1,15 +1,18 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { Column, CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('myjob_banner')
 export class Banner {
     @PrimaryGeneratedColumn()
     id: string;
-
+    
     @Column({ nullable: true  })
     imageUrl: string;
 
+
     @Column({ nullable: true  })
     imageMobileUrl: string;
+
 
     @Column({ nullable: true  })
     buttonText: string;

@@ -1,34 +1,21 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { CommonService } from './common.service';
-import { CreateCommonDto } from './dto/create-common.dto';
-import { UpdateCommonDto } from './dto/update-common.dto';
+import { CreateCityDto, CreateDistrictDto } from './dto/location.dto';
 
 @Controller('common')
 export class CommonController {
   constructor(private readonly commonService: CommonService) {}
 
-  @Post()
-  create(@Body() createCommonDto: CreateCommonDto) {
-    return this.commonService.create(createCommonDto);
+  @Post('district')
+  async createDistrict( createDistrictDto: CreateDistrictDto) {
+    const newDistrice = await this.commonService.create_district_service(createDistrictDto);
+    return newDistrice
   }
 
-  @Get()
-  findAll() {
-    return this.commonService.findAll();
+  @Post('city')
+  async createCity( createCityDto: CreateCityDto) {
+    const newcity = await this.commonService.create_city_service(createCityDto);
+    return newcity
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.commonService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCommonDto: UpdateCommonDto) {
-    return this.commonService.update(+id, updateCommonDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.commonService.remove(+id);
-  }
 }
