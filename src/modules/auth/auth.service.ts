@@ -81,7 +81,7 @@ export class AuthService {
       }
       async check_creds_services(authCredDto:AuthCredDto):Promise<any> {
         const user = await this.findUserByEmail(authCredDto.email);
-        if (!user || authCredDto.roleName !== user.roleName ) {
+        if (!user ) {
           return {
             email: authCredDto.email,
             email_verified:false,
@@ -121,6 +121,26 @@ export class AuthService {
      
     }
 
+
+    async revokeToken(token: string): Promise<void> {
+      // Giải mã token để lấy thông tin
+      try {
+        const decodedToken = this.jwtService.decode(token);
+        console.log(token);
+        // Kiểm tra token hợp lệ không
+        if (!decodedToken) {
+          throw new Error('Token không hợp lệ');
+        }
+        // Lưu token vào bảng revoked_tokens
+        // const revokedToken = this.revokedTokenRepository.create({ token });
+        // await this.revokedTokenRepository.save(revokedToken);
+        console.log('Token đã bị thu hồi');
+      } catch (error) {
+        console.error('Lỗi khi thu hồi token:', error);
+        throw new Error('Thu hồi token thất bại');
+      }
+    }
+    
 
     async validate_user(authGetTokenDto:AuthGetTokenDto): Promise<any> {
       const user = await this.findUserByEmail(authGetTokenDto.email);

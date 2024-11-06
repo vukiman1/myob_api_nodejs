@@ -36,7 +36,6 @@ export class AuthController {
   }
 
 
-
   //user
   @UseGuards(AuthGuard('jwt'))
   @Get('user-info')
@@ -71,25 +70,15 @@ export class AuthController {
     };
   }
 
-//   {
-//     "errors": {},
-//     "data": {
-//         "id": 41306,
-//         "fullName": "An Vũ",
-//         "email": "anvuit734@gmail.com",
-//         "isActive": true,
-//         "isVerifyEmail": true,
-//         "avatarUrl": "https://res.cloudinary.com/dtnpj540t/image/upload/v1680687265/my-job/images_default/avt_default.jpg",
-//         "roleName": "JOB_SEEKER",
-//         "jobSeekerProfileId": 27869,
-//         "jobSeekerProfile": {
-//             "id": 27869,
-//             "phone": "0385849615"
-//         },
-//         "companyId": null,
-//         "company": null
-//     }
-// }
+
+  @Post('revoke-token')
+  async revokeToken(token:string):Promise<any> {
+    console.log(token);
+    // const data = await this.authService.revokeToken(token);
+    return true
+  }
+
+
 }
 
 
