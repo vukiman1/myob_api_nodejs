@@ -13,5 +13,5 @@ export class CreateDistrictDto {
     
     @IsNotEmpty()
     @IsString()
-    cityName: string
+    cityId: string
 }
