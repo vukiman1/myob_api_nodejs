@@ -29,7 +29,11 @@ export class CommonController {
 
   @Get('districts')
   async getDistrictsByCity(@Query('cityId') cityId: number) {
-    return await this.commonService.getDistrictsByCityService(cityId);
+    const districts =  await this.commonService.getDistrictsByCityService(cityId);
+    return {
+      errors: {},
+      data: districts
+    }
   }
 
 

@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { setupSwagger } from './setup-swagger';
 import { Logger, UnprocessableEntityException, ValidationPipe } from '@nestjs/common';
+import { HttpExceptionFilter } from './common/exceptions/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -25,13 +26,13 @@ async function bootstrap() {
     }),
   )
 
-
   const configService = app.get<ConfigService>(ConfigService);
   setupSwagger(app, configService)
   
 
   const {baseUrl, port, globalPrefix } = configService.get('app')
   app.setGlobalPrefix(globalPrefix)
+  app.useGlobalFilters(new HttpExceptionFilter());
   app.enableCors();
   await app.listen(port, async () => {
     const logger = new Logger('App Port')

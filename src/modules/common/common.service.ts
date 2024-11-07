@@ -73,18 +73,21 @@ export class CommonService {
     return this.districtRepository.find({});
   }
 
-  async getDistrictsByCityService(cityId: number): Promise<District[]> {
+  async getDistrictsByCityService(cityId: number): Promise<any> {
     const districts = await this.districtRepository.find({
-      where: { city: { id: cityId } }, // Chỉnh lại điều kiện tìm kiếm
+      where: { city: { id: cityId } },
       relations: ['city'],
     });
 
     if (!districts.length) {
       throw new NotFoundException(`No districts found for city with id ${cityId}`);
     }
-
-    return districts;
+    return districts.map(district => ({
+      id: district.id,
+      name: district.name,
+    }));
   }
+
 
   async findAllCity(): Promise<any> {
     return this.cityRepository.find({});
