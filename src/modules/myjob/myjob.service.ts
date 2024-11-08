@@ -48,6 +48,7 @@ export class MyjobService {
       descriptionLocation: banner.descriptionLocation
     }));
   }
+  //ok
 
   findOne(id: number) {
     return `This action returns a #${id} myjob`;
