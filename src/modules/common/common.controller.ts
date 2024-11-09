@@ -7,6 +7,14 @@ import { error } from 'console';
 export class CommonController {
   constructor(private readonly commonService: CommonService) {}
 
+  @Get('configs')
+  async getAllConfig() {
+    const configs = await this.commonService.getAllConfig();
+    return {
+      errors: {},
+      data: configs
+    }
+  }
 
   @Post('district')
   async createDistrict(@Body() createDistrictDto: CreateDistrictDto) {

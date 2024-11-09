@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { District } from './entities/district.entity';
 import { City } from './entities/city.entity';
+import { DataConfigs } from 'src/constants/data.constant';
 
 @Injectable()
 export class CommonService {
@@ -101,6 +102,51 @@ export class CommonService {
     await this.cityRepository.delete(id);
     return `City has been deleted`;
 }
+
+  async getAllConfig( ) {
+
+    const dataConfigList = [
+      { key: 'GENDER', label: 'gender' },
+      { key: 'MARITAL_STATUS', label: 'maritalStatus' },
+      { key: 'LANGUAGE', label: 'language' },
+      { key: 'LANGUAGE_LEVEL', label: 'languageLevel' },
+      { key: 'POSITION', label: 'position' },
+      { key: 'TYPE_OF_WORKPLACE', label: 'typeOfWorkplace' },
+      { key: 'JOB_TYPE', label: 'jobType' },
+      { key: 'EXPERIENCE', label: 'experience' },
+      { key: 'ACADEMIC_LEVEL', label: 'academicLevel' },
+      { key: 'EMPLOYEE_SIZE', label: 'employeeSize' },
+      { key: 'APPLICATION_STATUS', label: 'applicationStatus' },
+      { key: 'FREQUENCY_NOTIFICATION', label: 'frequencyNotification' },
+      { key: 'JOB_POST_STATUS', label: 'jobPostStatus' }
+    ];
+
+    const configResult = {};
+
+    // Tạo options và dict cho từng cấu hình
+    dataConfigList.forEach(config => {
+      const { options, dict } = this.createOptionsAndDict(DataConfigs[config.key]);
+      configResult[`${config.label}Options`] = options;
+      configResult[`${config.label}Dict`] = dict;
+    });
+  
+    // Các cấu hình bổ sung
+    configResult['cityOptions'] = [];
+    configResult['careerOptions'] = [];
+    configResult['cityDict'] = [];
+    configResult['careerDict'] = [];
+  
+    return configResult;  // Trả về trực tiếp cấu hình
+  }
+
+  createOptionsAndDict = (array: { id: string | number, name: string }[]) => {
+    const options = array; // Mảng các đối tượng { id, name }
+    const dict = array.reduce((acc, item) => {
+      acc[item.id] = item.name;
+      return acc;
+    }, {} as Record<string, string>); // Tạo dict với id là khóa và name là giá trị
+    return { options, dict };
+  };
 
 }
 
