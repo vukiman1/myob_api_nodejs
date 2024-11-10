@@ -1,7 +1,8 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { CommonService } from './common.service';
 import { CreateCityDto, CreateDistrictDto } from './dto/location.dto';
-import { error } from 'console';
+import { CreateCareerDto } from './dto/carrer.dto';
+import { CreateLocation } from './entities/location.entity';
 
 @Controller('common')
 export class CommonController {
@@ -49,21 +50,54 @@ export class CommonController {
   async findAllCity() {
     return this.commonService.findAllCity();
   }
+
   @Post('city')
   async createCity(@Body() createCityDto: CreateCityDto) {
     const newcity = await this.commonService.create_city_service(createCityDto);
     return newcity
   }
 
+  //Chỉ xoá khi chưa liên kết với bẳng nào, không nên xoá
   @Delete('city/:id')
   async removeCity(@Param('id') id: string) {
     const remove = await this.commonService.remove_city_service(+id);
+    console.log(remove);
     return {
-      errors: {},
-      message: remove
+      remove
     }
   }
 
+  @Patch('city/:id')
+  async updateCity (@Param('id') id: string, @Body() createCityDto: CreateCityDto) {
+    return this.commonService.updateCity(+id, createCityDto);
+  }
+
+  @Get('career')
+  async findAllCareer() {
+    return this.commonService.findAllCareer();
+  }
+
+
+  @Post('career')
+  async createCarrer(@Body() createCareerDto: CreateCareerDto) {
+    const newCarrer = await this.commonService.create_career_service(createCareerDto);
+    return newCarrer
+  }
+
+  @Get('location')
+  async findAllLocation() {
+    const location = await this.commonService.findAllLocation();
+    return {
+      errors: {},
+      data: location
+    }
+  }
+
+  @Post('location')
+  async createLocation(@Body() createLocation: CreateLocation) {
+    const newCarrer = await this.commonService.createLocation(createLocation);
+    return newCarrer
+  }
 
 
 }

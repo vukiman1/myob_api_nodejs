@@ -11,6 +11,9 @@ import { AuthCredDto, AuthGetTokenDto } from './dto/auth.dto';
 
 @Injectable()
 export class AuthService {
+  static findUserByEmail(email: string) {
+    throw new Error('Method not implemented.');
+  }
 
     constructor(
         @InjectRepository(User)

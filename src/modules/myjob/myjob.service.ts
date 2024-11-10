@@ -6,6 +6,7 @@ import { Banner } from './entities/banner.entity';
 import { CreateFeedBackDto } from './dto/feedback.dto';
 import { Feedback } from './entities/feedback.entity';
 import { User } from '../user/entities/user.entity';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class MyjobService {
@@ -27,11 +28,28 @@ export class MyjobService {
   } 
   
 
-  async createFeedback(createFeedBackDto: CreateFeedBackDto, id: string) {
-    const newFeedback = this.feedbackRepository.create({  ...createFeedBackDto });
+  async createFeedback(createFeedBackDto: CreateFeedBackDto, email: string) {
+    const user  = await this.userRepository.findOne({ where: { email } });
+    const newFeedback = this.feedbackRepository.create({  ...createFeedBackDto, user });
 
     const savedFeedback = await this.feedbackRepository.save(newFeedback);
     return savedFeedback
+  }
+
+  async getFeedbacks() {
+    const feedbacks = await this.feedbackRepository.find({relations: ['user'],});
+    const activeFeedbacks = feedbacks.filter(feedback => feedback.isActive === true);
+    return activeFeedbacks.map(feedback => ({
+      id: feedback.id,
+      content: feedback.content,
+      rating: feedback.rating,
+      isActive: feedback.isActive,
+      userDict: {
+        id: feedback.user.id,
+        fullName: feedback.user.fullName,
+        avatarUrl: feedback.user.avatarUrl,
+      }
+    }));
   }
 
 

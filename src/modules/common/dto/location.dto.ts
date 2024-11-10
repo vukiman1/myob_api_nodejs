@@ -6,6 +6,8 @@ export class CreateCityDto {
     name: string
 }
 
+
+
 export class CreateDistrictDto {
     @IsNotEmpty()
     @IsString()
@@ -14,4 +16,25 @@ export class CreateDistrictDto {
     @IsNotEmpty()
     @IsString()
     cityId: string
+}
+
+export class CreateLocationDto {
+    @IsNotEmpty()
+    @IsString()
+    address: string
+    
+
+    @IsString()
+    lat: string
+
+    @IsString()
+    lng: string
+
+    @IsNotEmpty()
+    @IsString()
+    cityId: string
+
+    @IsNotEmpty()
+    @IsString()
+    districtId: string
 }

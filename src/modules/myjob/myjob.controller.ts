@@ -13,11 +13,6 @@ export class MyjobController {
     return this.myjobService.createBanner(createBannerDto);
   }
 
-  @UseGuards(AuthGuard('jwt'))
-  @Post('web/feedbacks')
-  createFeedback(@Req() req: any, @Body() createFeedBackDto: CreateFeedBackDto) {
-    return this.myjobService.createFeedback(createFeedBackDto, req.user.email);
-  }
 
   @Get('web/banner')
   async getBanner() {
@@ -28,15 +23,31 @@ export class MyjobController {
   }
   }
 
-
-
   @Patch('web/banner/:id')
   updateBanner(@Param('id') id: string, @Body() updateBannerDto: UpdateBannerDto) {
     return this.myjobService.updateBanner(id, updateBannerDto);
   }
 
-  @Delete(':id')
+  @Delete('web/banner/:id')
   removeBanner(@Param('id') id: string) {
     return this.myjobService.removeBanner(id);
+  }
+
+
+
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('web/feedbacks')
+  createFeedback(@Req() req: any, @Body() createFeedBackDto: CreateFeedBackDto) {
+    return this.myjobService.createFeedback(createFeedBackDto, req.user.email);
+  }
+
+  @Get('web/feedbacks')
+  async getFeedbacks() {
+    const feedback = await this.myjobService.getFeedbacks()
+    return {
+      errors: {},
+      data: feedback
+  }
   }
 }
