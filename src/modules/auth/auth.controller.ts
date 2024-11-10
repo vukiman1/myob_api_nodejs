@@ -79,6 +79,18 @@ export class AuthController {
   }
 
 
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('settings')
+  async getUserSetting(@Req() req: any): Promise<any> {
+    return {
+      errors: {},
+      data: {
+        emailNotificationActive: true,
+        smsNotificationsActive: true //
+      }
+    }
+  }
 }
 
 
