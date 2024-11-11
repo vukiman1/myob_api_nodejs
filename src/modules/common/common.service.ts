@@ -5,9 +5,6 @@ import { Repository } from 'typeorm';
 import { District } from './entities/district.entity';
 import { City } from './entities/city.entity';
 import { DataConfigs } from 'src/constants/data.constant';
-import { Career } from './entities/carrer.entity';
-import { CreateCareerDto } from './dto/carrer.dto';
-import { CreateLocation, Location } from './entities/location.entity';
 
 @Injectable()
 export class CommonService {
@@ -17,12 +14,6 @@ export class CommonService {
 
     @InjectRepository(City)
     private cityRepository: Repository<City>,
-
-    @InjectRepository(Career)
-    private carrerRepository: Repository<Career>,
-
-    @InjectRepository(Location)
-    private locationRepository: Repository<Location>,
 ) {}
 
   async create_district_service(createDistrictDto: CreateDistrictDto): Promise<any>{
@@ -102,117 +93,58 @@ export class CommonService {
   }
 
   async remove_city_service(id: number) {
-
     const city = await this.cityRepository.findOne({ where: { id } });
     if (!city) {
         throw new NotFoundException(`City with id ${id} not found`);
     }
     await this.cityRepository.delete(id);
     return `City has been deleted`;
+}
+
+  async getAllConfig( ) {
+
+    const dataConfigList = [
+      { key: 'GENDER', label: 'gender' },
+      { key: 'MARITAL_STATUS', label: 'maritalStatus' },
+      { key: 'LANGUAGE', label: 'language' },
+      { key: 'LANGUAGE_LEVEL', label: 'languageLevel' },
+      { key: 'POSITION', label: 'position' },
+      { key: 'TYPE_OF_WORKPLACE', label: 'typeOfWorkplace' },
+      { key: 'JOB_TYPE', label: 'jobType' },
+      { key: 'EXPERIENCE', label: 'experience' },
+      { key: 'ACADEMIC_LEVEL', label: 'academicLevel' },
+      { key: 'EMPLOYEE_SIZE', label: 'employeeSize' },
+      { key: 'APPLICATION_STATUS', label: 'applicationStatus' },
+      { key: 'FREQUENCY_NOTIFICATION', label: 'frequencyNotification' },
+      { key: 'JOB_POST_STATUS', label: 'jobPostStatus' }
+    ];
+
+    const configResult = {};
+
+    // Tạo options và dict cho từng cấu hình
+    dataConfigList.forEach(config => {
+      const { options, dict } = this.createOptionsAndDict(DataConfigs[config.key]);
+      configResult[`${config.label}Options`] = options;
+      configResult[`${config.label}Dict`] = dict;
+    });
+  
+    // Các cấu hình bổ sung
+    configResult['cityOptions'] = [];
+    configResult['careerOptions'] = [];
+    configResult['cityDict'] = [];
+    configResult['careerDict'] = [];
+  
+    return configResult;  // Trả về trực tiếp cấu hình
   }
 
-  async updateCity(id: number,createCityDto): Promise<any> {
-    const city = await this.cityRepository.findOne({ where: { id } });
-    if (!city) {
-        throw new NotFoundException(`City with id ${id} not found`);
-    }
-    await this.cityRepository.update(id, { name: createCityDto.name });
-    // Trả về city sau khi cập nhật
-    return this.cityRepository.findOne({ where: { id } });
-  }
+  createOptionsAndDict = (array: { id: string | number, name: string }[]) => {
+    const options = array; // Mảng các đối tượng { id, name }
+    const dict = array.reduce((acc, item) => {
+      acc[item.id] = item.name;
+      return acc;
+    }, {} as Record<string, string>); // Tạo dict với id là khóa và name là giá trị
+    return { options, dict };
+  };
 
-
-async getAllConfig() {
-  const cities = await this.findAllCity();
-  const careers = await this.findAllCareer();
-
-  const dataConfigList = [
-    { key: 'GENDER', label: 'gender' },
-    { key: 'MARITAL_STATUS', label: 'maritalStatus' },
-    { key: 'LANGUAGE', label: 'language' },
-    { key: 'LANGUAGE_LEVEL', label: 'languageLevel' },
-    { key: 'POSITION', label: 'position' },
-    { key: 'TYPE_OF_WORKPLACE', label: 'typeOfWorkplace' },
-    { key: 'JOB_TYPE', label: 'jobType' },
-    { key: 'EXPERIENCE', label: 'experience' },
-    { key: 'ACADEMIC_LEVEL', label: 'academicLevel' },
-    { key: 'EMPLOYEE_SIZE', label: 'employeeSize' },
-    { key: 'APPLICATION_STATUS', label: 'applicationStatus' },
-    { key: 'FREQUENCY_NOTIFICATION', label: 'frequencyNotification' },
-    { key: 'JOB_POST_STATUS', label: 'jobPostStatus' }
-  ];
-
-  const configResult = {};
-
-  // Tạo options và dict cho từng cấu hình trong dataConfigList
-  dataConfigList.forEach(config => {
-    const { options, dict } = this.createOptionsAndDict(DataConfigs[config.key]);
-    configResult[`${config.label}Options`] = options;
-    configResult[`${config.label}Dict`] = dict;
-  });
-
-  // Sử dụng createOptionsAndDict cho city và career
-  const { options: cityOptions, dict: cityDict } = this.createOptionsAndDict(cities);
-  const { options: careerOptions, dict: careerDict } = this.createOptionsAndDict(careers);
-
-  configResult['cityOptions'] = cityOptions;
-  configResult['careerOptions'] = careerOptions;
-  configResult['cityDict'] = cityDict;
-  configResult['careerDict'] = careerDict;
-
-  return configResult; // Trả về trực tiếp cấu hình
-}
-
-// Hàm chung để tạo options và dict
-createOptionsAndDict(array: { id: string | number, name: string }[]) {
-  const options = array.map(item => ({ id: item.id, name: item.name })); // Mảng các đối tượng { id, name }
-  const dict = array.reduce((acc, item) => {
-    acc[item.id] = item.name;
-    return acc;
-  }, {} as Record<string | number, string>); // Tạo dict với id là khóa và name là giá trị
-  return { options, dict };
-};
-
-
-
- async create_career_service( createCareerDto: CreateCareerDto) {
-  const career = await this.getCareerByName(createCareerDto.name);
-    if (career) {
-      throw new ForbiddenException(`Carrer existing`);     
-    }
-    const newCareer = this.carrerRepository.create( {...createCareerDto});
-    const saveCareer = await this.carrerRepository.save(newCareer);
-    return saveCareer
- }
-
- async findAllCareer(): Promise<any> {
-  return this.carrerRepository.find({});
-}
-
-async getCareerByName(name: string): Promise<any> {
-  const career = await this.carrerRepository.findOne({ where: {name } });
-  return career;
-}
-
-async findAllLocation(): Promise<any> {
-  const locations = await this.locationRepository.find( {});
-  return locations;
-}
-
-async getLocationByName(address: string): Promise<any> {
-  const location = await this.locationRepository.findOne({ where: {address } });
-  return location;
-}
-
-async createLocation( createLocation: CreateLocation) {
-  const location = await this.getLocationByName(createLocation.address);
-  if (location) {
-    throw new ForbiddenException(`Location existing`);     
-  }
-  const newLocation = this.locationRepository.create( {...createLocation});
-  console.log(newLocation);
-    const saveLocation= await this.locationRepository.save(newLocation);
-    return saveLocation
- }
 }
 

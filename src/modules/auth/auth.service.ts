@@ -8,6 +8,7 @@ import { ErrorEnum } from 'src/constants/error-code.constant';
 import { JobSeekerProfile } from '../info/entities/job_seeker_profle.entities';
 import { JwtService } from '@nestjs/jwt';
 import { AuthCredDto, AuthGetTokenDto } from './dto/auth.dto';
+import { Location } from '../common/entities/location.entity';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +22,8 @@ export class AuthService {
         private readonly jwtService: JwtService,
         @InjectRepository(JobSeekerProfile)
         private jobSeekerProfileRepository: Repository<JobSeekerProfile>,
+        @InjectRepository(Location)
+        private locationRepository: Repository<Location>,
       ) {}
 
       //Job Seeker
@@ -30,10 +33,13 @@ export class AuthService {
            throw new ConflictException(ErrorEnum.SYSTEM_USER_EXISTS);
         }
 
+        // Check password match
+        if (jobSeekerRegisterDto.password!== jobSeekerRegisterDto.confirmPassword) {
+            throw new ConflictException('Password not match');
+        }
+
         //hash password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(jobSeekerRegisterDto.password, salt);
-        jobSeekerRegisterDto.password = hashedPassword;
+        jobSeekerRegisterDto.password = await this.hashPassword(jobSeekerRegisterDto.password);
 
         //tạo mới user trong csdl
         const newJobSeeker = this.userRepository.create({  ...jobSeekerRegisterDto });
@@ -50,10 +56,48 @@ export class AuthService {
         return savedUser;
       }
 
+      async hashPassword(password: string): Promise<string> {
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+        return hashedPassword;
+      }
+
 
 
       //Employee
+      async EmployeeRegister(createEmployerDto:any){
 
+    //Tạo mới user
+        const existingUser = await this.userRepository.findOne({ where: { email: createEmployerDto.email } });
+        if (existingUser) {
+            throw new ConflictException('Email đã tồn tại');
+        }
+
+        /// Check password match
+        if (createEmployerDto.password!== createEmployerDto.confirmPassword) {
+            throw new ConflictException('Password not match');
+        }
+    
+        /// Tạo mới user
+        const newUser = this.userRepository.create({
+            email: createEmployerDto.email,
+            fullName: createEmployerDto.fullName,
+            password: await this.hashPassword(createEmployerDto.password), // Sử dụng hàm băm mật khẩu
+            hasCompany: true, // Đặt hasCompany là true vì người dùng này sẽ có công ty
+        });
+        const savedUser = await this.userRepository.save(newUser);
+
+    // Tạo mới location
+  //   const newLocation = this.locationRepository.create({
+  //     cityId: createEmployerDto.location.cityId,
+  //     districtId: createEmployerDto.location.districtId,
+  //     address: createEmployerDto.location.address,
+  // });
+  // const savedLocation = await this.locationRepository.save(newLocation);
+
+
+        return "ok"
+      }
       
       async findUserByEmail(email:string):Promise<User> {
         return this.userRepository.findOne({ where: { email } });

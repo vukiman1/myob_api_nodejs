@@ -31,8 +31,9 @@ export class AuthController {
 
   //Employee
   @Post('employee/register')
-  EmployeeRegister(@Body() authRegisterDto: any) {
-    return 'employee_register';
+  async EmployeeRegister(@Body() createEmployerDto: any) {
+    const newEmployee = await this.authService.EmployeeRegister(createEmployerDto);
+    return newEmployee;
   }
 
 
