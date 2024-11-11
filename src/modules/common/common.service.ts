@@ -1,5 +1,5 @@
 import { Body, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateCityDto, CreateDistrictDto } from './dto/location.dto';
+import { CreateCityDto, CreateDistrictDto, CreateLocationDto } from './dto/location.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { District } from './entities/district.entity';
@@ -26,22 +26,21 @@ export class CommonService {
 ) {}
 
   async create_district_service(createDistrictDto: CreateDistrictDto): Promise<any>{
-    const { name, cityId } = createDistrictDto;
+    const { name, city } = createDistrictDto;
     // Tìm kiếm thành phố theo tên
-    const city = await this.getCityById(+cityId);
+    const oldcity = await this.getCityById(+city);
 
-    if (!city) {
-        throw new NotFoundException(`City with id: "${cityId}" not found`);
+    if (!oldcity) {
+        throw new NotFoundException(`City with id: "${city}" not found`);
     }
-
     const existingDistrict = await this.districtRepository.findOne({
-      where: { name, city: { id: city.id } }, // Sử dụng city.id thay vì cả đối tượng city
+      where: { name, city: { id: oldcity.id } }, // Sử dụng city.id thay vì cả đối tượng city
     });
     if (existingDistrict) {
-      throw new ConflictException(`District "${name}" already exists in city "${cityId}"`);
+      throw new ConflictException(`District "${name}" already exists in city "${city}"`);
     }
     // Tạo mới District với thành phố đã tìm thấy
-    const newDistrict = this.districtRepository.create({ name, city });
+    const newDistrict = this.districtRepository.create({ name, city:oldcity});
     const saveDistrict = await this.districtRepository.save(newDistrict);
     return saveDistrict
   }
@@ -56,6 +55,35 @@ export class CommonService {
     const saveCity = await this.cityRepository.save(newCity);
     return saveCity
   }
+
+
+async createLocation(createLocationDto: CreateLocationDto) {
+  const location = await this.getLocationByName(createLocationDto.address);
+  if (location) {
+    throw new ForbiddenException(`Location existing`);
+  }
+
+  const city = await this.getCityById(+createLocationDto.city);
+  if (!city) {
+    throw new NotFoundException(`City with id: "${createLocationDto.city}" not found`);
+  }
+
+  const district = await this.districtRepository.findOne({ where: { id: +createLocationDto.district, city: { id: city.id } } });
+  if (!district) {
+    throw new NotFoundException(`District with id: "${createLocationDto.district}" not found in city "${createLocationDto.city}"`);
+  }
+
+  const newLocation = this.locationRepository.create({
+    ...createLocationDto,
+    city,
+    district,
+  });
+
+  const saveLocation = await this.locationRepository.save(newLocation);
+  return saveLocation;
+}
+
+
 
   async getCityById(id: number): Promise<any> {
     const city = await this.cityRepository.findOne({ where: {id } });
@@ -204,15 +232,6 @@ async getLocationByName(address: string): Promise<any> {
   return location;
 }
 
-async createLocation( createLocation: CreateLocation) {
-  const location = await this.getLocationByName(createLocation.address);
-  if (location) {
-    throw new ForbiddenException(`Location existing`);     
-  }
-  const newLocation = this.locationRepository.create( {...createLocation});
-  console.log(newLocation);
-    const saveLocation= await this.locationRepository.save(newLocation);
-    return saveLocation
- }
+
 }
 

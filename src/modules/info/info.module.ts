@@ -6,10 +6,11 @@ import { UserModule } from '../user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../user/entities/user.entity';
 import { JobSeekerProfile } from './entities/job_seeker_profle.entities';
+import { Company } from './entities/company.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ User, JobSeekerProfile]),
+    TypeOrmModule.forFeature([ User, JobSeekerProfile, Company]),
     UserModule
   ],
   controllers: [InfoController],

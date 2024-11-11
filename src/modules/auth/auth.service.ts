@@ -8,6 +8,9 @@ import { ErrorEnum } from 'src/constants/error-code.constant';
 import { JobSeekerProfile } from '../info/entities/job_seeker_profle.entities';
 import { JwtService } from '@nestjs/jwt';
 import { AuthCredDto, AuthGetTokenDto } from './dto/auth.dto';
+import { Location } from '../common/entities/location.entity';
+import { EmployerRegisterDto } from './dto/employer-auth.dto';
+import { Company } from '../info/entities/company.entity';
 
 @Injectable()
 export class AuthService {
@@ -21,49 +24,71 @@ export class AuthService {
         private readonly jwtService: JwtService,
         @InjectRepository(JobSeekerProfile)
         private jobSeekerProfileRepository: Repository<JobSeekerProfile>,
+        @InjectRepository(Location)
+        private locationRepository: Repository<Location>,
+        @InjectRepository(Company)
+        private companyRepository: Repository<Company>,
+        
       ) {}
 
       //Job Seeker
       async job_seeker_register_services(jobSeekerRegisterDto: JobSeekerRegisterDto) {
-        const user = await this.findUserByEmail(jobSeekerRegisterDto.email)
-        if (user) {
-           throw new ConflictException(ErrorEnum.SYSTEM_USER_EXISTS);
-        }
-
+        await this.checkUserExist(jobSeekerRegisterDto.email)
         //hash password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(jobSeekerRegisterDto.password, salt);
-        jobSeekerRegisterDto.password = hashedPassword;
-
+        jobSeekerRegisterDto.password = await this.hashPassword(jobSeekerRegisterDto.password);
         //tạo mới user trong csdl
         const newJobSeeker = this.userRepository.create({  ...jobSeekerRegisterDto });
         const savedUser = await this.userRepository.save(newJobSeeker);
-
-
          // Tạo bản ghi job_seeker_profile liên kết với user vừa tạo
         const newJobSeekerProfile = this.jobSeekerProfileRepository.create({
           user: savedUser,
         });
         await this.jobSeekerProfileRepository.save(newJobSeekerProfile);
-
-
         return savedUser;
       }
 
 
+      async employer_register_services(employerRegisterDto: EmployerRegisterDto) {
+        await this.checkUserExist(employerRegisterDto.email);
+        console.log(employerRegisterDto.company);
+
+        const newUser = this.userRepository.create({
+          email: employerRegisterDto.email,
+          fullName: employerRegisterDto.fullName,
+          password: await this.hashPassword(employerRegisterDto.password),
+          roleName: "EMPLOYER",
+          hasCompany: true,
+        });
+        const savedUser = await this.userRepository.save(newUser);
+
+        const newLocation = this.locationRepository.create({
+          city: { id: employerRegisterDto.company.location.city }, // Gán đối tượng { id: cityID }
+          district: { id: employerRegisterDto.company.location.district }, // Gán đối tượng { id: districtID }
+          address: employerRegisterDto.company.location.address,
+        });
+
+        const savedLocation = await this.locationRepository.save(newLocation);
+        employerRegisterDto.company.slug = await this.generateSlug(employerRegisterDto.company.companyName) || "no-name"
+    // Tạo mới company
+        const newCompany = this.companyRepository.create({
+          ...employerRegisterDto.company,
+          location: savedLocation,
+          user: savedUser,
+      });
+      return this.companyRepository.save(newCompany);
+
+      }
 
       //Employee
 
       
-      async findUserByEmail(email:string):Promise<User> {
-        return this.userRepository.findOne({ where: { email } });
-      }
+
       
       //all
       async get_user_info(email: string):Promise<any> {
         const user = await this.userRepository.findOne({
           where: { email },
-          relations: ['jobSeekerProfile'], // Liên kết với bảng JobSeekerProfile
+          relations: ['jobSeekerProfile', 'company'], // Liên kết với bảng JobSeekerProfile
         });
         return {
           id: user.id,
@@ -73,14 +98,19 @@ export class AuthService {
           isVerifyEmail: user.isVerifyEmail,
           avatarUrl: user.avatarUrl,
           roleName: user.roleName,
-          jobSeekerProfileId: user.jobSeekerProfile?.id,
-          jobSeekerProfile: {
-            id: user.jobSeekerProfile?.id,
-            phone: user.jobSeekerProfile?.phone,
-          },
-          companyId: null,
-          company: null
-        };
+          jobSeekerProfileId: user.jobSeekerProfile ? user.jobSeekerProfile.id : null,  // Sửa cú pháp ở đây
+          jobSeekerProfile: user.jobSeekerProfile ? {
+              id: user.jobSeekerProfile.id,
+              phone: user.jobSeekerProfile.phone,
+          } : null,
+          companyId: user.company ? user.company.id : null,  // Sửa cú pháp ở đây
+          company: user.company ? {
+              id: user.company.id,
+              slug: user.company.slug,
+              companyName: user.company.companyName,
+              imageUrl: user.company.companyImageUrl,
+          } : null,
+      };
       }
       async check_creds_services(authCredDto:AuthCredDto):Promise<any> {
         const user = await this.findUserByEmail(authCredDto.email);
@@ -145,6 +175,24 @@ export class AuthService {
     }
     
 
+
+
+    async get_user_info_services() {
+    }
+
+    // service function
+    async findUserByEmail(email:string):Promise<User> {
+      const user =  this.userRepository.findOne({ where: { email } });
+      return user
+    }
+
+    async checkUserExist(email:string):Promise<void> {
+      const user = await this.findUserByEmail(email);
+      if (user) {
+        throw new ConflictException(ErrorEnum.SYSTEM_USER_EXISTS);
+     }
+    }
+
     async validate_user(authGetTokenDto:AuthGetTokenDto): Promise<any> {
       const user = await this.findUserByEmail(authGetTokenDto.email);
 
@@ -156,8 +204,44 @@ export class AuthService {
       throw new NotFoundException(`User not found!`)
     }
 
-
-    async get_user_info_services() {
-
+    async hashPassword(password: string): Promise<string> {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      return hashedPassword
     }
+
+    async generateSlug(companyName: string): Promise<string> {
+      // Tạo slug cơ bản từ tên công ty
+      let slug = companyName
+        .toLowerCase()
+        .normalize('NFD') // Loại bỏ dấu tiếng Việt
+        .replace(/[\u0300-\u036f]/g, '') // Loại bỏ các ký tự dấu
+        .replace(/[^a-z0-9 ]/g, '') // Giữ lại chữ cái và số
+        .trim()
+        .replace(/\s+/g, '-'); // Chuyển khoảng trắng thành dấu "-"
+    
+      // Kiểm tra xem slug đã tồn tại trong cơ sở dữ liệu chưa
+      let isSlugExist = await this.companyRepository.findOne({ where: { slug } });
+    
+      // Nếu slug đã tồn tại, thêm hậu tố số vào
+      let counter = 1;
+      while (isSlugExist) {
+        const match = slug.match(/-(\d+)$/); // Kiểm tra xem slug có kết thúc bằng một số không
+    
+        if (match) {
+          // Nếu có, cộng thêm 1 vào số đó
+          counter = parseInt(match[1], 10) + 1;
+          slug = slug.replace(/-(\d+)$/, `-${counter}`); // Cập nhật slug với số mới
+        } else {
+          // Nếu không có số, thêm "-1" vào cuối
+          slug = `${slug}-1`;
+        }
+    
+        // Kiểm tra lại xem slug có tồn tại không
+        isSlugExist = await this.companyRepository.findOne({ where: { slug } });
+      }
+    
+      return slug;
+    }
+
   }
