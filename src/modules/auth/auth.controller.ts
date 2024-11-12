@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { JobSeekerRegisterDto } from './dto/job_seaker-auth.dto';
 import { AuthCredDto, AuthGetTokenDto } from './dto/auth.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { EmployerRegisterDto } from './dto/employer-auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -30,10 +31,18 @@ export class AuthController {
 
 
   //Employee
+<<<<<<< HEAD
   @Post('employee/register')
   async EmployeeRegister(@Body() createEmployerDto: any) {
     const newEmployee = await this.authService.EmployeeRegister(createEmployerDto);
     return newEmployee;
+=======
+  @Post('employer/register')
+  async EmployerRegister(@Body() employeeRegisterDto: EmployerRegisterDto) {
+ 
+    const newEmployer = await this.authService.employer_register_services(employeeRegisterDto)
+    return newEmployer
+>>>>>>> 622c6748fbae3e206025ea8496a34e0bef6623cd
   }
 
 

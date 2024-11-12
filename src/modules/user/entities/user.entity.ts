@@ -1,5 +1,6 @@
 
 import { Exclude } from '@nestjs/class-transformer';
+import { Company } from 'src/modules/info/entities/company.entity';
 import { JobSeekerProfile } from 'src/modules/info/entities/job_seeker_profle.entities';
 import {
   Entity,
@@ -54,6 +55,10 @@ export class User {
 
   @OneToOne(() => JobSeekerProfile, (profile) => profile.user)
   jobSeekerProfile: JobSeekerProfile;
+
+  @OneToOne(() => Company, (Company) => Company.user)
+  company: Company;
+
 
   @CreateDateColumn()
   createdAt: Date;

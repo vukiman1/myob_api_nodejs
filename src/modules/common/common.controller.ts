@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { CommonService } from './common.service';
-import { CreateCityDto, CreateDistrictDto } from './dto/location.dto';
+import { CreateCityDto, CreateDistrictDto, CreateLocationDto } from './dto/location.dto';
 import { CreateCareerDto } from './dto/carrer.dto';
 import { CreateLocation } from './entities/location.entity';
 
@@ -95,8 +95,8 @@ export class CommonController {
   }
 
   @Post('location')
-  async createLocation(@Body() createLocation: CreateLocation) {
-    const newCarrer = await this.commonService.createLocation(createLocation);
+  async createLocation(@Body() createLocationDto: CreateLocationDto) {
+    const newCarrer = await this.commonService.createLocation(createLocationDto);
     return newCarrer
   }
 
