@@ -1,6 +1,7 @@
 import { Location } from "src/modules/common/entities/location.entity";
 import { User } from "src/modules/user/entities/user.entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { CompanyImage } from "./company-image.entity";
 
 @Entity('info_company')
 export class Company  {
@@ -58,6 +59,9 @@ export class Company  {
     
     @Column()
     employeeSize: number
+
+    @OneToMany(() => CompanyImage, (companyImage) => companyImage.company)
+    companyImage: CompanyImage[];
 
 
 

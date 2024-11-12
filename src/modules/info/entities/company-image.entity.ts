@@ -11,13 +11,11 @@ export class CompanyImage  {
     @Column()
     imageUrl: string;
 
-    @Column()
-    slug: string;
 
+    @ManyToOne(() => Company, (company) => company.companyImage)
+    @JoinColumn()
+    company: Company;
 
-    // @ManyToOne(() => Company, (company) => company.companyImage)
-    // @JoinColumn()
-    // company: Company;
 
     @CreateDateColumn()
     createdAt: Date;
