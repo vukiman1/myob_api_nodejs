@@ -8,6 +8,7 @@ export class CompanyImage  {
     @PrimaryGeneratedColumn()
     id: string;
 
+    
     @Column()
     imageUrl: string;
 

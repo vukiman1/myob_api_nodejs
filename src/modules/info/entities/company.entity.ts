@@ -2,6 +2,7 @@ import { Location } from "src/modules/common/entities/location.entity";
 import { User } from "src/modules/user/entities/user.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { CompanyImage } from "./company-image.entity";
+import { JobPost } from "src/modules/job/entities/job-post.entity";
 
 @Entity('info_company')
 export class Company  {
@@ -72,6 +73,9 @@ export class Company  {
     @OneToOne(() => User, { eager: true })
     @JoinColumn()
     user: User;
+
+    @OneToMany(() => JobPost, (jobPost) => jobPost.company)
+    jobPosts: JobPost[];
 
     @CreateDateColumn()
     createdAt: Date;

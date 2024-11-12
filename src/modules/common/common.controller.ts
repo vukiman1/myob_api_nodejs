@@ -2,7 +2,6 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestj
 import { CommonService } from './common.service';
 import { CreateCityDto, CreateDistrictDto, CreateLocationDto } from './dto/location.dto';
 import { CreateCareerDto } from './dto/carrer.dto';
-import { CreateLocation } from './entities/location.entity';
 
 @Controller('common')
 export class CommonController {

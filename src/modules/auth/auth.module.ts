@@ -13,7 +13,6 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { Location } from '../common/entities/location.entity';
 import { Company } from '../info/entities/company.entity';
 
-
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, JobSeekerProfile, Location, Company]),

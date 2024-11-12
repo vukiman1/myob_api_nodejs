@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, Up
 import { City } from './city.entity';
 import { Location } from './location.entity'; // Ensure Location is imported
 
-@Entity('info_district')
+@Entity('common_district')
 export class District {
     @PrimaryGeneratedColumn()
     id: number;

@@ -1,9 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, JoinColumn, OneToMany } from 'typeorm';
 import { City } from './city.entity';
 import { District } from './district.entity';
 import { IsNotEmpty } from 'class-validator';
+import { JobPost } from 'src/modules/job/entities/job-post.entity';
 
-@Entity('info_location')
+@Entity('common_location')
 export class Location {
     @PrimaryGeneratedColumn()
     id: number;
@@ -26,37 +27,8 @@ export class Location {
     @JoinColumn()
     district: District;
 
-    @CreateDateColumn()
-    createdAt: Date;
-  
-    @UpdateDateColumn()
-    updatedAt: Date;
-}
-
-export class CreateLocation {
-    @PrimaryGeneratedColumn()
-    id: number;
-
-    @IsNotEmpty()
-    @Column()
-    address: string;
-
-    @Column({ nullable: true  })
-    lat: string;
-
-    @Column({ nullable: true  })
-    lng: string;
-
-    @IsNotEmpty()
-    @ManyToOne(() => City)
-    @JoinColumn()
-    city: City;
-    
-    
-    @IsNotEmpty()
-    @ManyToOne(() => District, (district) => district.locations)
-    @JoinColumn()
-    district: District;
+    @OneToMany(() => JobPost, (jobPost) => jobPost.location)
+    jobPosts: JobPost[];
 
     @CreateDateColumn()
     createdAt: Date;

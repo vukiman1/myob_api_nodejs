@@ -77,38 +77,7 @@ export class AuthService {
       });
       return this.companyRepository.save(newCompany);
 
-      }
-
-      //Employee
-      async EmployeeRegister(createEmployerDto:any){
-
-    //Tạo mới user
-        const existingUser = await this.userRepository.findOne({ where: { email: createEmployerDto.email } });
-        if (existingUser) {
-            throw new ConflictException('Email đã tồn tại');
-        }
-
-        /// Check password match
-        if (createEmployerDto.password!== createEmployerDto.confirmPassword) {
-            throw new ConflictException('Password not match');
-        }
-    
-        /// Tạo mới user
-        const newUser = this.userRepository.create({
-            email: createEmployerDto.email,
-            fullName: createEmployerDto.fullName,
-            password: await this.hashPassword(createEmployerDto.password), // Sử dụng hàm băm mật khẩu
-            hasCompany: true, // Đặt hasCompany là true vì người dùng này sẽ có công ty
-        });
-        const savedUser = await this.userRepository.save(newUser);
-
-
-
-        return "ok"
-      }
-      
-
-      
+      }    
       //all
       async get_user_info(email: string):Promise<any> {
         const user = await this.userRepository.findOne({

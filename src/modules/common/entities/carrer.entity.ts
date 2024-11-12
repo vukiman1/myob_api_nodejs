@@ -1,7 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { District } from './district.entity';
+import { JobPost } from 'src/modules/job/entities/job-post.entity';
 
-@Entity('info_career')
+@Entity('common_career')
 export class Career {
     @PrimaryGeneratedColumn()
     id: number;
@@ -11,6 +12,9 @@ export class Career {
 
     @Column()
     iconUrl: string;
+
+    @OneToMany(() => JobPost, (jobPost) => jobPost.career)
+    jobPosts: JobPost[];
 
     @CreateDateColumn()
     createdAt: Date;

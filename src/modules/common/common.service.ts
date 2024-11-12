@@ -7,7 +7,7 @@ import { City } from './entities/city.entity';
 import { DataConfigs } from 'src/constants/data.constant';
 import { Career } from './entities/carrer.entity';
 import { CreateCareerDto } from './dto/carrer.dto';
-import { CreateLocation, Location } from './entities/location.entity';
+import { Location } from './entities/location.entity';
 
 @Injectable()
 export class CommonService {

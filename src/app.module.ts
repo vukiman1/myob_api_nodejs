@@ -12,6 +12,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { InfoModule } from './modules/info/info.module';
 import { MyjobModule } from './modules/myjob/myjob.module';
 import { CommonModule } from './modules/common/common.module';
+import { JobModule } from './modules/job/job.module';
 
 @Module({
   imports: [
@@ -35,7 +36,8 @@ import { CommonModule } from './modules/common/common.module';
     AuthModule,
     InfoModule,
     MyjobModule,
-    CommonModule
+    CommonModule,
+    JobModule
   ],
   controllers: [AppController],
   providers: [AppService],

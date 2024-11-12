@@ -2,6 +2,7 @@
 import { Exclude } from '@nestjs/class-transformer';
 import { Company } from 'src/modules/info/entities/company.entity';
 import { JobSeekerProfile } from 'src/modules/info/entities/job_seeker_profle.entities';
+import { JobPost } from 'src/modules/job/entities/job-post.entity';
 import {
   Entity,
   Column,
@@ -9,6 +10,7 @@ import {
   UpdateDateColumn,
   PrimaryGeneratedColumn,
   OneToOne,
+  OneToMany,
 } from 'typeorm';
 
 @Entity('auth_user')
@@ -58,7 +60,9 @@ export class User {
 
   @OneToOne(() => Company, (Company) => Company.user)
   company: Company;
-
+  
+  @OneToMany(() => JobPost, (jobPost) => jobPost.user)
+  jobPosts: JobPost[]; // Một User có thể có nhiều JobPost
 
   @CreateDateColumn()
   createdAt: Date;

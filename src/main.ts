@@ -6,7 +6,9 @@ import { Logger, UnprocessableEntityException, ValidationPipe } from '@nestjs/co
 import { HttpExceptionFilter } from './common/exceptions/http-exception.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger:  ['warn', 'error'],
+  });
 
 
   app.useGlobalPipes(
@@ -26,7 +28,7 @@ async function bootstrap() {
     }),
   )
 
-  
+
   const configService = app.get<ConfigService>(ConfigService);
   setupSwagger(app, configService)
   
@@ -37,7 +39,7 @@ async function bootstrap() {
   app.enableCors();
   await app.listen(port, async () => {
     const logger = new Logger('App Port')
-      logger.log(`Server running on ${baseUrl}:${port}/${globalPrefix}`)
+      logger.warn(`Server running on ${baseUrl}:${port}/${globalPrefix}`)
   });
 }
 bootstrap();
