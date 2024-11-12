@@ -65,13 +65,9 @@ export class Company  {
     @JoinColumn()
     location: Location;
 
-<<<<<<< HEAD
-    
-=======
     @OneToOne(() => User, { eager: true })
     @JoinColumn()
     user: User;
->>>>>>> 622c6748fbae3e206025ea8496a34e0bef6623cd
 
     @CreateDateColumn()
     createdAt: Date;

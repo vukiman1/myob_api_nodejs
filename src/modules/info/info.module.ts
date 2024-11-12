@@ -7,10 +7,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../user/entities/user.entity';
 import { JobSeekerProfile } from './entities/job_seeker_profle.entities';
 import { Company } from './entities/company.entity';
+import { Location } from '../common/entities/location.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ User, JobSeekerProfile, Company]),
+    TypeOrmModule.forFeature([ User, JobSeekerProfile, Company, Location]),
     UserModule
   ],
   controllers: [InfoController],

@@ -1,26 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
 import { InfoService } from './info.service';
 import { CreateInfoDto } from './dto/create-info.dto';
 import { UpdateInfoDto } from './dto/update-info.dto';
+import { AuthGuard } from '@nestjs/passport';
 
-@Controller('info')
+@Controller('info/web')
 export class InfoController {
   constructor(private readonly infoService: InfoService) {}
 
-  // @Post()
-  // create(@Body() createInfoDto: CreateInfoDto) {
-  //   return this.infoService.create(createInfoDto);
-  // }
-
-  // @Get()
-  // findAll() {
-  //   return this.infoService.findOne();
-  // }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.infoService.findOne(+id);
+  @UseGuards(AuthGuard('jwt'))
+  @Get('company')
+  async getInfoCompany(@Req() req: any) {
+    const company = await this.infoService.getCompanyInfo(req.user.email)
+    return company
   }
+
+
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateInfoDto: UpdateInfoDto) {

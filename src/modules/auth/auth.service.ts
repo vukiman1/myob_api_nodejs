@@ -11,6 +11,7 @@ import { AuthCredDto, AuthGetTokenDto } from './dto/auth.dto';
 import { Location } from '../common/entities/location.entity';
 import { EmployerRegisterDto } from './dto/employer-auth.dto';
 import { Company } from '../info/entities/company.entity';
+import { UserResponseDto } from '../user/dto/user.dto';
 
 @Injectable()
 export class AuthService {
@@ -26,35 +27,16 @@ export class AuthService {
         private jobSeekerProfileRepository: Repository<JobSeekerProfile>,
         @InjectRepository(Location)
         private locationRepository: Repository<Location>,
-<<<<<<< HEAD
-=======
         @InjectRepository(Company)
         private companyRepository: Repository<Company>,
         
->>>>>>> 622c6748fbae3e206025ea8496a34e0bef6623cd
       ) {}
 
       //Job Seeker
       async job_seeker_register_services(jobSeekerRegisterDto: JobSeekerRegisterDto) {
-<<<<<<< HEAD
-        const user = await this.findUserByEmail(jobSeekerRegisterDto.email)
-        if (user) {
-           throw new ConflictException(ErrorEnum.SYSTEM_USER_EXISTS);
-        }
-
-        // Check password match
-        if (jobSeekerRegisterDto.password!== jobSeekerRegisterDto.confirmPassword) {
-            throw new ConflictException('Password not match');
-        }
-
-        //hash password
-        jobSeekerRegisterDto.password = await this.hashPassword(jobSeekerRegisterDto.password);
-
-=======
         await this.checkUserExist(jobSeekerRegisterDto.email)
         //hash password
         jobSeekerRegisterDto.password = await this.hashPassword(jobSeekerRegisterDto.password);
->>>>>>> 622c6748fbae3e206025ea8496a34e0bef6623cd
         //tạo mới user trong csdl
         const newJobSeeker = this.userRepository.create({  ...jobSeekerRegisterDto });
         const savedUser = await this.userRepository.save(newJobSeeker);
@@ -65,13 +47,6 @@ export class AuthService {
         await this.jobSeekerProfileRepository.save(newJobSeekerProfile);
         return savedUser;
       }
-
-      async hashPassword(password: string): Promise<string> {
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-        return hashedPassword;
-      }
-
 
       async employer_register_services(employerRegisterDto: EmployerRegisterDto) {
         await this.checkUserExist(employerRegisterDto.email);
@@ -127,13 +102,6 @@ export class AuthService {
         });
         const savedUser = await this.userRepository.save(newUser);
 
-    // Tạo mới location
-  //   const newLocation = this.locationRepository.create({
-  //     cityId: createEmployerDto.location.cityId,
-  //     districtId: createEmployerDto.location.districtId,
-  //     address: createEmployerDto.location.address,
-  // });
-  // const savedLocation = await this.locationRepository.save(newLocation);
 
 
         return "ok"
@@ -147,27 +115,7 @@ export class AuthService {
           where: { email },
           relations: ['jobSeekerProfile', 'company'], // Liên kết với bảng JobSeekerProfile
         });
-        return {
-          id: user.id,
-          fullName: user.fullName,
-          email: user.email,
-          isActive: user.isActive,
-          isVerifyEmail: user.isVerifyEmail,
-          avatarUrl: user.avatarUrl,
-          roleName: user.roleName,
-          jobSeekerProfileId: user.jobSeekerProfile ? user.jobSeekerProfile.id : null,  // Sửa cú pháp ở đây
-          jobSeekerProfile: user.jobSeekerProfile ? {
-              id: user.jobSeekerProfile.id,
-              phone: user.jobSeekerProfile.phone,
-          } : null,
-          companyId: user.company ? user.company.id : null,  // Sửa cú pháp ở đây
-          company: user.company ? {
-              id: user.company.id,
-              slug: user.company.slug,
-              companyName: user.company.companyName,
-              imageUrl: user.company.companyImageUrl,
-          } : null,
-      };
+        return UserResponseDto.toResponse(user);
       }
       async check_creds_services(authCredDto:AuthCredDto):Promise<any> {
         const user = await this.findUserByEmail(authCredDto.email);
