@@ -6,7 +6,7 @@ import { User } from "src/modules/user/entities/user.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 
-@Entity('job_job_post')
+@Entity('job_post')
 export class JobPost  {
     @PrimaryGeneratedColumn()
     id: string;
@@ -77,7 +77,7 @@ export class JobPost  {
 
     @Column({ default: 0 })
     shares: number
-
+    
     @Column({ default: 1 })
     status: number
 

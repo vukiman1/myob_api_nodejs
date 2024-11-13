@@ -7,10 +7,12 @@ import { Company } from '../info/entities/company.entity';
 import { Location } from '../common/entities/location.entity';
 import { CompanyImage } from '../info/entities/company-image.entity';
 import { UserModule } from '../user/user.module';
+import { JobPost } from './entities/job-post.entity';
+import { Career } from '../common/entities/carrer.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ User,  Company, Location, CompanyImage]),
+    TypeOrmModule.forFeature([ User,  Company, Location, CompanyImage, JobPost, Career]),
     UserModule
   ],
   controllers: [JobController],

@@ -31,7 +31,26 @@ export class CreateLocationDto {
     @IsNotEmpty()
     @IsNumber()
     district: number
+}
 
+export class CreateJobLocationDto {
+    @IsNotEmpty()
+    @IsString()
+    address: string
+    
+    @IsNotEmpty()
+    @IsNumber()
+    city: number
+
+
+    @IsNotEmpty()
+    @IsNumber()
+    district: number
+
+    @IsNumber()
+    lat: number
+    @IsNumber()
+    lng: number
 }
 
 export class LocationDto {

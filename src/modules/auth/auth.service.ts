@@ -61,6 +61,7 @@ export class AuthService {
         });
         const savedUser = await this.userRepository.save(newUser);
 
+
         const newLocation = this.locationRepository.create({
           city: { id: employerRegisterDto.company.location.city }, // Gán đối tượng { id: cityID }
           district: { id: employerRegisterDto.company.location.district }, // Gán đối tượng { id: districtID }
