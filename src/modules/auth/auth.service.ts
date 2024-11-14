@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../user/entities/user.entity';
@@ -12,14 +12,18 @@ import { Location } from '../common/entities/location.entity';
 import { EmployerRegisterDto } from './dto/employer-auth.dto';
 import { Company } from '../info/entities/company.entity';
 import { UserResponseDto } from '../user/dto/user.dto';
+import { UpDateUserDto } from './dto/user.dto';
+import { CloudinaryService } from './../cloudinary/cloudinary.service';
 
 @Injectable()
 export class AuthService {
+  CloudinaryService: any;
   static findUserByEmail(email: string) {
     throw new Error('Method not implemented.');
   }
 
     constructor(
+        private cloudinaryService: CloudinaryService,
         @InjectRepository(User)
         private userRepository: Repository<User>,
         private readonly jwtService: JwtService,
@@ -89,6 +93,22 @@ export class AuthService {
         return UserResponseDto.toResponse(user);
       }
 
+      async updateUser( upDateUserDto: UpDateUserDto,email: string, id: number) {
+        await this.userRepository.update(id, { fullName: upDateUserDto.fullName });
+        return await this.get_user_info(email)
+      }
+
+      async updateAvatar(file: Express.Multer.File, userId: number, email:string) {
+        // Upload file lên Cloudinary và lấy đường dẫn ảnh
+        const avatarUrl = await this.cloudinaryService.uploadFile(file, userId, 'avatar');
+    
+        // Cập nhật trường `avatarUrl` trong bảng `User`
+        await this.userRepository.update(userId, { avatarUrl });
+    
+        // Trả về thông tin user đã cập nhật
+        return await this.get_user_info(email)
+      }
+    
 
       async check_creds_services(authCredDto:AuthCredDto):Promise<any> {
         const user = await this.findUserByEmail(authCredDto.email);

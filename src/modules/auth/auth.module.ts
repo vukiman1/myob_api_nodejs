@@ -12,6 +12,7 @@ import { ConfigKeyPaths, ISecurityConfig } from 'src/configs';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { Location } from '../common/entities/location.entity';
 import { Company } from '../info/entities/company.entity';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -31,7 +32,8 @@ import { Company } from '../info/entities/company.entity';
       inject: [ConfigService],
     }),
     UserModule,
-    JobSeekerProfile
+    JobSeekerProfile,
+    CloudinaryModule
   ],
   exports: [JwtModule],
   controllers: [AuthController],

@@ -12,10 +12,13 @@ import { CompanyDto, CompanyResponseDto, UpdateCompanyDto } from './dto/company.
 import { City } from '../common/entities/city.entity';
 import { District } from '../common/entities/district.entity';
 import slugify from 'slugify';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { CompanyImage } from './entities/company-image.entity';
 
 @Injectable()
 export class InfoService {
   constructor(
+    private cloudinaryService: CloudinaryService,
     @InjectRepository(Location)
       private locationRepository: Repository<Location>,
     @InjectRepository(City)
@@ -24,6 +27,8 @@ export class InfoService {
       private districtRepository: Repository<District>,
     @InjectRepository(Company)
       private companyRepository: Repository<Company>,
+    @InjectRepository(CompanyImage)
+      private companyImageRepository: Repository<CompanyImage>,
     @InjectRepository(User)
       private userRepository: Repository<User>,
 ) {}
@@ -37,10 +42,65 @@ export class InfoService {
 
   }
 
+  async updateCompanyAvatar(file: Express.Multer.File, userId: number, email:string) {
+    const company = await this.findCompanyByEmail(email); 
+    // Upload file lên Cloudinary và lấy đường dẫn ảnh
+    const companyImageUrl = await this.cloudinaryService.uploadFile(file, company.id, 'companyAvatar');
+    // Cập nhật trường `avatarUrl` trong bảng `User`
+    await this.companyRepository.update(company.id, { companyImageUrl });
+
+    // Trả về thông tin user đã cập nhật
+    return await this.getCompanyInfo(email)
+  }
+
+  async updateCompanyCover(file: Express.Multer.File, userId: number, email:string) {
+    const company = await this.findCompanyByEmail(email); 
+    // Upload file lên Cloudinary và lấy đường dẫn ảnh
+    const companyCoverImageUrl = await this.cloudinaryService.uploadFile(file, company.id, 'companyCover');
+    // Cập nhật trường `avatarUrl` trong bảng `User`
+    await this.companyRepository.update(company.id, { companyCoverImageUrl });
+
+    // Trả về thông tin user đã cập nhật
+    return await this.getCompanyInfo(email)
+  }
+
+
+  async createCompanyImages(file: Express.Multer.File, userId: number, email: string) {
+    const company = await this.findCompanyByEmail(email);
+    const imageUrl = await this.cloudinaryService.uploadFile(file, company.id, 'companyImage');
+
+    // Create and save new CompanyImage entry
+    const companyImage = new CompanyImage();
+    companyImage.imageUrl = imageUrl;
+    companyImage.company = company;
+    
+    await this.companyImageRepository.save(companyImage);
+
+    return await this.getCompanyInfo(email);
+}
+
+async getCompanyImages(email: string): Promise<any> {
+  const company = await this.findCompanyByEmail(email);
+
+  if (!company) {
+    throw new Error('Company not found');
+  }
+
+  // Nếu company có nhiều ảnh, ta có thể map qua mảng companyImage
+  const images = company.companyImage.map(image => ({
+    id: image.id,
+    imageUrl: image.imageUrl
+  }));
+  
+  return {
+    count: images.length,  // Đếm số lượng ảnh
+    results: images,       // Trả về mảng các ảnh
+  };
+}
   async findCompanyByEmail(email: string): Promise<any> {
     const company = await this.companyRepository.findOne({
       where: { user: { email } },
-      relations: ['user', 'location', 'location.city', 'location.district'],
+      relations: ['user', 'location', 'location.city', 'location.district', 'companyImage'],
     });
 
     if (!company) {

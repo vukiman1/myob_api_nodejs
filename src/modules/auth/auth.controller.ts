@@ -1,9 +1,11 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Options, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Options, Patch, Post, Put, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JobSeekerRegisterDto } from './dto/job_seaker-auth.dto';
 import { AuthCredDto, AuthGetTokenDto } from './dto/auth.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { EmployerRegisterDto } from './dto/employer-auth.dto';
+import { UpDateUserDto } from './dto/user.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('auth')
 export class AuthController {
@@ -31,6 +33,7 @@ export class AuthController {
 
 
   //Employee
+  
   @Post('employer/register')
   async EmployerRegister(@Body() employeeRegisterDto: EmployerRegisterDto) {
  
@@ -51,6 +54,27 @@ export class AuthController {
     }
   }
 
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('update-user')
+  async updateUser(@Req() req: any, @Body() upDateUserDto: UpDateUserDto): Promise<any> {
+    const user = await this.authService.updateUser(upDateUserDto, req.user.email, req.user.id);
+    return {
+      errors: {},
+      data: user
+    }
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Put('avatar')
+  @UseInterceptors(FileInterceptor('file'))
+  async updateAvatar(@Req() req: any, @UploadedFile() file: Express.Multer.File): Promise<any> {
+    const user = await this.authService.updateAvatar(file,  req.user.id,  req.user.email,);
+    return {
+      errors: {},
+      data: user
+    }
+  }
 
   @HttpCode(HttpStatus.OK)
   @Post('check-creds')

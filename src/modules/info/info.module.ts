@@ -11,14 +11,15 @@ import { Location } from '../common/entities/location.entity';
 import { CompanyImage } from './entities/company-image.entity';
 import { City } from '../common/entities/city.entity';
 import { District } from '../common/entities/district.entity';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ User, JobSeekerProfile, Company, Location, CompanyImage, City, District]),
-    UserModule
+    TypeOrmModule.forFeature([User, JobSeekerProfile, Company, Location, CompanyImage, City, District]),
+    UserModule,
+    CloudinaryModule,  
   ],
   controllers: [InfoController],
-  providers: [InfoService, UserService],
-
+  providers: [InfoService, UserService],  
 })
 export class InfoModule {}
