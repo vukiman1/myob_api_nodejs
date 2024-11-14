@@ -1,8 +1,7 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Body, Param, UseGuards, Req, Put } from '@nestjs/common';
 import { InfoService } from './info.service';
-import { CreateInfoDto } from './dto/create-info.dto';
-import { UpdateInfoDto } from './dto/update-info.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { UpdateCompanyDto } from './dto/company.dto';
 
 @Controller('info/web')
 export class InfoController {
@@ -15,15 +14,14 @@ export class InfoController {
     return company
   }
 
-
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateInfoDto: UpdateInfoDto) {
-    return this.infoService.update(+id, updateInfoDto);
+  @Put('private-companies/:id')
+  async updateCompany(
+    @Param('id') id: number,
+    @Body() updateCompanyDto: UpdateCompanyDto,
+  ) {
+    return await this.infoService.updateCompany(id, updateCompanyDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.infoService.remove(+id);
-  }
+
+
 }

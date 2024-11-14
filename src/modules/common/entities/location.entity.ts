@@ -13,11 +13,11 @@ export class Location {
     @Column()
     address: string;
 
-    @Column({ nullable: true  })
-    lat: string;
+    @Column({ type: 'float', nullable: true })
+    lat: number;
 
-    @Column({ nullable: true  })
-    lng: string;
+    @Column({ type: 'float', nullable: true })
+    lng: number;
 
     @ManyToOne(() => City)
     @JoinColumn()

@@ -9,10 +9,12 @@ import { JobSeekerProfile } from './entities/job_seeker_profle.entities';
 import { Company } from './entities/company.entity';
 import { Location } from '../common/entities/location.entity';
 import { CompanyImage } from './entities/company-image.entity';
+import { City } from '../common/entities/city.entity';
+import { District } from '../common/entities/district.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ User, JobSeekerProfile, Company, Location, CompanyImage]),
+    TypeOrmModule.forFeature([ User, JobSeekerProfile, Company, Location, CompanyImage, City, District]),
     UserModule
   ],
   controllers: [InfoController],

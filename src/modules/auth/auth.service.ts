@@ -76,9 +76,10 @@ export class AuthService {
           location: savedLocation,
           user: savedUser,
       });
-      return this.companyRepository.save(newCompany);
-
+        return this.companyRepository.save(newCompany);
       }    
+
+
       //all
       async get_user_info(email: string):Promise<any> {
         const user = await this.userRepository.findOne({
@@ -87,6 +88,8 @@ export class AuthService {
         });
         return UserResponseDto.toResponse(user);
       }
+
+
       async check_creds_services(authCredDto:AuthCredDto):Promise<any> {
         const user = await this.findUserByEmail(authCredDto.email);
         if (!user ) {
@@ -115,7 +118,7 @@ export class AuthService {
     async get_token_services(authGetTokenDto:AuthGetTokenDto):Promise<any> {
   
       const user = await this.validate_user(authGetTokenDto)
-  
+      
       if (user) {
         return {
           errors: {},
@@ -173,6 +176,7 @@ export class AuthService {
 
       if (user && await bcrypt.compare(authGetTokenDto.password, user.password)) {
         const { id, roleName, email } = user;
+        await this.userRepository.update(user.id, { lastLogin: new Date() });
         return { id, roleName, email };
       }
   

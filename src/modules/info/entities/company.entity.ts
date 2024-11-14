@@ -65,7 +65,6 @@ export class Company  {
     companyImage: CompanyImage[];
 
 
-
     @ManyToOne(() => Location, { eager: true })
     @JoinColumn()
     location: Location;
@@ -76,6 +75,8 @@ export class Company  {
 
     @OneToMany(() => JobPost, (jobPost) => jobPost.company)
     jobPosts: JobPost[];
+
+
 
     @CreateDateColumn()
     createdAt: Date;

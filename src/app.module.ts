@@ -13,6 +13,7 @@ import { InfoModule } from './modules/info/info.module';
 import { MyjobModule } from './modules/myjob/myjob.module';
 import { CommonModule } from './modules/common/common.module';
 import { JobModule } from './modules/job/job.module';
+import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -37,7 +38,8 @@ import { JobModule } from './modules/job/job.module';
     InfoModule,
     MyjobModule,
     CommonModule,
-    JobModule
+    JobModule,
+    CloudinaryModule
   ],
   controllers: [AppController],
   providers: [AppService],

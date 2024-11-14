@@ -53,7 +53,7 @@ export class User {
   avatarUrl: string;
  
   @Column({ nullable: true  })
-  lastLogin: string;
+  lastLogin: Date;
 
   @OneToOne(() => JobSeekerProfile, (profile) => profile.user)
   jobSeekerProfile: JobSeekerProfile;

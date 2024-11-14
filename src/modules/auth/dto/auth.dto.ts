@@ -28,6 +28,6 @@ export class AuthGetTokenDto {
     @IsNotEmpty()
     password: string
 
-
+    
 }
 

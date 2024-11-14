@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { PartialType } from "@nestjs/swagger";
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class CreateCityDto {
     @IsNotEmpty()
@@ -31,7 +32,56 @@ export class CreateLocationDto {
     @IsNotEmpty()
     @IsNumber()
     district: number
+
+
+    // @IsOptional()
+    // @IsNumber()
+    // lat: number
+
+
+    // @IsOptional()
+    // @IsNumber()
+    // lng: number
 }
+
+
+export class CreateLocationDto2 {
+    @IsNotEmpty()
+    @IsString()
+    address: string
+    
+    @IsNotEmpty()
+    @IsNumber()
+    city: number
+
+
+    @IsNotEmpty()
+    @IsNumber()
+    district: number
+
+
+    @IsNotEmpty()
+    @IsNumber()
+    lat: number
+
+    @IsNotEmpty()
+    @IsNumber()
+    lng: number
+}
+
+export class UploadLocationDto extends PartialType(CreateLocationDto) {
+    @IsOptional()
+    @IsString()
+    address?: string;
+  
+    @IsOptional()
+    @IsNumber()
+    city?: number;
+  
+    @IsOptional()
+    @IsNumber()
+    district?: number;
+  }
 
 export class CreateJobLocationDto {
     @IsNotEmpty()

@@ -1,7 +1,8 @@
+import { PartialType } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsDateString, IsEmail, IsNumber, IsString, ValidateNested } from "class-validator";
+import { IsBoolean, IsDateString, IsEmail, IsNumber, IsOptional, IsString, ValidateNested } from "class-validator";
 import moment from "moment";
-import { CreateLocationDto } from "src/modules/common/dto/location.dto";
+import { CreateLocationDto, CreateLocationDto2, UploadLocationDto } from "src/modules/common/dto/location.dto";
 
 export class CompanyDto {
     @IsEmail()
@@ -23,7 +24,7 @@ export class CompanyDto {
 
     @ValidateNested()
     @Type(() => CreateLocationDto)
-    location: CreateLocationDto;
+    location: CreateLocationDto2;
 
     @IsDateString()
     since: string;
@@ -36,6 +37,70 @@ export class CompanyDto {
   }
 
 
+  export class UpdateCompanyDto { 
+   
+    @IsEmail()
+    companyEmail: string;
+    
+    @IsString()
+    companyName: string; 
+    
+    @IsString()
+    slug: string; 
+    
+    @IsString()
+    companyPhone: string; 
+    
+    @IsNumber()
+    employeeSize: number; 
+    
+    @IsString()
+    fieldOperation: string; 
+    @ValidateNested()
+    @Type(()=> CreateLocationDto2) location: CreateLocationDto2; 
+    
+    @IsDateString()
+    since: string; 
+    
+    @IsString()
+    taxCode: string; 
+    
+    @IsString()
+    websiteUrl: string; 
+    
+    @IsString()
+    companyCoverImageUrl: string; 
+    
+    @IsString()
+    companyImageUrl: string; 
+    
+    @IsString()
+    description: string; 
+    
+    @IsOptional()
+    @IsString()
+    facebookUrl: string; 
+    
+    @IsOptional()
+    @IsString()
+    linkedinUrl: string; 
+    
+    @IsOptional()
+    @IsString()
+    youtubeUrl: string; 
+    
+    @IsNumber()
+    followNumber: number; 
+    
+    @IsNumber()
+    jobPostNumber: number; 
+    
+    @IsBoolean() // cần sửa đổi dựa vào cấu trúc cụ thể của đối tượng @IsString()
+    isFollowed: boolean
+
+
+    companyImages: string
+  }
   export class CompanyResponseDto {
     static toResponse(company: any) {
       return {

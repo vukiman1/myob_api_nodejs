@@ -15,7 +15,6 @@ export class CommonController {
       data: configs
     }
   }
-  
 
   @Post('district')
   async createDistrict(@Body() createDistrictDto: CreateDistrictDto) {
