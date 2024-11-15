@@ -1,4 +1,4 @@
-import { Controller, Get, Body, Param, UseGuards, Req, Put, UseInterceptors, UploadedFile, Post } from '@nestjs/common';
+import { Controller, Get, Body, Param, UseGuards, Req, Put, UseInterceptors, UploadedFile, Post, Delete } from '@nestjs/common';
 import { InfoService } from './info.service';
 import { AuthGuard } from '@nestjs/passport';
 import { UpdateCompanyDto } from './dto/company.dto';
@@ -12,7 +12,10 @@ export class InfoController {
   @Get('company')
   async getInfoCompany(@Req() req: any) {
     const company = await this.infoService.getCompanyInfo(req.user.email)
-    return company
+    return {
+      errors: {},
+      data: company
+    }
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -24,7 +27,6 @@ export class InfoController {
       errors: {},
       data: company
     }
-    return "cover"
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -49,7 +51,7 @@ export class InfoController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('company-images')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('files'))
   async CreateCompanyImages(@Req() req: any, @UploadedFile() file: Express.Multer.File): Promise<any> {
     const company = await this.infoService.createCompanyImages(file,  req.user.id,  req.user.email,);
     return {
@@ -58,11 +60,31 @@ export class InfoController {
     }
   }
 
+  
+
   @UseGuards(AuthGuard('jwt'))
   @Get('company-images')
+  @UseInterceptors(FileInterceptor('file'))
   async getCompanyImages(@Req() req: any) {
     const company = await this.infoService.getCompanyImages(req.user.email)
-    return company
+    return {
+      errors: {},
+      data: company
+    }
+  }
+
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('company-images/:imageId')
+  async deleteCompanyImage(
+    @Req() req: any,
+    @Param('imageId') imageId: number,
+  ): Promise<any> {
+    await this.infoService.deleteCompanyImage(imageId, req.user.email);
+    return {
+      errors: {},
+      message: 'Hình ảnh đã được xóa thành công.',
+    };
   }
 
 }

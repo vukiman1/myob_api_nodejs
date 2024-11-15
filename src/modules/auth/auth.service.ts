@@ -192,7 +192,7 @@ export class AuthService {
     }
 
     async validate_user(authGetTokenDto:AuthGetTokenDto): Promise<any> {
-      const user = await this.findUserByEmail(authGetTokenDto.email);
+      const user = await this.findUserByEmail(authGetTokenDto.username);
 
       if (user && await bcrypt.compare(authGetTokenDto.password, user.password)) {
         const { id, roleName, email } = user;

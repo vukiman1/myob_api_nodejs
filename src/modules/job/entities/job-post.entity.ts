@@ -9,7 +9,7 @@ import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGenerat
 @Entity('job_post')
 export class JobPost  {
     @PrimaryGeneratedColumn()
-    id: string;
+    id: number;
 
     @Column()
     jobName: string;

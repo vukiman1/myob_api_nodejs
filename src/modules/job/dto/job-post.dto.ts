@@ -118,5 +118,6 @@ export class CreateJobPostDto {
         isExpired: true,
     }
   }
+  
 
 }

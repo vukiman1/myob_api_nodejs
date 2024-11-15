@@ -101,6 +101,8 @@ export class CompanyDto {
 
     companyImages: string
   }
+
+
   export class CompanyResponseDto {
     static toResponse(company: any) {
       return {
@@ -131,7 +133,7 @@ export class CompanyDto {
         followNumber: company.followNumber || 0,
         jobPostNumber: company.jobPostNumber || 0,
         isFollowed: company.isFollowed || false,
-        companyImages: company.companyImages?.map((image) => ({
+        companyImages: company.companyImage?.map((image) => ({
           id: image.id,
           imageUrl: image.imageUrl,
         })) || null,
@@ -142,4 +144,4 @@ export class CompanyDto {
         } : null,
       };
     }
-}
+  }

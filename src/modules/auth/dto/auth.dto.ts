@@ -18,11 +18,11 @@ export class AuthGetTokenDto {
     @ApiProperty({ example: 'anvu734@gmail.com', description: 'Email của người dùng' })
     @IsNotEmpty()
     @IsEmail()
-    email: string
+    username: string
 
     @ApiProperty({ example: 'JOB_SEEKER', description: 'Loại tài khoản' })
     @IsNotEmpty()
-    roleName: string
+    role_name: string
 
     @ApiProperty({ example: 'An@01022002', description: 'Mật khẩu đăng nhập' })
     @IsNotEmpty()

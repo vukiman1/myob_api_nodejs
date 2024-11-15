@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { Location } from '../common/entities/location.entity';
@@ -23,9 +23,7 @@ export class JobService {
     private careerRepository: Repository<Career>,
 ) {}
 
-  create(createJobDto: CreateJobDto) {
-    return 'This action adds a new job';
-  }
+
 
   async createPrivateJobPost(createJobPostDto: CreateJobPostDto, email: string) {
     const user = await this.findEmployer(email)
@@ -72,7 +70,88 @@ export class JobService {
     }
     return employer
   }
-  
+
+
+
+  async findJobPosts(filters: any): Promise<any> {
+    const { isUrgent , keyword , ordering , page , pageSize , statusId} = filters;
+    // Tạo truy vấn với các điều kiện tìm kiếm
+    const query = this.jobPostRepository.createQueryBuilder('job_post');
+    // Thêm điều kiện lọc
+    query.andWhere('job_post.isUrgent = :isUrgent', { isUrgent });
+    if (keyword) {
+        query.andWhere('job_post.jobName LIKE :kw', { kw: `%${keyword}%` });
+    }
+    if (statusId) query.andWhere('job_post.status = :statusId', { statusId });
+    // Sắp xếp
+    if (ordering) {
+      query.orderBy(`job_post.${ordering === 'createAt' ? 'createdAt' : ordering}`, 'DESC');
+  }
+    // Phân trang
+    query.skip((page - 1) * pageSize).take(pageSize);
+    // Thực hiện truy vấn với `try-catch` để kiểm tra lỗi
+    const [results, count] = await query.getManyAndCount();
+        // Chuẩn bị dữ liệu trả về
+      return {
+          count,
+          results: results.map(job => ({
+              id: job.id,
+              slug: job.slug,
+              jobName: job.jobName,
+              deadline: job.deadline,
+              isUrgent: job.isUrgent,
+              status: job.status,
+              createAt: job.createdAt,
+              appliedNumber: 0,
+              views: job.views,
+              isExpired: new Date(job.deadline) < new Date(),
+          })),
+      };
+}
+
+
+async findJobPostsToExport(filters: any): Promise<any> {
+  const { isUrgent, keyword , ordering , page , pageSize , statusId} = filters;
+  // Tạo truy vấn với các điều kiện tìm kiếm
+  const query = this.jobPostRepository.createQueryBuilder('job_post');
+  // Thêm điều kiện lọc
+  query.andWhere('job_post.isUrgent = :isUrgent', { isUrgent });
+  if (keyword) {
+      query.andWhere('job_post.jobName LIKE :kw', { kw: `%${keyword}%` });
+  }
+  if (statusId) query.andWhere('job_post.status = :statusId', { statusId });
+  // Sắp xếp
+  if (ordering) {
+    query.orderBy(`job_post.${ordering === 'createAt' ? 'createdAt' : ordering}`, 'DESC');
+}
+  // Phân trang
+  query.skip((page - 1) * pageSize).take(pageSize);
+  // Thực hiện truy vấn với `try-catch` để kiểm tra lỗi
+  const [results, count] = await query.getManyAndCount();
+      // Chuẩn bị dữ liệu trả về
+    return {      
+        data: results.map((job, index) => ({
+            "STT": index + 1,
+            "Mã Việc Làm": job.id,
+            "Chức danh": job.jobName,
+            "Ngày Hết Hạn": job.deadline,
+            "Ngày Đăng": job.createdAt,
+            "Số hồ sơ ứng tuyển": 0,
+            "Lượt Xem": job.views,
+        })),
+    };
+}
+
+  async getPrivateJobPostById(jobId: number) {
+    const jobPost = await this.jobPostRepository.findOne({
+      where: { id: jobId },
+      relations: ['location', 'location.city', 'location.district', 'company']
+    });
+    if (!jobPost) {
+      throw new NotFoundException('Job post not found');
+    }
+    return JobPostResponseDto.toResponse(jobPost)
+  }
 
   async generateSlug(companyName: string): Promise<string> {
     // Tạo slug cơ bản từ tên công ty

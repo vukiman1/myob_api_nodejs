@@ -36,4 +36,22 @@ export class CloudinaryService {
       }
     });
   }
+
+  async deleteFile(publicId: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      cloudinary.uploader.destroy(publicId, { invalidate: true }, (error, result) => {
+        if (error) return reject(error);
+        resolve();
+      });
+    });
+  }
+  
+  // Hàm helper để trích xuất `publicId` từ URL ảnh
+  extractPublicIdFromUrl(imageUrl: string): string {
+    const urlParts = imageUrl.split('/');
+    const fileName = urlParts[urlParts.length - 1].split('.')[0]; // Lấy phần tên file trước đuôi mở rộng
+    const folderPath = urlParts.slice(urlParts.indexOf('myjob')).join('/'); // Lấy đường dẫn từ thư mục gốc
+    return folderPath.replace(fileName, fileName); // Public ID đầy đủ
+  }
 }
+

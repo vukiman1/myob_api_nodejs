@@ -35,10 +35,8 @@ export class InfoService {
 
   async getCompanyInfo(email: string) {
     const company = await this.findCompanyByEmail(email);
-    return {
-      errors: {},
-      data:  CompanyResponseDto.toResponse(company)
-    }
+    return CompanyResponseDto.toResponse(company)
+    
 
   }
 
@@ -76,16 +74,36 @@ export class InfoService {
     
     await this.companyImageRepository.save(companyImage);
 
-    return await this.getCompanyInfo(email);
+    return await this.getCompanyImages(email);
 }
+
+async deleteCompanyImage(imageId: number, email: string): Promise<void> {
+  const company = await this.findCompanyByEmail(email);
+
+  // Tìm hình ảnh cần xóa
+  const companyImage = await this.companyImageRepository.findOne({
+    where: { id: imageId.toString(), company: { id: company.id } },
+  });
+
+  if (!companyImage) {
+    throw new Error('Hình ảnh không tồn tại hoặc không thuộc công ty của bạn.');
+  }
+
+  // Xóa file khỏi Cloudinary
+  const publicId = this.cloudinaryService.extractPublicIdFromUrl(companyImage.imageUrl);
+  console.log(publicId);
+  await this.cloudinaryService.deleteFile(publicId);
+
+
+  // Xóa record khỏi database
+  await this.companyImageRepository.remove(companyImage);
+
+  console.log(`Đã xóa hình ảnh ID ${imageId} khỏi cơ sở dữ liệu và Cloudinary.`);
+}
+
 
 async getCompanyImages(email: string): Promise<any> {
   const company = await this.findCompanyByEmail(email);
-
-  if (!company) {
-    throw new Error('Company not found');
-  }
-
   // Nếu company có nhiều ảnh, ta có thể map qua mảng companyImage
   const images = company.companyImage.map(image => ({
     id: image.id,
