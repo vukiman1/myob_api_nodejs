@@ -18,22 +18,25 @@ export class JobController {
     }
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Get('private-job-posts')
   async getPrivateJobPosts(
-    @Query('isUrgent') isUrgent: boolean = false,
+    @Req() req: any,
+    @Query('isUrgent') isUrgent: boolean = null,
     @Query('kw') keyword: string = "",
     @Query('ordering') ordering: string = "createAt",
     @Query('page') page: number = 1,
     @Query('pageSize') pageSize = 5,
-    @Query('statusId') statusId = 1,
+    @Query('statusId') statusId ,
   ) {
-    const jobPosts = await this.jobService.findJobPosts({
-      isUrgent: isUrgent,  
-      keyword: keyword,     
-      ordering: ordering,   
-      page: page , 
-      pageSize: pageSize ,
-      statusId: statusId
+    const jobPosts = await this.jobService.findPrivateJobPosts({
+      userId: req.user.id ,
+      isUrgent,  
+      keyword,     
+      ordering,   
+      page , 
+      pageSize ,
+      statusId
     });
   
     return {
@@ -45,8 +48,10 @@ export class JobController {
     };
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Get('private-job-posts/export')
   async getPrivateJobPostsExport(
+    @Req() req: any,
     @Query('isUrgent') isUrgent: boolean = false,
     @Query('kw') keyword: string = "",
     @Query('ordering') ordering: string = "createAt",
@@ -54,7 +59,8 @@ export class JobController {
     @Query('pageSize') pageSize = 5,
     @Query('statusId') statusId = 1,
   ) {
-    const jobPosts = await this.jobService.findJobPostsToExport({
+    const jobPosts = await this.jobService.findPrivateJobPostsToExport({
+      userId: req.user.id ,
       isUrgent: isUrgent,  
       keyword: keyword,     
       ordering: ordering,   
@@ -69,12 +75,49 @@ export class JobController {
     };
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Get('private-job-posts/:id')
-  async getPrivateJobPostById(@Param('id') id: string) {
-    const jobPost = await this.jobService.getPrivateJobPostById(+id);
+  async getPrivateJobPostById( @Req() req: any, @Param('id') id: string) {
+    console.log(id);
+    const jobPost = await this.jobService.getPrivateJobPostById(+id,  req.user.id );
     return {
       errors: {},
       data: jobPost,
     }
   }
+
+  @Get('job-posts')
+  async getJobPosts(
+    @Query('isUrgent') isUrgent: boolean,
+    @Query('careerId') careerId: number,
+    @Query('companyId') companyId: number,
+    @Query('kw') keyword: string = "",
+    @Query('ordering') ordering: string = "createAt",
+    @Query('page') page: number = 1,
+    @Query('pageSize') pageSize = 5,
+    @Query('statusId') statusId: number,
+  ) {
+    const jobPosts = await this.jobService.findJobPosts({
+      isUrgent,  
+      careerId,
+      companyId,
+      keyword,     
+      ordering,   
+      page, 
+      pageSize,
+      statusId
+    });
+  
+    return {
+      errors: {},
+      data: {
+        count: jobPosts.count,
+        results: jobPosts.results,
+      },
+    };
+
+
+    
+  }
+
 }

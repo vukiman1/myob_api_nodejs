@@ -99,4 +99,13 @@ export class CommonController {
   }
 
 
+  @Get('top-careers')
+  async getTopCareers() {
+    const topCareers = await this.commonService.getTopCareers();
+    return {
+      errors: {},
+      data: topCareers
+    }
+  }
+
 }

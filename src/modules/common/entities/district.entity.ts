@@ -19,8 +19,8 @@ export class District {
     locations: Location[];
     
     @CreateDateColumn()
-    createdAt: Date;
+    createAt: Date;
 
     @UpdateDateColumn()
-    updatedAt: Date;
+    updateAt: Date;
 }

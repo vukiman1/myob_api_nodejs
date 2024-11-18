@@ -12,13 +12,19 @@ import { CompanyImage } from './entities/company-image.entity';
 import { City } from '../common/entities/city.entity';
 import { District } from '../common/entities/district.entity';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
+import { CompanyFollowed } from './entities/company-followed.entity';
+import { JwtModule } from '@nestjs/jwt';
+import { AuthModule } from '../auth/auth.module';
+import { JobPost } from '../job/entities/job-post.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, JobSeekerProfile, Company, Location, CompanyImage, City, District]),
+    TypeOrmModule.forFeature([User, JobSeekerProfile, Company, Location, CompanyImage, City, District, CompanyFollowed, JobPost]),
     UserModule,
     CloudinaryModule,  
+    AuthModule
   ],
+  exports: [InfoService],
   controllers: [InfoController],
   providers: [InfoService, UserService],  
 })

@@ -3,6 +3,7 @@ import { User } from "src/modules/user/entities/user.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { CompanyImage } from "./company-image.entity";
 import { JobPost } from "src/modules/job/entities/job-post.entity";
+import { CompanyFollowed } from "./company-followed.entity";
 
 @Entity('info_company')
 export class Company  {
@@ -20,13 +21,16 @@ export class Company  {
       })
     companyImageUrl: string;
 
+    @Column({ nullable: true  })
+    companyImagePublicId: string;
 
      @Column({
         default: 'https://cdn1.vieclam24h.vn/tvn/images/assets/img/generic_18.jpg',
       })
       companyCoverImageUrl: string;
 
-
+      @Column({ nullable: true  })
+      companyCoverImagePublicId: string;
     
     @Column({ nullable: true  })
     facebookUrl: string;
@@ -64,6 +68,7 @@ export class Company  {
     @OneToMany(() => CompanyImage, (companyImage) => companyImage.company)
     companyImage: CompanyImage[];
 
+  
 
     @ManyToOne(() => Location, { eager: true })
     @JoinColumn()
@@ -76,11 +81,14 @@ export class Company  {
     @OneToMany(() => JobPost, (jobPost) => jobPost.company)
     jobPosts: JobPost[];
 
-
+    @OneToMany(() => CompanyFollowed, (companyFollowed) => companyFollowed.company)
+    companyFollowed: CompanyFollowed[]; // Một User có thể có nhiều JobPost
+  
+  
 
     @CreateDateColumn()
-    createdAt: Date;
+    createAt: Date;
   
     @UpdateDateColumn()
-    updatedAt: Date;
+    updateAt: Date;
 }

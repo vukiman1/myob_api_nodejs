@@ -15,8 +15,8 @@ export class City {
 
     
     @CreateDateColumn()
-    createdAt: Date;
+    createAt: Date;
   
     @UpdateDateColumn()
-    updatedAt: Date;
+    updateAt: Date;
 }

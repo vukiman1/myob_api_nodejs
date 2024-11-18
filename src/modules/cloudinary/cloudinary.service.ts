@@ -1,57 +1,78 @@
 import { Injectable } from '@nestjs/common';
-import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
+import { v2 as cloudinary } from 'cloudinary';
 import * as streamifier from 'streamifier';
-import { Express } from 'express';
 
 @Injectable()
 export class CloudinaryService {
   async uploadFile(
-    file: Express.Multer.File, 
-    userId: number, 
+    file: Express.Multer.File,
+    userId: number,
     moduleName: string
-  ): Promise<string> {
-    return new Promise(async (resolve, reject) => {
+  ): Promise<{ publicId: string; imageUrl: string }> {
+    return new Promise((resolve, reject) => {
       try {
-        const timestamp = new Date().getTime(); 
-        const publicId = `myjob/${moduleName}/${userId}_${timestamp}`;; // Đặt tên ảnh theo `moduleName` và `userId`
+        // Lấy thời gian hiện tại
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = (now.getMonth() + 1).toString().padStart(2, '0'); // Thêm '0' nếu cần
 
-        // Xóa ảnh cũ nếu đã tồn tại
-        await cloudinary.uploader.destroy(publicId, { invalidate: true });
+        // Tạo publicId theo cấu trúc "moduleName/year/month/userId_timestamp"
+        const timestamp = now.getTime();
+        const publicId = `myjob/${moduleName}/${year}/${month}/${userId}_${timestamp}`;
 
-        // Khởi tạo stream upload với cấu hình resize và public_id
+
+        const transformValue =
+        moduleName === 'companyCover'
+          ? [
+            { aspect_ratio: '1024:360', crop: 'crop' },
+            { width: 1024, height: 360, crop: 'limit' },
+          ]
+          : [
+              { aspect_ratio: '1:1', crop: 'crop' },
+              { width: 200, height: 200, crop: 'limit' },
+            ]
+         
+
         const uploadStream = cloudinary.uploader.upload_stream(
           {
             public_id: publicId,
-            transformation: [{ width: 200, height: 200, crop: "limit" }], // Resize ảnh
+            transformation: transformValue
           },
           (error, result) => {
             if (error) return reject(error);
-            resolve(result.secure_url); // Trả về đường link ảnh
-          },
+
+            resolve({
+              publicId: result.public_id, // Lưu publicId
+              imageUrl: result.secure_url, // Trả về URL ảnh
+            });
+          }
         );
 
+        // Đọc dữ liệu từ buffer và gửi tới Cloudinary
         streamifier.createReadStream(file.buffer).pipe(uploadStream);
       } catch (error) {
         reject(error);
       }
     });
   }
-
+  /**
+   * Hàm xóa file trên Cloudinary theo publicId
+   */
   async deleteFile(publicId: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      cloudinary.uploader.destroy(publicId, { invalidate: true }, (error, result) => {
-        if (error) return reject(error);
-        resolve();
-      });
-    });
+    if (!publicId) {
+      return; // Không làm gì nếu không có publicId
+    }
+    try {
+        const result = await cloudinary.uploader.destroy(publicId,  { type: 'upload', resource_type: 'image' });
+        if (result.result !== 'ok') {
+          throw new Error(`Không thể xóa file trên Cloudinary: ${result.result}`);
+        }
+    } catch (error) {
+      console.error('Lỗi khi xóa file trên Cloudinary:', error);
+      throw new Error('Không thể xóa file trên Cloudinary');
+    }
   }
-  
-  // Hàm helper để trích xuất `publicId` từ URL ảnh
-  extractPublicIdFromUrl(imageUrl: string): string {
-    const urlParts = imageUrl.split('/');
-    const fileName = urlParts[urlParts.length - 1].split('.')[0]; // Lấy phần tên file trước đuôi mở rộng
-    const folderPath = urlParts.slice(urlParts.indexOf('myjob')).join('/'); // Lấy đường dẫn từ thư mục gốc
-    return folderPath.replace(fileName, fileName); // Public ID đầy đủ
-  }
-}
 
+
+
+}

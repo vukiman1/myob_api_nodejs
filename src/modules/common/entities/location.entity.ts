@@ -31,8 +31,8 @@ export class Location {
     jobPosts: JobPost[];
 
     @CreateDateColumn()
-    createdAt: Date;
+    createAt: Date;
   
     @UpdateDateColumn()
-    updatedAt: Date;
+    updateAt: Date;
 }

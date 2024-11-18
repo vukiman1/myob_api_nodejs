@@ -100,10 +100,12 @@ export class AuthService {
 
       async updateAvatar(file: Express.Multer.File, userId: number, email:string) {
         // Upload file lên Cloudinary và lấy đường dẫn ảnh
-        const avatarUrl = await this.cloudinaryService.uploadFile(file, userId, 'avatar');
-    
+        const user = await this.findUserByEmail(email)
+        // await this.cloudinaryService.deleteFile(company.companyImagePublicId)
+        const { publicId, imageUrl } = await this.cloudinaryService.uploadFile(file, +user.id, 'avatar');
+        
         // Cập nhật trường `avatarUrl` trong bảng `User`
-        await this.userRepository.update(userId, { avatarUrl });
+        await this.userRepository.update(+user.id, { avatarUrl: imageUrl, avatarPublicId: publicId });
     
         // Trả về thông tin user đã cập nhật
         return await this.get_user_info(email)

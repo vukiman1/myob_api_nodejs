@@ -12,6 +12,8 @@ export class CompanyImage  {
     @Column()
     imageUrl: string;
 
+    @Column({ nullable: true  })
+    imagePublicId: string;
 
     @ManyToOne(() => Company, (company) => company.companyImage)
     @JoinColumn()
@@ -19,8 +21,8 @@ export class CompanyImage  {
 
 
     @CreateDateColumn()
-    createdAt: Date;
+    createAt: Date;
   
     @UpdateDateColumn()
-    updatedAt: Date;
+    updateAt: Date;
 }

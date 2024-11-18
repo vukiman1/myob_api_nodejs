@@ -33,8 +33,8 @@ export class Banner {
     isActive: boolean;
 
     @CreateDateColumn()
-    createdAt: Date;
+    createAt: Date;
   
     @UpdateDateColumn()
-    updatedAt: Date;
+    updateAt: Date;
 }

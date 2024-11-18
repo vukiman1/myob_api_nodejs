@@ -14,10 +14,14 @@ import { District } from '../common/entities/district.entity';
 import slugify from 'slugify';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { CompanyImage } from './entities/company-image.entity';
+import { CompanyFollowed } from './entities/company-followed.entity';
+import { JwtService } from '@nestjs/jwt';
+import { JobPost } from '../job/entities/job-post.entity';
 
 @Injectable()
 export class InfoService {
   constructor(
+    private readonly jwtService: JwtService,
     private cloudinaryService: CloudinaryService,
     @InjectRepository(Location)
       private locationRepository: Repository<Location>,
@@ -31,22 +35,51 @@ export class InfoService {
       private companyImageRepository: Repository<CompanyImage>,
     @InjectRepository(User)
       private userRepository: Repository<User>,
+    @InjectRepository(JobPost)
+      private jobPostRepository: Repository<JobPost>,
+    @InjectRepository(CompanyFollowed)
+      private companyFollowedRepository: Repository<CompanyFollowed>,
 ) {}
 
   async getCompanyInfo(email: string) {
     const company = await this.findCompanyByEmail(email);
     return CompanyResponseDto.toResponse(company)
-    
-
   }
+
+  async getCompanyTop() {
+    const query = this.companyFollowedRepository
+      .createQueryBuilder('companyFollowed')
+      // Tham gia với bảng 'company' để lấy thông tin của công ty
+      .innerJoin('companyFollowed.company', 'company')
+      .select('company.id', 'id')
+      .addSelect('company.slug', 'slug')
+      .addSelect('company.companyName', 'companyName')
+      .addSelect('company.companyImageUrl', 'companyImageUrl')
+      // Đếm số lượng người theo dõi mỗi công ty
+      // Nhóm theo ID công ty và các trường cần thiết khác
+      .groupBy('company.id')
+      .addGroupBy('company.slug')
+      .addGroupBy('company.companyName')
+      .addGroupBy('company.companyImageUrl')
+      // Sắp xếp theo số lượng người theo dõi (followerCount)
+      .orderBy('COUNT(companyFollowed.id)')
+      .limit(10);
+  
+    // Lấy kết quả
+    const results = await query.getRawMany();
+    return results;
+  }
+  
+
 
   async updateCompanyAvatar(file: Express.Multer.File, userId: number, email:string) {
     const company = await this.findCompanyByEmail(email); 
     // Upload file lên Cloudinary và lấy đường dẫn ảnh
-    const companyImageUrl = await this.cloudinaryService.uploadFile(file, company.id, 'companyAvatar');
-    // Cập nhật trường `avatarUrl` trong bảng `User`
-    await this.companyRepository.update(company.id, { companyImageUrl });
+    await this.cloudinaryService.deleteFile(company.companyImagePublicId)
 
+    const { publicId, imageUrl } = await this.cloudinaryService.uploadFile(file, company.id, 'companyAvatar');
+    // Cập nhật trường `avatarUrl` trong bảng `User`
+    await this.companyRepository.update(company.id, { companyImageUrl: imageUrl, companyImagePublicId: publicId });
     // Trả về thông tin user đã cập nhật
     return await this.getCompanyInfo(email)
   }
@@ -54,46 +87,43 @@ export class InfoService {
   async updateCompanyCover(file: Express.Multer.File, userId: number, email:string) {
     const company = await this.findCompanyByEmail(email); 
     // Upload file lên Cloudinary và lấy đường dẫn ảnh
-    const companyCoverImageUrl = await this.cloudinaryService.uploadFile(file, company.id, 'companyCover');
+    const { publicId, imageUrl } = await this.cloudinaryService.uploadFile(file, company.id, 'companyCover');
+    await this.cloudinaryService.deleteFile(company.companyCoverImagePublicId)
     // Cập nhật trường `avatarUrl` trong bảng `User`
-    await this.companyRepository.update(company.id, { companyCoverImageUrl });
+    await this.companyRepository.update(company.id, { companyCoverImageUrl: imageUrl, companyCoverImagePublicId: publicId });
 
     // Trả về thông tin user đã cập nhật
     return await this.getCompanyInfo(email)
   }
 
 
+
+
   async createCompanyImages(file: Express.Multer.File, userId: number, email: string) {
     const company = await this.findCompanyByEmail(email);
-    const imageUrl = await this.cloudinaryService.uploadFile(file, company.id, 'companyImage');
+    const { publicId, imageUrl } = await this.cloudinaryService.uploadFile(file, company.id, 'companyImage');
 
     // Create and save new CompanyImage entry
     const companyImage = new CompanyImage();
     companyImage.imageUrl = imageUrl;
-    companyImage.company = company;
+    companyImage.imagePublicId = publicId;
+    companyImage.company = company; 
     
     await this.companyImageRepository.save(companyImage);
 
     return await this.getCompanyImages(email);
 }
 
-async deleteCompanyImage(imageId: number, email: string): Promise<void> {
-  const company = await this.findCompanyByEmail(email);
-
+async deleteCompanyImage(imageId: number): Promise<void> {
   // Tìm hình ảnh cần xóa
   const companyImage = await this.companyImageRepository.findOne({
-    where: { id: imageId.toString(), company: { id: company.id } },
+    where: { id: imageId.toString()}
   });
-
   if (!companyImage) {
     throw new Error('Hình ảnh không tồn tại hoặc không thuộc công ty của bạn.');
   }
-
   // Xóa file khỏi Cloudinary
-  const publicId = this.cloudinaryService.extractPublicIdFromUrl(companyImage.imageUrl);
-  console.log(publicId);
-  await this.cloudinaryService.deleteFile(publicId);
-
+  await this.cloudinaryService.deleteFile(companyImage.imagePublicId);
 
   // Xóa record khỏi database
   await this.companyImageRepository.remove(companyImage);
@@ -219,4 +249,137 @@ async getCompanyImages(email: string): Promise<any> {
 
     return slug;
   }
+
+  async findCompanyBySlug(slug: string) {
+    const company = await this.companyRepository.findOne({ where: { slug }, relations: [ 'location', 'location.city', 'location.district', 'companyImage']},
+      
+    );
+    if (!company) {
+        throw new NotFoundException('Công ty không tồn tại.');
+    }
+    return company;
+  }
+
+
+  async getUserByHeader (headers: any) {
+    let userId = null;
+    const authHeader = headers.authorization;
+    if (authHeader) {
+      try {
+        const token = authHeader.split(' ')[1];
+        const decodedToken = this.jwtService.verify(token);
+        userId = decodedToken.id;
+      } catch (error) {
+        userId = null; // Token không hợp lệ hoặc hết hạn
+      }
+    }
+    return userId;
+  }
+
+  async checkIsFollow(userId: string, companyId: string) {
+    let isFollowed = false;
+    if (userId) {
+      const followRecord = await this.companyFollowedRepository.findOne({
+        where: { company: { id: companyId }, user: { id: userId } },
+      });
+      isFollowed = !!followRecord;
+    }
+    return isFollowed;
+  }
+
+  async getFollowAndJobPostNumber( companyId: string) {
+    const followNumber = await this.companyFollowedRepository.count({
+      where: { company: { id: companyId } },
+    });
+    // Đếm số lượng bài đăng việc làm liên kết với công ty
+    const jobPostNumber = await this.jobPostRepository.count({
+      where: { company: { id: companyId } },
+    });
+    return { followNumber, jobPostNumber };
+  }
+
+  async getPublicCompany(slug:string, headers:any) {
+    const company = await this.findCompanyBySlug(slug);
+    const userId = await this.getUserByHeader(headers)
+    const { followNumber, jobPostNumber } = await this.getFollowAndJobPostNumber(company.id)
+    const isFollowed = await this.checkIsFollow(userId, company.id)
+    // Trả về thông tin công ty 
+    return CompanyResponseDto.toResponse({ ...company, isFollowed, followNumber,
+      jobPostNumber, });
+  }
+
+
+  async followCompany(slug: string, userId: number): Promise<any> {
+    // Tìm công ty theo slug
+    const company = await this.findCompanyBySlug(slug);
+    // // Kiểm tra xem user đã follow công ty chưa
+    const existingFollow = await this.companyFollowedRepository.findOne({
+        where: { user: { id: userId.toString() }, company: { id: company.id } },
+    });
+    if (existingFollow) {
+      // Nếu đã follow, xoá follow
+      await this.companyFollowedRepository.delete(existingFollow.id);
+      return { isFollowed: false }; // Trả về trạng thái unfollowed
+    }
+    // Nếu chưa follow, thêm mới
+    await this.companyFollowedRepository.save({
+      user: { id: userId.toString() },
+      company: { id: company.id },
+    });
+    return {
+      isFollowed: true
+    }; // Trả về trạng thái đã follow
+}
+
+async findAllCompanies(filters: any, headers: any) {
+  const { cityId, keyword = '', page = 1, pageSize = 10 } = filters;
+  const userId = await this.getUserByHeader(headers)
+  // Truy vấn lấy danh sách công ty
+  const query = this.companyRepository.createQueryBuilder('info_company')
+    .leftJoinAndSelect('info_company.location', 'location')
+    .leftJoinAndSelect('location.city', 'city')
+    .where('info_company.companyName LIKE :kw', { kw: `%${keyword}%` });
+
+  if (cityId) {
+    query.andWhere('city.id = :cityId', { cityId });
+  }
+
+
+  query.skip((page - 1) * pageSize).take(pageSize);
+
+  const [companies, count] = await query.getManyAndCount();
+
+  // Chuẩn bị dữ liệu trả về
+  const results = await Promise.all(
+    companies.map(async (company) => {
+      // Lấy số lượng người theo dõi công ty
+      
+      const { followNumber, jobPostNumber } = await this.getFollowAndJobPostNumber(company.id)
+      // Kiểm tra người dùng có theo dõi công ty không
+      const isFollowed = await this.checkIsFollow(userId, company.id)
+      // Chuyển đổi dữ liệu
+      return {
+        id: company.id,
+        slug: company.slug,
+        companyName: company.companyName,
+        employeeSize: company.employeeSize,
+        fieldOperation: company.fieldOperation,
+        companyImageUrl: company.companyImageUrl,
+        companyCoverImageUrl: company.companyCoverImageUrl,
+        locationDict: {
+          city: company.location?.city?.id || null,
+        },
+        followNumber,
+        jobPostNumber,
+        isFollowed,
+      };
+    })
+  );
+
+  return {
+    count,
+    results,
+  };
+}
+
 }

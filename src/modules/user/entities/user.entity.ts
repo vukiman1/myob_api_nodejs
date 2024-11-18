@@ -1,5 +1,6 @@
 
 import { Exclude } from '@nestjs/class-transformer';
+import { CompanyFollowed } from 'src/modules/info/entities/company-followed.entity';
 import { Company } from 'src/modules/info/entities/company.entity';
 import { JobSeekerProfile } from 'src/modules/info/entities/job_seeker_profle.entities';
 import { JobPost } from 'src/modules/job/entities/job-post.entity';
@@ -53,6 +54,10 @@ export class User {
   avatarUrl: string;
  
   @Column({ nullable: true  })
+  avatarPublicId: string;
+
+
+  @Column({ nullable: true  })
   lastLogin: Date;
 
   @OneToOne(() => JobSeekerProfile, (profile) => profile.user)
@@ -64,11 +69,16 @@ export class User {
   @OneToMany(() => JobPost, (jobPost) => jobPost.user)
   jobPosts: JobPost[]; // Một User có thể có nhiều JobPost
 
+  @OneToMany(() => CompanyFollowed, (companyFollowed) => companyFollowed.user)
+  companyFollowed: CompanyFollowed[]; // Một User có thể có nhiều JobPost
+
+
+
   @CreateDateColumn()
-  createdAt: Date;
+  createAt: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updateAt: Date;
 }
 
 
