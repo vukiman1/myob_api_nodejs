@@ -257,7 +257,6 @@ export class CommonService {
     });
     return location;
   }
-
   async getTopCareers(): Promise<any> {
     const query = this.jobPostRepository
       .createQueryBuilder('job_post')
@@ -266,6 +265,7 @@ export class CommonService {
       .addSelect('career.iconUrl', 'iconUrl')
       .addSelect('COUNT(job_post.id)', 'jobPostTotal')
       .innerJoin('job_post.career', 'career')
+      .where('job_post.status = :status', { status: 3 })
       .groupBy('career.id')
       .addGroupBy('career.name')
       .addGroupBy('career.iconUrl')

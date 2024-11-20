@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  Req,
+  Query,
+  Put,
+} from '@nestjs/common';
 import { JobService } from './job.service';
 
 import { CreateJobPostDto } from './dto/job-post.dto';
@@ -10,12 +20,18 @@ export class JobController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('private-job-posts')
-  async createPrivateJobPost(@Req() req: any, @Body() createJobPostDto: CreateJobPostDto) {
-    const newJob = await this.jobService.createPrivateJobPost(createJobPostDto, req.user.email)
+  async createPrivateJobPost(
+    @Req() req: any,
+    @Body() createJobPostDto: CreateJobPostDto,
+  ) {
+    const newJob = await this.jobService.createPrivateJobPost(
+      createJobPostDto,
+      req.user.email,
+    );
     return {
       errors: {},
-      data: newJob
-    }
+      data: newJob,
+    };
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -23,22 +39,22 @@ export class JobController {
   async getPrivateJobPosts(
     @Req() req: any,
     @Query('isUrgent') isUrgent: boolean = null,
-    @Query('kw') keyword: string = "",
-    @Query('ordering') ordering: string = "createAt",
+    @Query('kw') keyword: string = '',
+    @Query('ordering') ordering: string = 'createAt',
     @Query('page') page: number = 1,
     @Query('pageSize') pageSize = 5,
-    @Query('statusId') statusId ,
+    @Query('statusId') statusId,
   ) {
     const jobPosts = await this.jobService.findPrivateJobPosts({
-      userId: req.user.id ,
-      isUrgent,  
-      keyword,     
-      ordering,   
-      page , 
-      pageSize ,
-      statusId
+      userId: req.user.id,
+      isUrgent,
+      keyword,
+      ordering,
+      page,
+      pageSize,
+      statusId,
     });
-  
+
     return {
       errors: {},
       data: {
@@ -53,37 +69,58 @@ export class JobController {
   async getPrivateJobPostsExport(
     @Req() req: any,
     @Query('isUrgent') isUrgent: boolean = false,
-    @Query('kw') keyword: string = "",
-    @Query('ordering') ordering: string = "createAt",
+    @Query('kw') keyword: string = '',
+    @Query('ordering') ordering: string = 'createAt',
     @Query('page') page: number = 1,
     @Query('pageSize') pageSize = 5,
     @Query('statusId') statusId = 1,
   ) {
     const jobPosts = await this.jobService.findPrivateJobPostsToExport({
-      userId: req.user.id ,
-      isUrgent: isUrgent,  
-      keyword: keyword,     
-      ordering: ordering,   
-      page: page , 
-      pageSize: pageSize ,
-      statusId: statusId
+      userId: req.user.id,
+      isUrgent: isUrgent,
+      keyword: keyword,
+      ordering: ordering,
+      page: page,
+      pageSize: pageSize,
+      statusId: statusId,
     });
-  
+
     return {
       errors: {},
-      data: jobPosts.data
+      data: jobPosts.data,
     };
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Get('private-job-posts/:id')
-  async getPrivateJobPostById( @Req() req: any, @Param('id') id: string) {
+  async getPrivateJobPostById(@Req() req: any, @Param('id') id: string) {
     console.log(id);
-    const jobPost = await this.jobService.getPrivateJobPostById(+id,  req.user.id );
+    const jobPost = await this.jobService.getPrivateJobPostById(
+      +id,
+      req.user.id,
+    );
     return {
       errors: {},
       data: jobPost,
-    }
+    };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Put('private-job-posts/:id')
+  async updatePrivateJobPostById(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body() updateJobPostDto: CreateJobPostDto,
+  ) {
+    const jobPost = await this.jobService.updatePrivateJobPostById(
+      +id,
+      req.user.id,
+      updateJobPostDto,
+    );
+    return {
+      errors: {},
+      data: jobPost,
+    };
   }
 
   @Get('job-posts')
@@ -91,23 +128,23 @@ export class JobController {
     @Query('isUrgent') isUrgent: boolean,
     @Query('careerId') careerId: number,
     @Query('companyId') companyId: number,
-    @Query('kw') keyword: string = "",
-    @Query('ordering') ordering: string = "createAt",
+    @Query('kw') keyword: string = '',
+    @Query('ordering') ordering: string = 'createAt',
     @Query('page') page: number = 1,
     @Query('pageSize') pageSize = 5,
     @Query('statusId') statusId: number,
   ) {
     const jobPosts = await this.jobService.findJobPosts({
-      isUrgent,  
+      isUrgent,
       careerId,
       companyId,
-      keyword,     
-      ordering,   
-      page, 
+      keyword,
+      ordering,
+      page,
       pageSize,
-      statusId
+      statusId,
     });
-  
+
     return {
       errors: {},
       data: {
@@ -115,9 +152,23 @@ export class JobController {
         results: jobPosts.results,
       },
     };
-
-
-    
   }
 
+  @Get('job-posts/:slug')
+  async getPublicCompany(@Param('slug') slug: string, @Req() req: any) {
+    const result = await this.jobService.getPublicJobPost(slug, req.headers);
+    return {
+      errors: {},
+      data: result,
+    };
+  }
+  @UseGuards(AuthGuard('jwt'))
+  @Post('job-posts/:slug/job-saved/')
+  async savedJobPost(@Param('slug') slug: string, @Req() req: any) {
+    const result = await this.jobService.savedJobPost(slug, req.user.id);
+    return {
+      errors: {},
+      data: result,
+    };
+  }
 }

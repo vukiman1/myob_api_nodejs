@@ -1,8 +1,8 @@
-
 import { Exclude } from '@nestjs/class-transformer';
 import { CompanyFollowed } from 'src/modules/info/entities/company-followed.entity';
 import { Company } from 'src/modules/info/entities/company.entity';
 import { JobSeekerProfile } from 'src/modules/info/entities/job_seeker_profle.entities';
+import { JobPostSaved } from 'src/modules/job/entities/job-post-saved.entity';
 import { JobPost } from 'src/modules/job/entities/job-post.entity';
 import {
   Entity,
@@ -33,8 +33,7 @@ export class User {
   isActive: boolean;
 
   @Column({ default: 1 })
-  isVerifyEmail:boolean
-  
+  isVerifyEmail: boolean;
 
   @Column({ default: 0 })
   isSupperuser: boolean;
@@ -46,18 +45,18 @@ export class User {
   hasCompany: boolean;
 
   @Column({ default: 'JOB_SEEKER' })
-  roleName: string
+  roleName: string;
 
   @Column({
-    default: 'https://res.cloudinary.com/myjob/image/upload/c_scale,h_200,w_200/myjob/Avatar/defaultAvatar.jpg',
+    default:
+      'https://res.cloudinary.com/myjob/image/upload/c_scale,h_200,w_200/myjob/Avatar/defaultAvatar.jpg',
   })
   avatarUrl: string;
- 
-  @Column({ nullable: true  })
+
+  @Column({ nullable: true })
   avatarPublicId: string;
 
-
-  @Column({ nullable: true  })
+  @Column({ nullable: true })
   lastLogin: Date;
 
   @OneToOne(() => JobSeekerProfile, (profile) => profile.user)
@@ -65,14 +64,15 @@ export class User {
 
   @OneToOne(() => Company, (Company) => Company.user)
   company: Company;
-  
+
   @OneToMany(() => JobPost, (jobPost) => jobPost.user)
   jobPosts: JobPost[]; // Một User có thể có nhiều JobPost
 
   @OneToMany(() => CompanyFollowed, (companyFollowed) => companyFollowed.user)
   companyFollowed: CompanyFollowed[]; // Một User có thể có nhiều JobPost
 
-
+  @OneToMany(() => JobPostSaved, (jobPostSaved) => jobPostSaved.user)
+  jobPostSaved: JobPostSaved[]; // Một User có thể có nhiều JobPost
 
   @CreateDateColumn()
   createAt: Date;
@@ -80,5 +80,3 @@ export class User {
   @UpdateDateColumn()
   updateAt: Date;
 }
-
-
