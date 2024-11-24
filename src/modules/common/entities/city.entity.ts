@@ -1,22 +1,31 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { District } from './district.entity';
-import { Location } from './location.entity';
+import { Resume } from 'src/modules/info/entities/resume.entity';
 
 @Entity('common_city')
 export class City {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    name: string;
+  @Column()
+  name: string;
 
-    @OneToMany(() => District, (district) => district.city)
-    districts: District[];
+  @OneToMany(() => District, (district) => district.city)
+  districts: District[];
 
-    
-    @CreateDateColumn()
-    createAt: Date;
-  
-    @UpdateDateColumn()
-    updateAt: Date;
+  @OneToMany(() => Resume, (resume) => resume.city)
+  resume: Resume[];
+
+  @CreateDateColumn()
+  createAt: Date;
+
+  @UpdateDateColumn()
+  updateAt: Date;
 }

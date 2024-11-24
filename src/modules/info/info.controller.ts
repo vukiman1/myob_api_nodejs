@@ -169,3 +169,31 @@ export class InfoController {
     };
   }
 }
+
+@Controller('info')
+export class InfoController2 {
+  constructor(private readonly infoService: InfoService) {}
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('profile')
+  async getJobSeekerProfile(@Req() req: any) {
+    const profile = await this.infoService.getJobSeekerProfile(req.user.email);
+    return {
+      errors: {},
+      data: profile,
+    };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Put('profile')
+  async updateJobSeekerProfile(@Req() req: any, @Body() updateProfileDto: any) {
+    const profile = await this.infoService.updateJobSeekerProfile(
+      req.user.email,
+      updateProfileDto,
+    );
+    return {
+      errors: {},
+      data: profile,
+    };
+  }
+}

@@ -18,6 +18,7 @@ import { CompanyImage } from './entities/company-image.entity';
 import { CompanyFollowed } from './entities/company-followed.entity';
 import { JwtService } from '@nestjs/jwt';
 import { JobPost } from '../job/entities/job-post.entity';
+import { JobSeekerProfile } from './entities/job_seeker_profle.entities';
 
 @Injectable()
 export class InfoService {
@@ -40,6 +41,8 @@ export class InfoService {
     private jobPostRepository: Repository<JobPost>,
     @InjectRepository(CompanyFollowed)
     private companyFollowedRepository: Repository<CompanyFollowed>,
+    @InjectRepository(JobSeekerProfile)
+    private jobSeekerProfileRepository: Repository<JobSeekerProfile>,
   ) {}
 
   async getCompanyInfo(email: string) {
@@ -173,6 +176,7 @@ export class InfoService {
       results: images, // Trả về mảng các ảnh
     };
   }
+
   async findCompanyByEmail(email: string): Promise<any> {
     const company = await this.companyRepository.findOne({
       where: { user: { email } },
@@ -245,7 +249,7 @@ export class InfoService {
       }
       // Kiểm tra và cập nhật slug nếu tên công ty thay đổi
 
-      // Cập nhật các thông tin khác của công ty
+      // Cập nhật cc thông tin khác của công ty
       Object.assign(company, updateCompanyDto);
       company.slug = await this.generateUniqueSlug(
         updateCompanyDto.companyName,
@@ -259,7 +263,10 @@ export class InfoService {
 
   // find company by user email
   async findUserByEmail(email: string): Promise<User> {
-    const user = this.userRepository.findOne({ where: { email } });
+    const user = this.userRepository.findOne({
+      where: { email },
+      relations: ['jobSeekerProfile'], // Đảm bảo load quan hệ location
+    });
     return user;
   }
 
@@ -378,6 +385,111 @@ export class InfoService {
 
     return {
       isFollowed: !existingFollow,
+    };
+  }
+
+  async getJobSeekerProfile(email: string) {
+    // Tìm profile với các relations cần thiết
+    const profile = await this.jobSeekerProfileRepository.findOne({
+      where: { user: { email } },
+      relations: ['user', 'location', 'location.city', 'location.district'],
+    });
+
+    if (!profile) {
+      throw new NotFoundException('Không tìm thấy hồ sơ ứng viên');
+    }
+
+    // Tính tuổi từ ngày sinh
+    const birthDate = new Date(profile.birthday);
+    const today = new Date();
+    const age = today.getFullYear() - birthDate.getFullYear();
+
+    // Format dữ liệu trả về theo yêu cầu
+    return {
+      id: profile.id,
+      phone: profile.phone,
+      birthday: profile.birthday,
+      gender: profile.gender,
+      maritalStatus: profile.maritalStatus,
+      location: {
+        city: profile.location?.city?.id,
+        districtDict: {
+          id: profile.location?.district?.id,
+          name: profile.location?.district?.name,
+        },
+        address: profile.location?.address,
+        district: profile.location?.district?.id,
+      },
+      user: {
+        fullName: profile.user?.fullName,
+      },
+      old: age,
+    };
+  }
+
+  async updateJobSeekerProfile(email: string, updateProfileDto: any) {
+    const profile = await this.jobSeekerProfileRepository.findOne({
+      where: { user: { email } },
+      relations: ['user', 'location', 'location.city', 'location.district'],
+    });
+
+    // Cập nhật thông tin user
+    profile.user.fullName = updateProfileDto.user.fullName;
+    await this.userRepository.save(profile.user);
+
+    // Xử lý cập nhật location
+    if (updateProfileDto.location) {
+      const { city, district, address } = updateProfileDto.location;
+      const [cityEntity, districtEntity] = await Promise.all([
+        this.cityRepository.findOne({ where: { id: city } }),
+        this.districtRepository.findOne({ where: { id: district } }),
+      ]);
+
+      if (!cityEntity || !districtEntity) {
+        throw new NotFoundException('Không tìm thấy thông tin địa chỉ');
+      }
+
+      profile.location = await this.locationRepository.save({
+        ...profile.location,
+        city: cityEntity,
+        district: districtEntity,
+        address,
+      });
+    }
+
+    // Cập nhật profile
+    Object.assign(profile, {
+      phone: updateProfileDto.phone,
+      birthday: updateProfileDto.birthday,
+      gender: updateProfileDto.gender,
+      maritalStatus: updateProfileDto.maritalStatus,
+    });
+
+    await this.jobSeekerProfileRepository.save(profile);
+
+    // Tính tuổi
+    const age =
+      new Date().getFullYear() - new Date(profile.birthday).getFullYear();
+
+    return {
+      id: profile.id,
+      phone: profile.phone,
+      birthday: profile.birthday,
+      gender: profile.gender,
+      maritalStatus: profile.maritalStatus,
+      location: {
+        city: profile.location?.city?.id,
+        districtDict: {
+          id: profile.location?.district?.id,
+          name: profile.location?.district?.name,
+        },
+        address: profile.location?.address,
+        district: profile.location?.district?.id,
+      },
+      user: {
+        fullName: profile.user?.fullName,
+      },
+      old: age,
     };
   }
 

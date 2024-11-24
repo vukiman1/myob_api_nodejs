@@ -2,6 +2,7 @@ import { Exclude } from '@nestjs/class-transformer';
 import { CompanyFollowed } from 'src/modules/info/entities/company-followed.entity';
 import { Company } from 'src/modules/info/entities/company.entity';
 import { JobSeekerProfile } from 'src/modules/info/entities/job_seeker_profle.entities';
+import { Resume } from 'src/modules/info/entities/resume.entity';
 import { JobPostSaved } from 'src/modules/job/entities/job-post-saved.entity';
 import { JobPost } from 'src/modules/job/entities/job-post.entity';
 import {
@@ -73,6 +74,9 @@ export class User {
 
   @OneToMany(() => JobPostSaved, (jobPostSaved) => jobPostSaved.user)
   jobPostSaved: JobPostSaved[]; // Một User có thể có nhiều JobPost
+
+  @OneToOne(() => Resume, (resume) => resume.user)
+  resume: Resume;
 
   @CreateDateColumn()
   createAt: Date;
