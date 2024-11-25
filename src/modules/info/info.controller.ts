@@ -21,6 +21,19 @@ import { FileInterceptor } from '@nestjs/platform-express';
 export class InfoController {
   constructor(private readonly infoService: InfoService) {}
 
+
+  @Get('job-seeker-profiles/:id/resumes')
+  async getJobSeekerResumes(
+    @Param('id') id: string,
+    @Query('resumeType') resumeType: string
+  ) {
+    const resumes = await this.infoService.getJobSeekerResumes(+id, resumeType);
+    return {
+      errors: {},
+      data: resumes
+    };
+  }
+
   @UseGuards(AuthGuard('jwt'))
   @Get('company')
   async getInfoCompany(@Req() req: any) {
@@ -48,6 +61,7 @@ export class InfoController {
       data: result,
     };
   }
+
 
   @UseGuards(AuthGuard('jwt'))
   @Put('private-companies/company-cover-image-url')
@@ -168,6 +182,8 @@ export class InfoController {
       },
     };
   }
+
+
 }
 
 @Controller('info')
@@ -196,4 +212,8 @@ export class InfoController2 {
       data: profile,
     };
   }
+
+
+
+
 }

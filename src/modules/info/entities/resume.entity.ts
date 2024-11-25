@@ -62,6 +62,10 @@ export class Resume {
   @Column({ nullable: true })
   publicId: string;
 
+  @Column({ default: 'WEBSITE' })
+  type: string;
+
+
   @OneToOne(() => User)
   @JoinColumn()
   user: User;

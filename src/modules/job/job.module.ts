@@ -10,6 +10,9 @@ import { JobPost } from './entities/job-post.entity';
 import { Career } from '../common/entities/carrer.entity';
 import { AuthModule } from '../auth/auth.module';
 import { JobPostSaved } from './entities/job-post-saved.entity';
+import { Resume } from '../info/entities/resume.entity';
+import { ResumeSaved } from '../info/entities/resume-saved.entity';
+import { ResumeViewed } from '../info/entities/resume-viewed.entity';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -19,6 +22,9 @@ import { JobPostSaved } from './entities/job-post-saved.entity';
       JobPost,
       JobPostSaved,
       Career,
+      Resume,
+      ResumeSaved,
+      ResumeViewed
     ]),
     UserModule,
     AuthModule,

@@ -28,6 +28,7 @@ export class JobService {
     private userRepository: Repository<User>,
     @InjectRepository(Career)
     private careerRepository: Repository<Career>,
+
   ) {}
 
   async createPrivateJobPost(
@@ -383,6 +384,10 @@ export class JobService {
     }
     return userId;
   }
+
+
+
+
 
   async generateSlug(companyName: string): Promise<string> {
     // Tạo slug cơ bản từ tên công ty

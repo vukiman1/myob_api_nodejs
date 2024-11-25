@@ -19,6 +19,7 @@ import { CompanyFollowed } from './entities/company-followed.entity';
 import { JwtService } from '@nestjs/jwt';
 import { JobPost } from '../job/entities/job-post.entity';
 import { JobSeekerProfile } from './entities/job_seeker_profle.entities';
+import { Resume } from './entities/resume.entity';
 
 @Injectable()
 export class InfoService {
@@ -43,6 +44,8 @@ export class InfoService {
     private companyFollowedRepository: Repository<CompanyFollowed>,
     @InjectRepository(JobSeekerProfile)
     private jobSeekerProfileRepository: Repository<JobSeekerProfile>,
+    @InjectRepository(Resume)
+    private resumeRepository: Repository<Resume>,
   ) {}
 
   async getCompanyInfo(email: string) {
@@ -492,6 +495,19 @@ export class InfoService {
       old: age,
     };
   }
+
+  async getJobSeekerResumes(jobSeekerId: number, resumeType: string) {
+    const resumes = await this.resumeRepository
+      .createQueryBuilder('resume')
+      .where('resume.jobSeekerId = :jobSeekerId', { jobSeekerId })
+      .andWhere('resume.type = :resumeType', { resumeType })
+      .leftJoinAndSelect('resume.jobSeeker', 'jobSeeker')
+      // Add other necessary joins here
+      .getMany();
+  
+    return resumes;
+  }
+
 
   async findAllCompanies(filters: any, headers: any) {
     const { cityId, keyword = '', page = 1, pageSize = 10 } = filters;

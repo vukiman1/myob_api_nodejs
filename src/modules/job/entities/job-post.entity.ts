@@ -57,6 +57,7 @@ export class JobPost {
   @Column()
   academicLevel: number;
 
+  
   @Column()
   jobType: number;
 
