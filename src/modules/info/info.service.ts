@@ -497,17 +497,68 @@ export class InfoService {
   }
 
   async getJobSeekerResumes(jobSeekerId: number, resumeType: string) {
-    const resumes = await this.resumeRepository
+    const resume = await this.resumeRepository
       .createQueryBuilder('resume')
-      .where('resume.jobSeekerId = :jobSeekerId', { jobSeekerId })
-      .andWhere('resume.type = :resumeType', { resumeType })
-      .leftJoinAndSelect('resume.jobSeeker', 'jobSeeker')
-      // Add other necessary joins here
-      .getMany();
-  
-    return resumes;
+      .leftJoinAndSelect('resume.jobSeekerProfile', 'jobSeekerProfile') // Quan hệ với JobSeekerProfile
+      .where('jobSeekerProfile.id = :jobSeekerId', { jobSeekerId }) // Sử dụng id của JobSeekerProfile
+      .andWhere('resume.type = :resumeType', { resumeType }) // Lọc theo loại resume
+      .leftJoinAndSelect('resume.user', 'user') // Quan hệ với User nếu cần
+      .getOne(); // Lấy một bản ghi duy nhất
+    // Ánh xạ đối tượng dựa trên loại
+    if (resume === null) {
+      return [];
+    }
+    if (resume.type === 'WEBSITE') {
+      return {
+        id: resume.id,
+        slug: resume.slug,
+        title: resume.title,
+        salaryMin: resume.salaryMin,
+        salaryMax: resume.salaryMax,
+        position: resume.position,
+        experience: resume.experience,
+        isActive: resume.isActive,
+        updateAt: resume.updateAt,
+        user: {
+          id: resume.user?.id,
+          fullName: resume.user?.fullName,
+          avatarUrl: resume.user?.avatarUrl,
+        },
+      };
+    } else if (resume.type === 'UPLOAD') {
+      return {
+        id: resume.id,
+        slug: resume.slug,
+        title: resume.title,
+        isActive: resume.isActive,
+        updateAt: resume.updateAt,
+        imageUrl: resume.imageUrl,
+        fileUrl: resume.fileUrl,
+      };
+    }
   }
-
+  async getJobSeekerResumesOwner(slug: string) {
+    const resume = await this.resumeRepository.findOne({
+      where: { slug },
+      relations: ['city', 'career'],
+    });
+    return {
+      id: resume.id,
+      slug: resume.slug,
+      title: resume.title,
+      description: resume.description,
+      salaryMin: resume.salaryMin,
+      salaryMax: resume.salaryMax,
+      position: resume.position,
+      experience: resume.experience,
+      academicLevel: resume.academicLevel,
+      typeOfWorkplace: resume.typeOfWorkplace,
+      jobType: resume.jobType,
+      isActive: resume.isActive,
+      career: resume.career?.id,
+      city: resume.city?.id,
+    };
+  }
 
   async findAllCompanies(filters: any, headers: any) {
     const { cityId, keyword = '', page = 1, pageSize = 10 } = filters;

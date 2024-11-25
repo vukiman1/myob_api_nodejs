@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
@@ -15,6 +16,10 @@ import {
 } from 'src/modules/common/dto/location.dto';
 
 export class CompanyDto {
+  @ApiProperty({
+    example: 'company@gmail.com',
+    description: 'Email công ty',
+  })
   @IsEmail()
   companyEmail: string;
 

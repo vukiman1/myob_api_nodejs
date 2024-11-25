@@ -1,12 +1,13 @@
-import { IsNotEmpty, IsString } from "class-validator";
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateCareerDto {
-    @IsNotEmpty()
-    @IsString()
-    name: string;
+  @ApiProperty({ example: 'IT - Phần mềm', description: 'Tên ngành nghề' })
+  @IsNotEmpty()
+  @IsString()
+  name: string;
 
-    @IsNotEmpty()
-    @IsString()
-    iconUrl: string;
-
+  @IsNotEmpty()
+  @IsString()
+  iconUrl: string;
 }

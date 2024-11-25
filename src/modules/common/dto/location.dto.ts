@@ -1,17 +1,20 @@
-import { PartialType } from '@nestjs/swagger';
+import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateCityDto {
+  @ApiProperty({ example: 'Hà Nội', description: 'Tên tỉnh/thành phố' })
   @IsNotEmpty()
   @IsString()
   name: string;
 }
 
 export class CreateDistrictDto {
+  @ApiProperty({ example: 'Cầu Giấy', description: 'Tên phường/quận' })
   @IsNotEmpty()
   @IsString()
   name: string;
 
+  @ApiProperty({ example: 1, description: 'Id thành phố' })
   @IsNotEmpty()
   @IsNumber()
   city: number;
