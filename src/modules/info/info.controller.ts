@@ -46,6 +46,7 @@ export class InfoController {
   }
 
 
+  //experience details
   @UseGuards(AuthGuard('jwt'))
   @Get('private-resumes/:slug/experiences-detail')
   async getExperiencesDetail(@Param('slug') slug: string) {
@@ -69,6 +70,44 @@ export class InfoController {
 
 
   @UseGuards(AuthGuard('jwt'))
+  @Get('experiences-detail/:id')
+  async getExperiencesDetailById(@Param('id') id: string) {
+    const data = await this.infoService.getExperiencesDetailById(id);
+    return {
+      errors: {},
+      data: data,
+    };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Put('experiences-detail/:id')
+  async updateExperiencesDetailById(@Param('id') id: string, @Body() updateData: any) {
+    const updatedEducationDetail = await this.infoService.updateExperiencesDetailById(id, updateData);
+    return {
+      errors: {},
+      data: updatedEducationDetail,
+    };
+  }
+
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('experiences-detail/:id')
+  async deleteExperiencesDetailById(@Param('id') id: string) {
+    await this.infoService.deleteExperiencesDetailById(id);
+    return {
+      errors: {},
+      message: 'Education detail deleted successfully',
+    };
+  }
+
+
+
+
+
+
+  //education deatals
+
+  @UseGuards(AuthGuard('jwt'))
   @Get('private-resumes/:slug/educations-detail')
   async getEducationsDetail(@Param('slug') slug: string) {
     const eduationDetail = await this.infoService.getEducationsDetail(slug);
@@ -78,8 +117,53 @@ export class InfoController {
     };
   }
 
+  @UseGuards(AuthGuard('jwt'))
+  @Post('educations-detail')
+  async createEducationsDetail( @Req() req: any, @Body() educationsDetail: any) {
+    const data = await this.infoService.createEducationsDetail(educationsDetail, req.user.id);
+    return {
+      errors: {},
+      data: data,
+    };
+  }
 
 
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('educations-detail/:id')
+  async getEducationDetailById(@Param('id') id: string) {
+    const educationDetail = await this.infoService.getEducationDetailById(id);
+    return {
+      errors: {},
+      data: educationDetail,
+    };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Put('educations-detail/:id')
+  async updateEducationDetailById(@Param('id') id: string, @Body() updateData: any) {
+    const updatedEducationDetail = await this.infoService.updateEducationDetailById(id, updateData);
+    return {
+      errors: {},
+      data: updatedEducationDetail,
+    };
+  }
+
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('educations-detail/:id')
+  async deleteEducationDetailById(@Param('id') id: string) {
+    await this.infoService.deleteEducationDetailById(id);
+    return {
+      errors: {},
+      message: 'Education detail deleted successfully',
+    };
+  }
+
+
+
+
+// certificate details
   @UseGuards(AuthGuard('jwt'))
   @Get('private-resumes/:slug/certificates-detail')
   async getCertificatesDetail(@Param('slug') slug: string) {
@@ -90,6 +174,53 @@ export class InfoController {
     };
   }
 
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('certificates-detail')
+  async createCertificatesDetail( @Req() req: any, @Body() certificatesDetail: any) {
+    const data = await this.infoService.createCertificatesDetail(certificatesDetail, req.user.id);
+    return {
+      errors: {},
+      data: data,
+    };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('certificates-detail/:id')
+  async getCertificatesDetailById(@Param('id') id: string) {
+    const data = await this.infoService.getCertificatesDetailById(id);
+    return {
+      errors: {},
+      data: data,
+    };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Put('certificates-detail/:id')
+  async updateCertificatesDetailById(@Param('id') id: string, @Body() updateData: any) {
+    const data = await this.infoService.updateCertificatesDetailById(id, updateData);
+    return {
+      errors: {},
+      data: data,
+    };
+  }
+
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('certificates-detail/:id')
+  async deleteCertificatesDetailById(@Param('id') id: string) {
+    await this.infoService.deleteCertificatesDetailById(id);
+    return {
+      errors: {},
+      message: 'Certificates Detail deleted successfully',
+    };
+  }
+
+
+
+
+
+//language skills
   @UseGuards(AuthGuard('jwt'))
   @Get('private-resumes/:slug/language-skills')
   async getLanguageSkills(@Param('slug') slug: string) {
@@ -99,6 +230,39 @@ export class InfoController {
       data: languageSkills,
     };
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('language-skills/:id')
+  async getLanguageSkillsById(@Param('id') id: string) {
+    const data = await this.infoService.getLanguageSkillsById(id);
+    return {
+      errors: {},
+      data: data,
+    };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Put('language-skills/:id')
+  async updateLanguageSkillsById(@Param('id') id: string, @Body() updateData: any) {
+    const data = await this.infoService.updateLanguageSkillsById(id, updateData);
+    return {
+      errors: {},
+      data: data,
+    };
+  }
+
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('language-skills/:id')
+  async deleteLanguageSkillsById(@Param('id') id: string) {
+    await this.infoService.deleteLanguageSkillsById(id);
+    return {
+      errors: {},
+      message: 'LanguageSkill deleted successfully',
+    };
+  }
+
+
   
 
   @UseGuards(AuthGuard('jwt'))
@@ -111,11 +275,20 @@ export class InfoController {
     };
   }
 
-  
+    @UseGuards(AuthGuard('jwt'))
+  @Get('advanced-skills/:id')
+  async getAdvancedSkillsById(@Param('id') id: string) {
+    const data = await this.infoService.getAdvancedSkillsById(id);
+    return {
+      errors: {},
+      data: data,
+    };
+  }
+
   @UseGuards(AuthGuard('jwt'))
-  @Post('educations-detail')
-  async createEducationsDetail( @Req() req: any, @Body() educationsDetail: any) {
-    const data = await this.infoService.createEducationsDetail(educationsDetail, req.user.id);
+  @Put('advanced-skills/:id')
+  async updateAdvancedSkillssById(@Param('id') id: string, @Body() updateData: any) {
+    const data = await this.infoService.updateAdvancedSkillsById(id, updateData);
     return {
       errors: {},
       data: data,
@@ -123,16 +296,20 @@ export class InfoController {
   }
 
 
-  
   @UseGuards(AuthGuard('jwt'))
-  @Post('certificates-detail')
-  async createCertificatesDetail( @Req() req: any, @Body() certificatesDetail: any) {
-    const data = await this.infoService.createCertificatesDetail(certificatesDetail, req.user.id);
+  @Delete('advanced-skills/:id')
+  async deleteAdvancedSkillsById(@Param('id') id: string) {
+    await this.infoService.deleteAdvancedSkillsById(id);
     return {
       errors: {},
-      data: data,
+      message: 'AdvancedSkills deleted successfully',
     };
   }
+  
+
+  
+
+  
 
 
   

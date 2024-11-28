@@ -7,10 +7,10 @@ export class LanguageSkills {
   id: string;
 
   @Column()
-  language: string;
+  language: number;
 
   @Column()
-  level: string;
+  level: number;
 
   @ManyToOne(() => Resume, resume => resume.languageSkills)
   @JoinColumn()

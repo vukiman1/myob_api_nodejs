@@ -25,6 +25,7 @@ import { EducationDetail } from './entities/educations-detail.entity';
 import { LanguageSkills } from './entities/language-skills.entity';
 import { AdvancedSkills } from './entities/advanced-skills.entity';
 import { CertificatesDetail } from './entities/certificates-detail.entity';
+import { promises } from 'dns';
 
 @Injectable()
 export class InfoService {
@@ -604,20 +605,82 @@ export class InfoService {
     return resume.experiencesDetails;
   }
 
+  async getExperiencesDetailById(id: string) {
+    const data =  await this.experiencesDetailRepository.findOne({where: { id: id}});
+    return data;
+  }
+
+  async updateExperiencesDetailById(id: string, updateData: any) {
+    const data = await this.experiencesDetailRepository.findOne({ where: { id: id}});
+    Object.assign(data, updateData);
+    return await this.experiencesDetailRepository.save(data);
+  }
+
+  async deleteExperiencesDetailById(id: string):Promise<void> {
+    await this.experiencesDetailRepository.delete(id);
+  }
+
+  async getEducationDetailById(id: string) {
+    const data =  await this.educationDetailRepository.findOne({where: { id: id}});
+    return data;
+  }
+
+  async updateEducationDetailById(id: string, updateData: any) {
+    const data = await this.educationDetailRepository.findOne({ where: { id: id}});
+    Object.assign(data, updateData);
+    return await this.educationDetailRepository.save(data);
+  }
+
+  async deleteEducationDetailById(id: string): Promise<void> {
+    await this.educationDetailRepository.delete(id);
+  }
+
   async getEducationsDetail(slug: string) {
     const resume = await this.getResumeBySlug(slug);
     return resume.educationDetail;
   }
 
+
+  //certificateDetails
   async getCertificatesDetail(slug: string) {
     const resume = await this.getResumeBySlug(slug);
     return resume.certificatesDetail;
   }
 
+  async getCertificatesDetailById(id: string) {
+    const data =  await this.certificatesDetailRepository.findOne({where: { id: id}});
+    return data;
+  }
 
+  async updateCertificatesDetailById(id: string, updateData: any) {
+    const data = await this.certificatesDetailRepository.findOne({ where: { id: id}});
+    Object.assign(data, updateData);
+    return await this.certificatesDetailRepository.save(data);
+  }
+
+  async deleteCertificatesDetailById(id: string): Promise<void> {
+    await this.certificatesDetailRepository.delete(id);
+  }
+
+
+  //languageSkills
   async getLanguageSkills(slug: string) {
     const resume = await this.getResumeBySlug(slug);
     return resume.languageSkills;
+  }
+
+  async getLanguageSkillsById(id: string) {
+    const data =  await this.languageSkillsRepository.findOne({where: { id: id}});
+    return data;
+  }
+
+  async updateLanguageSkillsById(id: string, updateData: any) {
+    const data = await this.languageSkillsRepository.findOne({ where: { id: id}});
+    Object.assign(data, updateData);
+    return await this.languageSkillsRepository.save(data);
+  }
+  async deleteLanguageSkillsById(id: string): Promise<void> {
+    await this.languageSkillsRepository.delete(id);
   }
 
 
@@ -626,6 +689,20 @@ export class InfoService {
     return resume.advancedSkills;
   }
 
+  async getAdvancedSkillsById(id: string) {
+    const data =  await this.advancedSkillsRepository.findOne({where: { id: id}});
+    return data;
+  }
+
+  async updateAdvancedSkillsById(id: string, updateData: any) {
+    const data = await this.advancedSkillsRepository.findOne({ where: { id: id}});
+    Object.assign(data, updateData);
+    return await this.advancedSkillsRepository.save(data);
+  }
+
+  async deleteAdvancedSkillsById(id: string): Promise<void> {
+    await this.advancedSkillsRepository.delete(id);
+  }
 
   
 
