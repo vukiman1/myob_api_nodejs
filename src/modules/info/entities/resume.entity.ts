@@ -14,6 +14,11 @@ import {
 } from 'typeorm';
 import { JobSeekerProfile } from './job_seeker_profle.entities';
 import { ResumeViewed } from './resume-viewed.entity';
+import { ExperiencesDetail } from './experiences-detail.entity';
+import { LanguageSkills } from './language-skills.entity';
+import { CertificatesDetail } from './certificates-detail.entity';
+import { AdvancedSkills } from './advanced-skills.entity';
+import { EducationDetail } from './educations-detail.entity';
 
 @Entity('info_resume')
 export class Resume {
@@ -85,6 +90,21 @@ export class Resume {
   @OneToMany(() => ResumeViewed, (resumeViewed) => resumeViewed.resume)
   resumeViewed: ResumeViewed[];
 
+  @OneToMany(() => ExperiencesDetail, experiencesDetail => experiencesDetail.resume)
+  experiencesDetails: ExperiencesDetail[];
+  
+  @OneToMany(() => LanguageSkills, languageSkills => languageSkills.resume)
+  languageSkills: LanguageSkills[];
+  
+  @OneToMany(() => CertificatesDetail, certificatesDetail => certificatesDetail.resume)
+  certificatesDetail: CertificatesDetail[];
+  
+  @OneToMany(() => AdvancedSkills, advancedSkills => advancedSkills.resume)
+  advancedSkills: AdvancedSkills[];
+  
+  @OneToMany(() => EducationDetail,educationDetail => educationDetail.resume)
+  educationDetail: EducationDetail[];
+  
   @CreateDateColumn()
   createAt: Date;
 

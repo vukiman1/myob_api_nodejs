@@ -20,6 +20,11 @@ import { JwtService } from '@nestjs/jwt';
 import { JobPost } from '../job/entities/job-post.entity';
 import { JobSeekerProfile } from './entities/job_seeker_profle.entities';
 import { Resume } from './entities/resume.entity';
+import { ExperiencesDetail } from './entities/experiences-detail.entity';
+import { EducationDetail } from './entities/educations-detail.entity';
+import { LanguageSkills } from './entities/language-skills.entity';
+import { AdvancedSkills } from './entities/advanced-skills.entity';
+import { CertificatesDetail } from './entities/certificates-detail.entity';
 
 @Injectable()
 export class InfoService {
@@ -46,6 +51,20 @@ export class InfoService {
     private jobSeekerProfileRepository: Repository<JobSeekerProfile>,
     @InjectRepository(Resume)
     private resumeRepository: Repository<Resume>,
+    @InjectRepository(ExperiencesDetail)
+    private experiencesDetailRepository: Repository<ExperiencesDetail>,
+
+    @InjectRepository(EducationDetail)
+    private educationDetailRepository: Repository<EducationDetail>,
+
+    @InjectRepository(LanguageSkills)
+    private languageSkillsRepository: Repository<LanguageSkills>,
+
+    @InjectRepository(AdvancedSkills)
+    private advancedSkillsRepository: Repository<AdvancedSkills>,
+
+    @InjectRepository(CertificatesDetail)
+    private certificatesDetailRepository: Repository<CertificatesDetail>,
   ) {}
 
   async getCompanyInfo(email: string) {
@@ -559,6 +578,112 @@ export class InfoService {
       city: resume.city?.id,
     };
   }
+
+  async getResumeBySlug(slug: string) {
+    const resume = await this.resumeRepository.findOne({
+      where: { slug },
+      relations: ['city', 'career', 'educationDetail', 'experiencesDetails' , 'languageSkills', 'certificatesDetail', 'advancedSkills'],
+    });
+    return resume;
+  }
+
+  async getResumeByUserId(id: string) {
+    const resume = await this.resumeRepository.findOne({
+      where: { user: { id: id } },
+    });
+  
+    if (!resume) {
+      throw new NotFoundException(`Resume not found for user with id ${id}`);
+    }
+
+    return resume
+  }
+
+  async getExperiencesDetail(slug: string) {
+    const resume = await this.getResumeBySlug(slug);
+    return resume.experiencesDetails;
+  }
+
+  async getEducationsDetail(slug: string) {
+    const resume = await this.getResumeBySlug(slug);
+    return resume.educationDetail;
+  }
+
+  async getCertificatesDetail(slug: string) {
+    const resume = await this.getResumeBySlug(slug);
+    return resume.certificatesDetail;
+  }
+
+
+  async getLanguageSkills(slug: string) {
+    const resume = await this.getResumeBySlug(slug);
+    return resume.languageSkills;
+  }
+
+
+  async getAdvancedSkills(slug: string) {
+    const resume = await this.getResumeBySlug(slug);
+    return resume.advancedSkills;
+  }
+
+
+  
+
+
+  async createExperiencesDetail(experiencesDetail: any, id: string) {
+    const resume = await this.getResumeByUserId(id)
+    const newExperiencesDetail = this.experiencesDetailRepository.create({
+      ...experiencesDetail,
+      resume: resume // Liên kết với resume
+    });
+    const savedExperiencesDetail = await this.experiencesDetailRepository.save(newExperiencesDetail);
+    return savedExperiencesDetail;
+  }
+
+  async createEducationsDetail(educationsDetail: any, id: string) {
+    const resume = await this.getResumeByUserId(id)
+    const newEducationsDetail = this.educationDetailRepository.create({
+      ...educationsDetail,
+      resume: resume // Liên kết với resume
+    });
+
+    const savedEducationsDetail = await this.educationDetailRepository.save(newEducationsDetail);
+    return savedEducationsDetail;
+  }
+
+  async createCertificatesDetail(certificatesDetail: any, id: string) {
+    const resume = await this.getResumeByUserId(id)
+    const newCertificatesDetail = this.certificatesDetailRepository.create({
+      ...certificatesDetail,
+      resume: resume // Liên kết với resume
+    });
+
+    const savedCertificatesDetail = await this.certificatesDetailRepository.save(newCertificatesDetail);
+    return savedCertificatesDetail;
+  }
+
+  async createLanguageSkills(languageSkills: any, id: string) {
+    const resume = await this.getResumeByUserId(id)
+    const newLanguageSkills = this.languageSkillsRepository.create({
+      ...languageSkills,
+      resume: resume // Liên kết với resume
+    });
+
+    const savedLanguageSkills = await this.languageSkillsRepository.save(newLanguageSkills);
+    return savedLanguageSkills;
+  }
+
+  async createAdvancedSkills(advancedSkills: any, id: string) {
+    const resume = await this.getResumeByUserId(id)
+    const newAdvancedSkills = this.advancedSkillsRepository.create({
+      ...advancedSkills,
+      resume: resume // Liên kết với resume
+    });
+
+    const savedAdvancedSkills = await this.advancedSkillsRepository.save(newAdvancedSkills);
+    return savedAdvancedSkills;
+  }
+
 
   async findAllCompanies(filters: any, headers: any) {
     const { cityId, keyword = '', page = 1, pageSize = 10 } = filters;

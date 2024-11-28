@@ -18,6 +18,11 @@ import { JobPost } from '../job/entities/job-post.entity';
 import { Resume } from './entities/resume.entity';
 import { ResumeViewed } from './entities/resume-viewed.entity';
 import { ResumeSaved } from './entities/resume-saved.entity';
+import { AdvancedSkills } from './entities/advanced-skills.entity';
+import { ExperiencesDetail } from './entities/experiences-detail.entity';
+import { CertificatesDetail } from './entities/certificates-detail.entity';
+import { LanguageSkills } from './entities/language-skills.entity';
+import { EducationDetail } from './entities/educations-detail.entity';
 
 @Module({
   imports: [
@@ -35,6 +40,11 @@ import { ResumeSaved } from './entities/resume-saved.entity';
       Resume,
       ResumeViewed,
       ResumeSaved,
+      AdvancedSkills,
+      ExperiencesDetail,
+      CertificatesDetail,
+      LanguageSkills,
+      EducationDetail
     ]),
     UserModule,
     CloudinaryModule,

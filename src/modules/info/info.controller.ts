@@ -16,6 +16,7 @@ import { InfoService } from './info.service';
 import { AuthGuard } from '@nestjs/passport';
 import { UpdateCompanyDto } from './dto/company.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ExperiencesDetail } from './entities/experiences-detail.entity';
 
 @Controller('info/web')
 export class InfoController {
@@ -43,6 +44,119 @@ export class InfoController {
       data: resumeOwner,
     };
   }
+
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('private-resumes/:slug/experiences-detail')
+  async getExperiencesDetail(@Param('slug') slug: string) {
+    const experient = await this.infoService.getExperiencesDetail(slug);
+    return {
+      errors: {},
+      data: experient,
+    };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('experiences-detail')
+  async createExperiencesDetail( @Req() req: any, @Body() experiencesDetail: any) {
+    console.log('ok');
+    const experient = await this.infoService.createExperiencesDetail(experiencesDetail, req.user.id);
+    return {
+      errors: {},
+      data: experient,
+    };
+  }
+
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('private-resumes/:slug/educations-detail')
+  async getEducationsDetail(@Param('slug') slug: string) {
+    const eduationDetail = await this.infoService.getEducationsDetail(slug);
+    return {
+      errors: {},
+      data: eduationDetail,
+    };
+  }
+
+
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('private-resumes/:slug/certificates-detail')
+  async getCertificatesDetail(@Param('slug') slug: string) {
+    const cetificatesDetail = await this.infoService.getCertificatesDetail(slug);
+    return {
+      errors: {},
+      data: cetificatesDetail,
+    };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('private-resumes/:slug/language-skills')
+  async getLanguageSkills(@Param('slug') slug: string) {
+    const languageSkills = await this.infoService.getLanguageSkills(slug);
+    return {
+      errors: {},
+      data: languageSkills,
+    };
+  }
+  
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('private-resumes/:slug/advanced-skills')
+  async getAdvancedSkills(@Param('slug') slug: string) {
+    const advancedSkills = await this.infoService.getAdvancedSkills(slug);
+    return {
+      errors: {},
+      data: advancedSkills,
+    };
+  }
+
+  
+  @UseGuards(AuthGuard('jwt'))
+  @Post('educations-detail')
+  async createEducationsDetail( @Req() req: any, @Body() educationsDetail: any) {
+    const data = await this.infoService.createEducationsDetail(educationsDetail, req.user.id);
+    return {
+      errors: {},
+      data: data,
+    };
+  }
+
+
+  
+  @UseGuards(AuthGuard('jwt'))
+  @Post('certificates-detail')
+  async createCertificatesDetail( @Req() req: any, @Body() certificatesDetail: any) {
+    const data = await this.infoService.createCertificatesDetail(certificatesDetail, req.user.id);
+    return {
+      errors: {},
+      data: data,
+    };
+  }
+
+
+  
+  @UseGuards(AuthGuard('jwt'))
+  @Post('language-skills')
+  async createLanguageSkills( @Req() req: any, @Body() languageSkills: any) {
+    const data = await this.infoService.createLanguageSkills(languageSkills, req.user.id);
+    return {
+      errors: {},
+      data: data,
+    };
+  }
+
+  
+  @UseGuards(AuthGuard('jwt'))
+  @Post('advanced-skills')
+  async createAdvancedSkills( @Req() req: any, @Body() advancedSkills: any) {
+    const data = await this.infoService.createAdvancedSkills(advancedSkills, req.user.id);
+    return {
+      errors: {},
+      data: data,
+    };
+  }
+  
 
   @UseGuards(AuthGuard('jwt'))
   @Get('company')
