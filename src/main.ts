@@ -3,9 +3,12 @@ import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { setupSwagger } from './setup-swagger';
 import { Logger, UnprocessableEntityException, ValidationPipe } from '@nestjs/common';
+import { HttpExceptionFilter } from './common/exceptions/http-exception.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger:  ['warn', 'error'],
+  });
 
 
   app.useGlobalPipes(
@@ -32,10 +35,11 @@ async function bootstrap() {
 
   const {baseUrl, port, globalPrefix } = configService.get('app')
   app.setGlobalPrefix(globalPrefix)
+  app.useGlobalFilters(new HttpExceptionFilter());
   app.enableCors();
   await app.listen(port, async () => {
     const logger = new Logger('App Port')
-      logger.log(`Server running on ${baseUrl}:${port}/${globalPrefix}`)
+      logger.warn(`Server running on ${baseUrl}:${port}/${globalPrefix}`)
   });
 }
 bootstrap();

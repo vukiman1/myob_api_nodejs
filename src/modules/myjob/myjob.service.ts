@@ -1,22 +1,55 @@
 import { Injectable } from '@nestjs/common';
-import { CreateMyjobDto } from './dto/create-myjob.dto';
-import { UpdateMyjobDto } from './dto/update-myjob.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Banner } from './entities/banner.entity';
 import { Repository } from 'typeorm';
-import { BannerDto, CreateBannerDto, UpdateBannerDto } from './dto/banner.dto';
+import {  CreateBannerDto, UpdateBannerDto } from './dto/banner.dto';
+import { Banner } from './entities/banner.entity';
+import { CreateFeedBackDto } from './dto/feedback.dto';
+import { Feedback } from './entities/feedback.entity';
+import { User } from '../user/entities/user.entity';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class MyjobService {
   
   constructor(
     @InjectRepository(Banner)
-    private bannerRepository: Repository<Banner>
+    private bannerRepository: Repository<Banner>,
+
+    @InjectRepository(Feedback)
+    private feedbackRepository: Repository<Feedback>, // Inject Feedback repository
+
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
   ) {}
   async createBanner(createBannerDto: CreateBannerDto) {
     const newBanner = this.bannerRepository.create({  ...createBannerDto });
-    const savedUser = await this.bannerRepository.save(newBanner);
-    return savedUser
+    const savedBanner = await this.bannerRepository.save(newBanner);
+    return savedBanner
+  } 
+  
+
+  async createFeedback(createFeedBackDto: CreateFeedBackDto, email: string) {
+    const user  = await this.userRepository.findOne({ where: { email } });
+    const newFeedback = this.feedbackRepository.create({  ...createFeedBackDto, user });
+
+    const savedFeedback = await this.feedbackRepository.save(newFeedback);
+    return savedFeedback
+  }
+
+  async getFeedbacks() {
+    const feedbacks = await this.feedbackRepository.find({relations: ['user'],});
+    const activeFeedbacks = feedbacks.filter(feedback => feedback.isActive === true);
+    return activeFeedbacks.map(feedback => ({
+      id: feedback.id,
+      content: feedback.content,
+      rating: feedback.rating,
+      isActive: feedback.isActive,
+      userDict: {
+        id: feedback.user.id,
+        fullName: feedback.user.fullName,
+        avatarUrl: feedback.user.avatarUrl,
+      }
+    }));
   }
 
 
@@ -33,6 +66,7 @@ export class MyjobService {
       descriptionLocation: banner.descriptionLocation
     }));
   }
+  //ok
 
   findOne(id: number) {
     return `This action returns a #${id} myjob`;

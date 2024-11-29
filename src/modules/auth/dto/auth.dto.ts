@@ -1,31 +1,34 @@
-import { ApiProperty } from "@nestjs/swagger"
-import { IsEmail, IsNotEmpty, IsStrongPassword } from "class-validator"
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail, IsNotEmpty } from 'class-validator';
 
 export class AuthCredDto {
-    @ApiProperty({ example: 'example@example.com', description: 'Email của người dùng' })
-    @IsNotEmpty()
-    @IsEmail()
-    email: string
+  @ApiProperty({
+    example: 'anvu734@gmail.com',
+    description: 'Email của người dùng',
+  })
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
 
-    @IsNotEmpty()
-    roleName: string
-
-
+  // @IsNotEmpty()
+  @ApiProperty({ example: 'JOB_SEEKER', description: 'Loại người dùng' })
+  roleName: string;
 }
 
 export class AuthGetTokenDto {
-    @ApiProperty({ example: 'example@example.com', description: 'Email của người dùng' })
-    @IsNotEmpty()
-    @IsEmail()
-    email: string
+  @ApiProperty({
+    example: 'anvu734@gmail.com',
+    description: 'Email của người dùng',
+  })
+  @IsNotEmpty()
+  @IsEmail()
+  username: string;
 
-    @ApiProperty({ example: 'JOB_SEEKER', description: 'Qu' })
-    @IsNotEmpty()
-    roleName: string
+  @ApiProperty({ example: 'JOB_SEEKER', description: 'Loại tài khoản' })
+  @IsNotEmpty()
+  role_name: string;
 
-    @IsNotEmpty()
-    password: string
-
-
+  @ApiProperty({ example: 'An@01022002', description: 'Mật khẩu đăng nhập' })
+  @IsNotEmpty()
+  password: string;
 }
-

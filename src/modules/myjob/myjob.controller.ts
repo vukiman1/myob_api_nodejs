@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
 import { MyjobService } from './myjob.service';
-import { CreateMyjobDto } from './dto/create-myjob.dto';
-import { UpdateMyjobDto } from './dto/update-myjob.dto';
 import { CreateBannerDto, UpdateBannerDto } from './dto/banner.dto';
+import { CreateFeedBackDto } from './dto/feedback.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('myjob')
 export class MyjobController {
@@ -13,20 +13,41 @@ export class MyjobController {
     return this.myjobService.createBanner(createBannerDto);
   }
 
+
   @Get('web/banner')
-  getBanner() {
-    return this.myjobService.getAllBaner();
+  async getBanner() {
+    const banner = await this.myjobService.getAllBaner()
+    return {
+      errors: {},
+      data: banner
   }
-
-
+  }
 
   @Patch('web/banner/:id')
   updateBanner(@Param('id') id: string, @Body() updateBannerDto: UpdateBannerDto) {
     return this.myjobService.updateBanner(id, updateBannerDto);
   }
 
-  @Delete(':id')
+  @Delete('web/banner/:id')
   removeBanner(@Param('id') id: string) {
     return this.myjobService.removeBanner(id);
+  }
+
+
+
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('web/feedbacks')
+  createFeedback(@Req() req: any, @Body() createFeedBackDto: CreateFeedBackDto) {
+    return this.myjobService.createFeedback(createFeedBackDto, req.user.email);
+  }
+
+  @Get('web/feedbacks')
+  async getFeedbacks() {
+    const feedback = await this.myjobService.getFeedbacks()
+    return {
+      errors: {},
+      data: feedback
+  }
   }
 }
