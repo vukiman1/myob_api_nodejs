@@ -71,11 +71,11 @@ export class Resume {
   type: string;
 
 
-  @OneToOne(() => User)
+  @ManyToOne(() => User)
   @JoinColumn()
   user: User;
 
-  @OneToOne(() => JobSeekerProfile)
+  @ManyToOne(() => JobSeekerProfile)
   @JoinColumn()
   jobSeekerProfile: JobSeekerProfile;
 

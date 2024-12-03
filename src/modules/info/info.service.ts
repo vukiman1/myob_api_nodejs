@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -26,11 +27,16 @@ import { LanguageSkills } from './entities/language-skills.entity';
 import { AdvancedSkills } from './entities/advanced-skills.entity';
 import { CertificatesDetail } from './entities/certificates-detail.entity';
 import { promises } from 'dns';
+import { AuthService } from '../auth/auth.service';
+import { Career } from '../common/entities/carrer.entity';
+import { CreateResumeDto } from './dto/create-resume.dto';
+
 
 @Injectable()
 export class InfoService {
   constructor(
     private readonly jwtService: JwtService,
+    private readonly authService: AuthService,
     private cloudinaryService: CloudinaryService,
     @InjectRepository(Location)
     private locationRepository: Repository<Location>,
@@ -52,6 +58,8 @@ export class InfoService {
     private jobSeekerProfileRepository: Repository<JobSeekerProfile>,
     @InjectRepository(Resume)
     private resumeRepository: Repository<Resume>,
+    @InjectRepository(Career)
+    private careerRepository: Repository<Career>,
     @InjectRepository(ExperiencesDetail)
     private experiencesDetailRepository: Repository<ExperiencesDetail>,
 
@@ -99,7 +107,6 @@ export class InfoService {
 
   async updateCompanyAvatar(
     file: Express.Multer.File,
-    userId: number,
     email: string,
   ) {
     const company = await this.findCompanyByEmail(email);
@@ -107,9 +114,12 @@ export class InfoService {
     await this.cloudinaryService.deleteFile(company.companyImagePublicId);
     const { publicId, imageUrl } = await this.cloudinaryService.uploadFile(
       file,
-      company.id,
+      company.slug,
       'companyAvatar',
     );
+
+    await this.cloudinaryService.deleteFile(company.companyImagePublicId);
+
     // Cập nhật trường `avatarUrl` trong bảng `User`
     await this.companyRepository.update(company.id, {
       companyImageUrl: imageUrl,
@@ -121,14 +131,13 @@ export class InfoService {
 
   async updateCompanyCover(
     file: Express.Multer.File,
-    userId: number,
     email: string,
   ) {
     const company = await this.findCompanyByEmail(email);
     // Upload file lên Cloudinary và lấy đường dẫn ảnh
     const { publicId, imageUrl } = await this.cloudinaryService.uploadFile(
       file,
-      company.id,
+      company.slug,
       'companyCover',
     );
     await this.cloudinaryService.deleteFile(company.companyCoverImagePublicId);
@@ -144,13 +153,12 @@ export class InfoService {
 
   async createCompanyImages(
     file: Express.Multer.File,
-    userId: number,
     email: string,
   ) {
     const company = await this.findCompanyByEmail(email);
     const { publicId, imageUrl } = await this.cloudinaryService.uploadFile(
       file,
-      company.id,
+      company.slug,
       'companyImage',
     );
 
@@ -290,6 +298,19 @@ export class InfoService {
       where: { email },
       relations: ['jobSeekerProfile'], // Đảm bảo load quan hệ location
     });
+    return user;
+  }
+
+  async findUserById(id: string): Promise<User> {
+    const user = this.userRepository.findOne({
+      where: { id },
+      relations: ['jobSeekerProfile', 'resume'], // Đảm bảo load quan hệ location
+    });
+
+    if(!user) {
+      throw new NotFoundException(`User not found`);
+    }
+
     return user;
   }
 
@@ -515,20 +536,29 @@ export class InfoService {
       old: age,
     };
   }
-
-  async getJobSeekerResumes(jobSeekerId: number, resumeType: string) {
-    const resume = await this.resumeRepository
+  async getJobSeekerResumes(jobSeekerId: number, resumeType?: string): Promise<any> {
+    const query = this.resumeRepository
       .createQueryBuilder('resume')
-      .leftJoinAndSelect('resume.jobSeekerProfile', 'jobSeekerProfile') // Quan hệ với JobSeekerProfile
-      .where('jobSeekerProfile.id = :jobSeekerId', { jobSeekerId }) // Sử dụng id của JobSeekerProfile
-      .andWhere('resume.type = :resumeType', { resumeType }) // Lọc theo loại resume
-      .leftJoinAndSelect('resume.user', 'user') // Quan hệ với User nếu cần
-      .getOne(); // Lấy một bản ghi duy nhất
-    // Ánh xạ đối tượng dựa trên loại
-    if (resume === null) {
+      .leftJoinAndSelect('resume.jobSeekerProfile', 'jobSeekerProfile')
+      .leftJoinAndSelect('resume.user', 'user') // Tham chiếu user nếu cần
+      .where('jobSeekerProfile.id = :jobSeekerId', { jobSeekerId }); // Sử dụng id của JobSeekerProfile
+  
+    // Nếu có resumeType, thêm điều kiện lọc
+    if (resumeType) {
+      query.andWhere('resume.type = :resumeType', { resumeType });
+    }
+  
+    const resumes = await query.getMany(); // Lấy danh sách resume
+  
+    // Nếu không có resume nào, trả về mảng rỗng
+    if (!resumes || resumes.length === 0) {
       return [];
     }
-    if (resume.type === 'WEBSITE') {
+  
+    // Xử lý logic trả về
+    if (resumeType === 'WEBSITE') {
+      // Nếu chỉ có 1 loại WEBSITE
+      const resume = resumes[0];
       return {
         id: resume.id,
         slug: resume.slug,
@@ -545,8 +575,9 @@ export class InfoService {
           avatarUrl: resume.user?.avatarUrl,
         },
       };
-    } else if (resume.type === 'UPLOAD') {
-      return {
+    } else if (resumeType === 'UPLOAD') {
+      // Nếu chỉ có loại UPLOAD
+      return resumes.map((resume) => ({
         id: resume.id,
         slug: resume.slug,
         title: resume.title,
@@ -554,9 +585,27 @@ export class InfoService {
         updateAt: resume.updateAt,
         imageUrl: resume.imageUrl,
         fileUrl: resume.fileUrl,
-      };
+      }));
     }
+  
+    // Nếu không có resumeType, trả về tất cả resume với các loại khác nhau
+    return resumes.map((resume) => ({
+      id: resume.id,
+      slug: resume.slug,
+      title: resume.title,
+      isActive: resume.isActive,
+      updateAt: resume.updateAt,
+      type: resume.type, // Bao gồm thông tin loại resume
+      imageUrl: resume.imageUrl || null,
+      fileUrl: resume.fileUrl || null,
+      salaryMin: resume.salaryMin || null,
+      salaryMax: resume.salaryMax || null,
+    }));
   }
+  
+  
+
+
   async getJobSeekerResumesOwner(slug: string) {
     const resume = await this.resumeRepository.findOne({
       where: { slug },
@@ -580,17 +629,121 @@ export class InfoService {
     };
   }
 
+  async getJobSeekerCV(slug: string) {
+    const resume = await this.resumeRepository.findOne({
+      where: { slug },
+      relations: ['city', 'career'],
+    });
+    return {
+      id: resume.id,
+      slug: resume.slug,
+      title: resume.title,
+      fileUrl: resume.fileUrl,
+    };
+  }
+
+  async toggleResumeActive(slug: string): Promise<any> {
+    // Tìm resume theo slug
+    const resumeToToggle = await this.resumeRepository.findOne({
+      where: { slug },
+      relations: ['jobSeekerProfile'],
+    });
+  
+    if (!resumeToToggle) {
+      throw new NotFoundException('Resume not found');
+    }
+  
+    const jobSeekerId = resumeToToggle.jobSeekerProfile.id;
+  
+    if (resumeToToggle.isActive) {
+      // Nếu resume đang active thì tắt active
+      resumeToToggle.isActive = false;
+      await this.resumeRepository.save(resumeToToggle);
+      return { message: 'Resume deactivated successfully' };
+    }
+  
+    // Nếu resume không active, active nó và tắt active các resume khác
+    await this.resumeRepository
+      .createQueryBuilder()
+      .update(Resume)
+      .set({ isActive: false })
+      .where('jobSeekerProfileId = :jobSeekerId', { jobSeekerId })
+      .execute();
+  
+    resumeToToggle.isActive = true;
+    await this.resumeRepository.save(resumeToToggle);
+  
+    return { message: 'Resume activated successfully', resume: resumeToToggle };
+  }
+  
+
+  async updatePrivateResume(slug: string, updateResumeDto: any): Promise<any> {
+    const resume = await this.getResumeBySlug(slug)  
+    Object.assign(resume, updateResumeDto);
+    const updatedResume = await this.resumeRepository.save(resume);
+  
+    return updatedResume;
+  }
+
+  async createPrivateResume(
+    createResumeDto: CreateResumeDto,
+    file: Express.Multer.File,
+    userId: string,
+  ): Promise<any> {
+    const slug = await this.authService.generateResumeSlug(); 
+    const [user, city, career] = await Promise.all([
+      this.findUserById(userId),
+      this.cityRepository.findOne({ where: { id: createResumeDto.city } }),
+      this.careerRepository.findOne({ where: { id: createResumeDto.career } }),
+    ]);
+
+
+    let resume = new Resume();
+    resume.user = user;
+    resume.jobSeekerProfile = user.jobSeekerProfile;
+  
+    resume.type = 'UPLOAD'
+    const { pdfUrl, publicId, imageUrl } = await this.cloudinaryService.uploadPdfWithImage(
+      file,
+      slug
+    )
+
+    Object.assign(resume, {
+      ...createResumeDto,
+      slug: await this.authService.generateResumeSlug(),
+      imageUrl,
+      fileUrl: pdfUrl,
+      publicId,
+      city,
+      career,
+    });
+
+
+
+    try {
+      const newResume = await this.resumeRepository.save(resume);
+      return newResume;
+    } catch (error) {
+      console.error('Failed to save resume:', error.message);
+      throw new Error('Error saving resume');
+    }
+  
+  }
   async getResumeBySlug(slug: string) {
     const resume = await this.resumeRepository.findOne({
       where: { slug },
       relations: ['city', 'career', 'educationDetail', 'experiencesDetails' , 'languageSkills', 'certificatesDetail', 'advancedSkills'],
     });
+    if (!resume) {
+      throw new NotFoundException(`Resume not found`);
+    }
     return resume;
   }
 
   async getResumeByUserId(id: string) {
     const resume = await this.resumeRepository.findOne({
       where: { user: { id: id } },
+      relations: ['user'],
     });
   
     if (!resume) {

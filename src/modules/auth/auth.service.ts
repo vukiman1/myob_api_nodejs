@@ -80,7 +80,6 @@ export class AuthService {
 
   async employer_register_services(employerRegisterDto: EmployerRegisterDto) {
     await this.checkUserExist(employerRegisterDto.email);
-    console.log(employerRegisterDto.company);
 
     const newUser = this.userRepository.create({
       email: employerRegisterDto.email,
@@ -124,15 +123,18 @@ export class AuthService {
     return await this.get_user_info(email);
   }
 
-  async updateAvatar(file: Express.Multer.File, userId: number, email: string) {
+  async updateAvatar(file: Express.Multer.File, email: string) {
     // Upload file lên Cloudinary và lấy đường dẫn ảnh
     const user = await this.findUserByEmail(email);
     // await this.cloudinaryService.deleteFile(company.companyImagePublicId)
     const { publicId, imageUrl } = await this.cloudinaryService.uploadFile(
       file,
-      +user.id,
+      user.id,
       'avatar',
     );
+
+    await this.cloudinaryService.deleteFile(user.avatarPublicId);
+
 
     // Cập nhật trường `avatarUrl` trong bảng `User`
     await this.userRepository.update(+user.id, {
@@ -188,7 +190,7 @@ export class AuthService {
     // Giải mã token để lấy thông tin
     try {
       const decodedToken = this.jwtService.decode(token);
-      console.log(token);
+
       // Kiểm tra token hợp lệ không
       if (!decodedToken) {
         throw new Error('Token không hợp lệ');

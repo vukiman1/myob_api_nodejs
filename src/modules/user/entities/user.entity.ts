@@ -75,7 +75,7 @@ export class User {
   @OneToMany(() => JobPostSaved, (jobPostSaved) => jobPostSaved.user)
   jobPostSaved: JobPostSaved[]; // Một User có thể có nhiều JobPost
 
-  @OneToOne(() => Resume, (resume) => resume.user)
+  @OneToMany(() => Resume, (resume) => resume.user)
   resume: Resume;
 
   @CreateDateColumn()

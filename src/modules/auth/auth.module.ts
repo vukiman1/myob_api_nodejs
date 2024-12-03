@@ -42,7 +42,7 @@ import { Resume } from '../info/entities/resume.entity';
     JobSeekerProfile,
     CloudinaryModule,
   ],
-  exports: [JwtModule],
+  exports: [JwtModule, AuthService],
   controllers: [AuthController],
   providers: [AuthService, UserService, JwtStrategy],
 })

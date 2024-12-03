@@ -6,6 +6,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -39,7 +40,7 @@ export class JobSeekerProfile {
   @JoinColumn()
   location: Location;
 
-  @OneToOne(() => Resume, (resume) => resume.jobSeekerProfile)
+  @OneToMany(() => Resume, (resume) => resume.jobSeekerProfile)
   resume: Resume;
 
   @CreateDateColumn()

@@ -23,6 +23,8 @@ import { ExperiencesDetail } from './entities/experiences-detail.entity';
 import { CertificatesDetail } from './entities/certificates-detail.entity';
 import { LanguageSkills } from './entities/language-skills.entity';
 import { EducationDetail } from './entities/educations-detail.entity';
+import { AuthService } from '../auth/auth.service';
+import { Career } from '../common/entities/carrer.entity';
 
 @Module({
   imports: [
@@ -44,7 +46,8 @@ import { EducationDetail } from './entities/educations-detail.entity';
       ExperiencesDetail,
       CertificatesDetail,
       LanguageSkills,
-      EducationDetail
+      EducationDetail,
+      Career
     ]),
     UserModule,
     CloudinaryModule,
@@ -52,6 +55,6 @@ import { EducationDetail } from './entities/educations-detail.entity';
   ],
   exports: [InfoService],
   controllers: [InfoController, InfoController2],
-  providers: [InfoService, UserService],
+  providers: [InfoService, UserService, AuthService],
 })
 export class InfoModule {}
