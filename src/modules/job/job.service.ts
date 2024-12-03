@@ -337,8 +337,16 @@ export class JobService {
     const userId = await this.getUserByHeader(headers);
     let isSaved = null;
     if (userId) {
-      isSaved = await this.checkIsSavedJobPost(slug, userId);
+      isSaved = (await this.checkIsSavedJobPost(slug, userId)).isSaved;
     }
+
+    // Save the job post
+    const savedJobPost = await this.jobPostRepository.save(jobPost);
+
+    // Increment the views count
+    savedJobPost.views++;
+    await this.jobPostRepository.save(savedJobPost);
+
     return JobPostResponseDto.toResponse({ ...jobPost, isSaved });
   }
 

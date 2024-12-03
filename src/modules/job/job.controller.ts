@@ -168,7 +168,10 @@ export class JobController {
     const result = await this.jobService.savedJobPost(slug, req.user.id);
     return {
       errors: {},
-      data: result,
+      data: {
+        isSaved: result
+      },
+        
     };
   }
 
