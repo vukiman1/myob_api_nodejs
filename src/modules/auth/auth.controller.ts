@@ -57,7 +57,7 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   @Get('user-info')
   async getUserInfo(@Req() req: any): Promise<any> {
-    // console.log(req.user.roleName)
+
     const user = await this.authService.get_user_info(req.user.email);
     return {
       errors: {},
@@ -91,7 +91,6 @@ export class AuthController {
   ): Promise<any> {
     const user = await this.authService.updateAvatar(
       file,
-      req.user.id,
       req.user.email,
     );
     return {
@@ -121,7 +120,7 @@ export class AuthController {
 
   @Post('revoke-token')
   async revokeToken(token: string): Promise<any> {
-    console.log(token);
+
     // const data = await this.authService.revokeToken(token);
     return true;
   }

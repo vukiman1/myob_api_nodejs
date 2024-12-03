@@ -17,6 +17,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { UpdateCompanyDto } from './dto/company.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ExperiencesDetail } from './entities/experiences-detail.entity';
+import { CreateResumeDto } from './dto/create-resume.dto';
 
 @Controller('info/web')
 export class InfoController {
@@ -34,6 +35,42 @@ export class InfoController {
       data: resumes,
     };
   }
+  @UseGuards(AuthGuard('jwt'))
+  @Get('private-resumes/:slug/resume-active')
+  async toggleActiveResume(@Param('slug') slug: string) {
+    const result = await this.infoService.toggleResumeActive(slug);
+    return {
+      errors: {},
+      data: result,
+    };
+  }
+
+
+  @UseGuards(AuthGuard('jwt'))
+  @Put('private-resumes/:slug')
+  async updatePrivateResume(@Param('slug') slug: string, @Body() updateResumeDto: any) {
+    const updatedResume = await this.infoService.updatePrivateResume(slug, updateResumeDto);
+    return {
+      errors: {},
+      data: updatedResume,
+    };
+  }
+
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('private-resumes')
+  @UseInterceptors(FileInterceptor('file'))
+  async createPrivateResume(
+    @Req() req: any,
+    @Body() createResumeDto: CreateResumeDto,
+    @UploadedFile() file: Express.Multer.File
+  ) {
+    const createdResume = await this.infoService.createPrivateResume(createResumeDto, file, req.user.id);
+    return {
+      errors: {},
+      data: createdResume,
+    };
+  }
 
   @UseGuards(AuthGuard('jwt'))
   @Get('private-resumes/:slug/resume-owner')
@@ -44,6 +81,17 @@ export class InfoController {
       data: resumeOwner,
     };
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('private-resumes/:slug/cv')
+  async getJobSeekerCV(@Param('slug') slug: string) {
+    const data = await this.infoService.getJobSeekerCV(slug);
+    return {
+      errors: {},
+      data: data,
+    };
+  }
+
 
 
   //experience details
@@ -60,7 +108,6 @@ export class InfoController {
   @UseGuards(AuthGuard('jwt'))
   @Post('experiences-detail')
   async createExperiencesDetail( @Req() req: any, @Body() experiencesDetail: any) {
-    console.log('ok');
     const experient = await this.infoService.createExperiencesDetail(experiencesDetail, req.user.id);
     return {
       errors: {},
@@ -372,7 +419,6 @@ export class InfoController {
   ): Promise<any> {
     const company = await this.infoService.updateCompanyCover(
       file,
-      req.user.id,
       req.user.email,
     );
     return {
@@ -390,7 +436,6 @@ export class InfoController {
   ): Promise<any> {
     const company = await this.infoService.updateCompanyAvatar(
       file,
-      req.user.id,
       req.user.email,
     );
     return {
@@ -417,7 +462,6 @@ export class InfoController {
   ): Promise<any> {
     const company = await this.infoService.createCompanyImages(
       file,
-      req.user.id,
       req.user.email,
     );
     return {
