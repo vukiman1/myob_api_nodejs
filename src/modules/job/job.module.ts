@@ -13,6 +13,9 @@ import { JobPostSaved } from './entities/job-post-saved.entity';
 import { Resume } from '../info/entities/resume.entity';
 import { ResumeSaved } from '../info/entities/resume-saved.entity';
 import { ResumeViewed } from '../info/entities/resume-viewed.entity';
+import { JobPostActivity } from './entities/job-post-activity.entity';
+import { JobPostNotification } from './entities/job-post-notification.entity';
+import { City } from '../common/entities/city.entity';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -24,7 +27,10 @@ import { ResumeViewed } from '../info/entities/resume-viewed.entity';
       Career,
       Resume,
       ResumeSaved,
-      ResumeViewed
+      ResumeViewed,
+      JobPostActivity,
+      JobPostNotification,
+      City
     ]),
     UserModule,
     AuthModule,

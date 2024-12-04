@@ -3,6 +3,8 @@ import { CompanyFollowed } from 'src/modules/info/entities/company-followed.enti
 import { Company } from 'src/modules/info/entities/company.entity';
 import { JobSeekerProfile } from 'src/modules/info/entities/job_seeker_profle.entities';
 import { Resume } from 'src/modules/info/entities/resume.entity';
+import { JobPostActivity } from 'src/modules/job/entities/job-post-activity.entity';
+import { JobPostNotification } from 'src/modules/job/entities/job-post-notification.entity';
 import { JobPostSaved } from 'src/modules/job/entities/job-post-saved.entity';
 import { JobPost } from 'src/modules/job/entities/job-post.entity';
 import {
@@ -69,11 +71,18 @@ export class User {
   @OneToMany(() => JobPost, (jobPost) => jobPost.user)
   jobPosts: JobPost[]; // Một User có thể có nhiều JobPost
 
+  @OneToMany(() => JobPostActivity, (jobPostActivity) => jobPostActivity.user)
+  jobPostActivity: JobPostActivity[]; 
+
+
   @OneToMany(() => CompanyFollowed, (companyFollowed) => companyFollowed.user)
-  companyFollowed: CompanyFollowed[]; // Một User có thể có nhiều JobPost
+  companyFollowed: CompanyFollowed[]; 
 
   @OneToMany(() => JobPostSaved, (jobPostSaved) => jobPostSaved.user)
-  jobPostSaved: JobPostSaved[]; // Một User có thể có nhiều JobPost
+  jobPostSaved: JobPostSaved[];
+
+  @OneToMany(() => JobPostNotification, (jobPostNotification) => jobPostNotification.user)
+  jobPostNotification: JobPostNotification[];
 
   @OneToMany(() => Resume, (resume) => resume.user)
   resume: Resume;

@@ -14,6 +14,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { JobPostSaved } from './job-post-saved.entity';
+import { JobPostActivity } from './job-post-activity.entity';
 
 @Entity('job_post')
 export class JobPost {
@@ -108,6 +109,10 @@ export class JobPost {
 
   @OneToMany(() => JobPostSaved, (jobPostSaved) => jobPostSaved.jobPost)
   jobPostSaved: JobPostSaved[];
+
+  @ManyToOne(() => JobPostActivity, (jobPostActivity) => jobPostActivity.jobPost)
+  @JoinColumn()
+  jobPostActivity: JobPostActivity;
 
   @CreateDateColumn()
   createAt: Date;

@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { District } from './district.entity';
 import { Resume } from 'src/modules/info/entities/resume.entity';
+import { JobPostNotification } from 'src/modules/job/entities/job-post-notification.entity';
 
 @Entity('common_city')
 export class City {
@@ -22,6 +23,9 @@ export class City {
 
   @OneToMany(() => Resume, (resume) => resume.city)
   resume: Resume[];
+
+  @OneToMany(() => JobPostNotification, (jobPostNotification) => jobPostNotification.city)
+  jobPostNotification: JobPostNotification[];
 
   @CreateDateColumn()
   createAt: Date;

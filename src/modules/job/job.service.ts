@@ -6,13 +6,19 @@ import {
 
 import { Location } from '../common/entities/location.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, MoreThanOrEqual, Repository } from 'typeorm';
 import { CreateJobPostDto, JobPostResponseDto } from './dto/job-post.dto';
 import { JobPost } from './entities/job-post.entity';
 import { User } from '../user/entities/user.entity';
 import { Career } from '../common/entities/carrer.entity';
 import { JwtService } from '@nestjs/jwt';
-import { JobPostSaved } from './entities/job-post-saved.entity';
+import { JobPostSaved, JobPostSavedResponseDto } from './entities/job-post-saved.entity';
+import { JobActivityResponseDto, JobPostActivity } from './entities/job-post-activity.entity';
+import { Resume } from '../info/entities/resume.entity';
+import { CreateJobPostActivityDto } from './dto/create-job-post-activity.dto';
+import { JobPostNotification } from './entities/job-post-notification.entity';
+import { City } from '../common/entities/city.entity';
+import { CreateJobPostNotificationDto, JobPostNotificationResponseDto } from './dto/create-job-post-notification.dto';
 
 @Injectable()
 export class JobService {
@@ -28,6 +34,14 @@ export class JobService {
     private userRepository: Repository<User>,
     @InjectRepository(Career)
     private careerRepository: Repository<Career>,
+    @InjectRepository(City)
+    private readonly cityRepository: Repository<City>,
+    @InjectRepository(JobPostActivity)
+    private jobPostActivityRepository: Repository<JobPostActivity>,
+    @InjectRepository(JobPostNotification)
+    private readonly jobPostNotificationRepository: Repository<JobPostNotification>,
+    @InjectRepository(Resume)
+    private resumeRepository: Repository<Resume>,
 
   ) {}
 
@@ -395,7 +409,161 @@ export class JobService {
 
 
 
+  async createJobPostActivity(createJobPostActivityDto: CreateJobPostActivityDto): Promise<JobPostActivity> {
+    const { email, fullName, job_post, phone, resume } = createJobPostActivityDto;
+  
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) {
+      throw new Error('User not found');
+    }
+  
+    const resumeEntity = await this.resumeRepository.findOne({ where: { id: resume } });
+    if (!resumeEntity) {
+      throw new Error('Resume not found');
+    }
+  
+    const jobPost = await this.jobPostRepository.findOne({ where: { id: job_post } });
+    if (!jobPost) {
+      throw new Error('Job post not found');
+    }
+  
+    const jobPostActivity = new JobPostActivity();
+    jobPostActivity.fullName = fullName;
+    jobPostActivity.email = email;
+    jobPostActivity.phone = phone;
+    jobPostActivity.user = user;
+    jobPostActivity.resume = resumeEntity;
+    jobPostActivity.jobPost = jobPost;
+  
+    return this.jobPostActivityRepository.save(jobPostActivity);
+  }
 
+
+  async getJobPostActivities(page: number, pageSize: number) {
+    const skip = (page - 1) * pageSize;
+    // Lấy danh sách hoạt động kèm quan hệ liên quan
+    const [activities, totalCount] = await this.jobPostActivityRepository.findAndCount({
+      skip,
+      take: pageSize,
+      relations: [
+        'jobPost',
+        'jobPost.company',
+        'user',
+        'jobPost.location',
+        'resume',
+      ],
+      order: { createAt: 'DESC' },
+    });
+    
+    // Sử dụng DTO để định dạng kết quả
+    const results = activities.map((activity) => JobActivityResponseDto.toResponse(activity));
+  
+    return {
+      count: totalCount,
+      results,
+    };
+  }
+
+  async getJobPostNotifications(page: number, pageSize: number) {
+    const skip = (page - 1) * pageSize;
+
+    const [notifications, totalCount] = await this.jobPostNotificationRepository.findAndCount({
+      skip,
+      take: pageSize,
+      relations: ['career', 'city'],
+      order: { createAt: 'DESC' },
+    });
+
+
+    const results = notifications.map((notification) =>
+      JobPostNotificationResponseDto.toResponse(notification),
+    );
+
+    return {
+      count: totalCount,
+      results,
+    };
+  }
+
+  async getSavedJobPosts(page: number, pageSize: number, userId: number) {
+    const skip = (page - 1) * pageSize;
+    const currentDate = new Date();
+    // Lấy danh sách các JobPost đã lưu
+    const [savedJobs, totalCount] = await this.jobPostSavedRepository.findAndCount({
+      where: { user: { id: userId.toString() },
+        jobPost: {
+        deadline: MoreThanOrEqual(currentDate), // Deadline >= hôm nay
+        status: 3, // Chỉ lấy công việc đang hoạt động
+      },},
+      relations: ['jobPost', 'jobPost.company', 'user', 'jobPost.location', 'jobPost.location.city'],
+      skip,
+      take: pageSize,
+      order: { createAt: 'DESC' },
+    });
+  
+    // Định dạng dữ liệu trả về
+    const results = savedJobs.map((savedJob) => {
+      const jobPost = savedJob.jobPost;
+      return JobPostSavedResponseDto.toResponse(jobPost, true); // isApplied = true
+    });
+  
+    return {
+      count: totalCount,
+      results,
+    };
+  }
+  
+
+
+  async createJobPostNotification(
+    createJobPostNotificationDto: CreateJobPostNotificationDto,
+  ) {
+    const { jobName, position, experience, salary, frequency, career, city } = createJobPostNotificationDto;
+
+    // Fetch related entities (career and city) in parallel
+    const [careerEntity, cityEntity] = await Promise.all([
+      this.careerRepository.findOne({ where: { id: career } }),
+      this.cityRepository.findOne({ where: { id: city } }),
+    ]);
+
+    // Check if the entities exist
+    if (!careerEntity) throw new NotFoundException('Career not found');
+    if (!cityEntity) throw new NotFoundException('City not found');
+
+    // Create and save the notification
+    const notification = this.jobPostNotificationRepository.create({
+      jobName,
+      position,
+      experience,
+      salary,
+      frequency,
+      career: careerEntity,
+      city: cityEntity,
+    });
+
+    const savedNotification = await this.jobPostNotificationRepository.save(notification);
+
+    // Return the result in the required format
+    return {
+      id: savedNotification.id,
+      jobName: savedNotification.jobName,
+      salary: savedNotification.salary,
+      frequency: savedNotification.frequency,
+      career: savedNotification.career.id,
+      city: savedNotification.city.id,
+    };
+  }
+
+  async toggleActiveStatus(id: number): Promise<JobPostNotification> {
+    const notification = await this.jobPostNotificationRepository.findOne({ where: { id } });
+
+    if (!notification) {
+      throw new NotFoundException('Job post notification not found');
+    }
+
+    notification.isActive = !notification.isActive;
+    return this.jobPostNotificationRepository.save(notification);
+  }
 
   async generateSlug(companyName: string): Promise<string> {
     // Tạo slug cơ bản từ tên công ty

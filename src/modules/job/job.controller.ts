@@ -13,6 +13,9 @@ import { JobService } from './job.service';
 
 import { CreateJobPostDto } from './dto/job-post.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { CreateJobPostActivityDto } from './dto/create-job-post-activity.dto';
+import { error } from 'console';
+import { CreateJobPostNotificationDto } from './dto/create-job-post-notification.dto';
 
 @Controller('job/web/')
 export class JobController {
@@ -94,7 +97,7 @@ export class JobController {
   @UseGuards(AuthGuard('jwt'))
   @Get('private-job-posts/:id')
   async getPrivateJobPostById(@Req() req: any, @Param('id') id: string) {
-    console.log(id);
+    // console.log(id);
     const jobPost = await this.jobService.getPrivateJobPostById(
       +id,
       req.user.id,
@@ -154,6 +157,21 @@ export class JobController {
     };
   }
 
+  @UseGuards(AuthGuard('jwt'))
+  @Get('job-posts/job-posts-saved')
+  async getSavedJobPosts(
+    @Query('page') page: number = 1,
+    @Query('pageSize') pageSize: number = 10,
+    @Req() req: any, // Giả định userId có trong token
+  ) {
+    const userId = req.user.id; // Lấy userId từ token
+    const result = await this.jobService.getSavedJobPosts(page, pageSize, userId);
+    return {
+      errors: {},
+      data: result,
+    };
+  }
+
   @Get('job-posts/:slug')
   async getPublicCompany(@Param('slug') slug: string, @Req() req: any) {
     const result = await this.jobService.getPublicJobPost(slug, req.headers);
@@ -175,5 +193,60 @@ export class JobController {
     };
   }
 
+  @Post('job-seeker-job-posts-activity')
+  async createJobPostActivity(@Body() createJobPostActivityDto: CreateJobPostActivityDto) {
+      const result = await this.jobService.createJobPostActivity(createJobPostActivityDto);
+      return {
+        errors: {},
+        data: result,
+      }
+  }
+
+  @Get('job-seeker-job-posts-activity')
+  async getJobPostActivities(
+    @Query('page') page: number = 1,
+    @Query('pageSize') pageSize: number = 10,
+  ): Promise<any> {
+    const result = await this.jobService.getJobPostActivities(page, pageSize);
+    return {
+      errors: {},
+      data: result,
+    };
+  }
+
+  @Get('job-post-notifications')
+  async getJobPostNotifications(
+    @Query('page') page: number = 1,
+    @Query('pageSize') pageSize: number = 12
+  ) {
+    const result = await this.jobService.getJobPostNotifications(page, pageSize);
+    return {
+      errors: {},
+      data: result,
+    };
+  }
+
+  @Post('job-post-notifications')
+  async createJobPostNotification(
+    @Body() createJobPostNotificationDto: CreateJobPostNotificationDto,
+  ) {
+    const result = await this.jobService.createJobPostNotification(createJobPostNotificationDto);
+    return {
+      errors: {},
+      data: result,
+    };
+  }
+
+  @Put('job-post-notifications:id/active')
+  async toggleActiveStatus(@Param('id') id: number) {
+    const result = await this.jobService.toggleActiveStatus(id);
+    return {
+      errors: {},
+      data: { isActive: result.isActive },
+    };
+  }
+
+
 
 }
+

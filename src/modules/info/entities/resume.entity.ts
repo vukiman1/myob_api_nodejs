@@ -19,6 +19,7 @@ import { LanguageSkills } from './language-skills.entity';
 import { CertificatesDetail } from './certificates-detail.entity';
 import { AdvancedSkills } from './advanced-skills.entity';
 import { EducationDetail } from './educations-detail.entity';
+import { JobPostActivity } from 'src/modules/job/entities/job-post-activity.entity';
 
 @Entity('info_resume')
 export class Resume {
@@ -104,6 +105,9 @@ export class Resume {
   
   @OneToMany(() => EducationDetail,educationDetail => educationDetail.resume)
   educationDetail: EducationDetail[];
+
+  @OneToMany(() => EducationDetail,jobPostActivity => jobPostActivity.resume)
+  jobPostActivity: JobPostActivity[];
   
   @CreateDateColumn()
   createAt: Date;
