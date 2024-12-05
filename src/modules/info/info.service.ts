@@ -35,6 +35,8 @@ import { FollowedCompanyResponseDto } from './dto/company-followed.dto';
 import { ResumeResponseDto } from './dto/resume.dto';
 import { ResumeSaved } from './entities/resume-saved.entity';
 import { JobPostActivity } from '../job/entities/job-post-activity.entity';
+import { ResumeViewed } from './entities/resume-viewed.entity';
+import moment from 'moment';
 
 
 @Injectable()
@@ -83,6 +85,8 @@ export class InfoService {
     private certificatesDetailRepository: Repository<CertificatesDetail>,
     @InjectRepository(JobPostActivity)
     private jobPostActivityRepository: Repository<JobPostActivity>,
+    @InjectRepository(ResumeViewed)
+    private resumeViewedRepository: Repository<ResumeViewed>,
   ) {}
 
   async getCompanyInfo(email: string) {
@@ -1075,14 +1079,336 @@ export class InfoService {
       });
       const isSendEmail = jobPostActivity ? jobPostActivity.isSendMail : false;
   
+      const lastViewedDate = await this.getLatViewedDate(resume)
+
       // Trả về dữ liệu đã được map qua DTO
-      return ResumeResponseDto.toResponse(resume, isSaved > 0, isSendEmail);
+      return ResumeResponseDto.toResponse(resume, isSaved > 0, isSendEmail, lastViewedDate);
     } catch (error) {
       console.error('Error in getResumeDetails:', error);
       throw new InternalServerErrorException('Internal Server Error');
     }
   }
+
+  async getLatViewedDate(resume: any) {
+    const existingResumeViewed = await this.resumeViewedRepository.findOne({
+      where: {
+        resume: { id: resume.id },
+        company: { id: resume.user?.company?.id },
+      },
+    });
+
+    let lastViewedDate = new Date()
+    // Nếu chưa tồn tại ResumeViewed, tạo mới
+    if (!existingResumeViewed) {
+      const newResumeViewed = this.resumeViewedRepository.create({
+        resume: resume,
+        company: resume.user?.company,
+        views: 1,  // Set views mặc định là 1
+      });
+      await this.resumeViewedRepository.save(newResumeViewed);
+    } else {
+      // Nếu đã tồn tại, tăng số lượt views lên 1
+      existingResumeViewed.views += 1;
+      lastViewedDate = existingResumeViewed.updateAt
+      await this.resumeViewedRepository.save(existingResumeViewed);
+    }
+    
+    return lastViewedDate
+  }
+
+  async checkIsSavedResume(resume: any) {
+    const isSaved = await this.resumeSavedRepository.count({
+      where: {
+        resume: { id: resume.id },
+        company: { id: resume.user?.company?.id },
+      },
+    });
+    return isSaved
+  }
   
+  async toggleResumeSavedBySlug(slug: string, userId: string): Promise<boolean> {
+    // Tìm Resume theo slug
+    const resume = await this.resumeRepository.findOne({ where: { slug } });
+    if (!resume) {
+      throw new NotFoundException('Resume not found');
+    }
   
+    // Tìm Company theo userId
+    const company = await this.companyRepository.findOne({ where: { user: { id: userId } } });
+    if (!company) {
+      throw new NotFoundException('Company not found');
+    }
   
+    // Kiểm tra xem đã lưu Resume chưa
+    const existingRecord = await this.resumeSavedRepository.findOne({
+      where: {
+        resume: { id: resume.id },
+        company: { id: company.id },
+      },
+    });
+  
+    if (existingRecord) {
+      // Nếu đã tồn tại, xóa bản ghi
+      await this.resumeSavedRepository.remove(existingRecord);
+      return false; // Resume không còn được lưu
+    } else {
+      // Nếu chưa tồn tại, tạo mới
+      const newRecord = this.resumeSavedRepository.create({
+        resume: { id: resume.id },
+        company: { id: company.id },
+      });
+      await this.resumeSavedRepository.save(newRecord);
+      return true; // Resume đã được lưu
+    }
+  }
+  
+  async getSavedResumes(
+    userId: string,
+    cityId?: number,
+    experienceId?: number,
+    keyword?: string,
+    page: number = 1,
+    pageSize: number = 10,
+    salaryMax?: number
+  ): Promise<{ count: number; results: any[] }> {
+
+    const company = await this.companyRepository.findOne({where: {user: {id: userId}}})
+    const companyId = company.id
+    const query = this.resumeSavedRepository
+      .createQueryBuilder('resumeSaved')
+      .leftJoinAndSelect('resumeSaved.resume', 'resume')
+      .leftJoinAndSelect('resume.user', 'user')
+      .leftJoinAndSelect('resume.city', 'city')
+      .leftJoinAndSelect('resume.jobSeekerProfile', 'jobSeekerProfile')
+      .where('resumeSaved.company = :companyId', { companyId });
+  
+    // Bộ lọc theo cityId
+    if (cityId) {
+      query.andWhere('resume.city = :cityId', { cityId });
+    }
+  
+    // Bộ lọc theo experienceId
+    if (experienceId) {
+      query.andWhere('resume.experience = :experienceId', { experienceId });
+    }
+  
+    // Bộ lọc theo keyword (kw)
+    if (keyword) {
+      query.andWhere('(resume.title LIKE :keyword OR user.fullName LIKE :keyword)', {
+        keyword: `%${keyword}%`,
+      });
+    }
+  
+    // Bộ lọc theo salaryMax
+    if (salaryMax) {
+      query.andWhere('resume.salaryMax <= :salaryMax', { salaryMax });
+    }
+  
+    // Phân trang
+    const [results, count] = await query
+      .orderBy('resumeSaved.createAt', 'DESC')
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .getManyAndCount();
+    // console.log(results);
+    // Map kết quả về đúng format yêu cầu
+    const mappedResults = results.map((item) => ({
+      id: item.id,
+      resume: {
+        id: item.resume.id,
+        slug: item.resume.slug,
+        title: item.resume.title,
+        salaryMin: item.resume.salaryMin,
+        salaryMax: item.resume.salaryMax,
+        experience: item.resume.experience,
+        city: item.resume.city?.id || null,
+        userDict: {
+          id: item.resume.user.id,
+          fullName: item.resume.user.fullName,
+        },
+        jobSeekerProfileDict: {
+          id: item.resume.jobSeekerProfile?.id || null,
+          // old: item.resume.jobSeekerProfile?.age || null,
+        },
+        type: item.resume.type,
+      },
+      createAt: item.createAt,
+    }));
+  
+    return {
+      count,
+      results: mappedResults,
+    };
+  }
+  
+  async exportSavedResumes(
+    userId: string,
+    cityId?: number,
+    experienceId?: number,
+    keyword?: string,
+    page: number = 1,
+    pageSize: number = 10,
+    salaryMax?: number
+  ): Promise<any[]> {
+
+    const company = await this.companyRepository.findOne({where: {user: {id: userId}}})
+    const companyId = company.id
+
+    const query = this.resumeSavedRepository
+      .createQueryBuilder('resumeSaved')
+      .leftJoinAndSelect('resumeSaved.resume', 'resume')
+      .leftJoinAndSelect('resume.user', 'user')
+      .leftJoinAndSelect('resume.city', 'city')
+      .leftJoinAndSelect('resume.jobSeekerProfile', 'jobSeekerProfile')
+      .where('resumeSaved.company = :companyId', { companyId });
+  
+    // Bộ lọc theo cityId
+    if (cityId) {
+      query.andWhere('resume.city = :cityId', { cityId });
+    }
+  
+    // Bộ lọc theo experienceId
+    if (experienceId) {
+      query.andWhere('resume.experience = :experienceId', { experienceId });
+    }
+  
+    // Bộ lọc theo keyword (kw)
+    if (keyword) {
+      query.andWhere('(resume.title LIKE :keyword OR jobSeekerProfile.fullName LIKE :keyword)', {
+        keyword: `%${keyword}%`,
+      });
+    }
+  
+    // Bộ lọc theo salaryMax
+    if (salaryMax) {
+      query.andWhere('resume.salaryMax <= :salaryMax', { salaryMax });
+    }
+  
+    // Phân trang
+    const [results] = await query
+      .orderBy('resumeSaved.createAt', 'DESC')
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .getManyAndCount();
+  
+    // Map kết quả về đúng định dạng yêu cầu
+    return results.map((item, index) => ({
+      STT: index + 1,
+      'Tên hồ sơ': item.resume.title,
+      'Họ và tên': item.resume.user.fullName,
+      Email: item.resume.user.email,
+      'Số điện thoại': item.resume.jobSeekerProfile.phone || null,
+      'Giới tính': item.resume.jobSeekerProfile.gender || null,
+      'Ngày sinh': moment(item.resume.jobSeekerProfile.birthday).format('DD/MM/YYYY') || null,
+      'Địa chỉ': item.resume.city?.name || null,
+      'Ngày lưu': moment(item.createAt).format('DD/MM/YYYY')
+    }));
+  }
+  
+
+  
+  async getResumes(query: GetResumesQuery): Promise<any> {
+    const {
+      academicLevelId,
+      careerId,
+      cityId,
+      experienceId,
+      genderId,
+      jobTypeId,
+      kw,
+      maritalStatusId,
+      page,
+      pageSize,
+      positionId,
+      typeOfWorkplaceId,
+    } = query;
+  
+    const qb = this.resumeRepository.createQueryBuilder('resume')
+      .leftJoinAndSelect('resume.user', 'user')
+      .leftJoinAndSelect('resume.jobSeekerProfile', 'jobSeekerProfile')
+      .leftJoinAndSelect('resume.city', 'city')
+      .leftJoinAndSelect('resume.resumeViewed', 'resumeViewed')
+      .loadRelationCountAndMap('resume.viewEmployerNumber', 'resume.resumeViewed')
+      .where('resume.isActive = :isActive', { isActive: true });
+  
+    // Thêm điều kiện lọc
+    if (academicLevelId) qb.andWhere('jobSeekerProfile.academicLevelId = :academicLevelId', { academicLevelId });
+    if (careerId) qb.andWhere('resume.careerId = :careerId', { careerId });
+    if (cityId) qb.andWhere('resume.cityId = :cityId', { cityId });
+    if (experienceId) qb.andWhere('jobSeekerProfile.experienceId = :experienceId', { experienceId });
+    if (genderId) qb.andWhere('jobSeekerProfile.gender = :genderId', { genderId });
+    if (jobTypeId) qb.andWhere('resume.jobTypeId = :jobTypeId', { jobTypeId });
+    if (kw) qb.andWhere('(resume.title LIKE :kw OR user.fullName LIKE :kw)', { kw: `%${kw}%` });
+    if (maritalStatusId) qb.andWhere('jobSeekerProfile.maritalStatusId = :maritalStatusId', { maritalStatusId });
+    if (positionId) qb.andWhere('resume.positionId = :positionId', { positionId });
+    if (typeOfWorkplaceId) qb.andWhere('resume.typeOfWorkplaceId = :typeOfWorkplaceId', { typeOfWorkplaceId });
+  
+    // Phân trang
+    qb.skip((page - 1) * pageSize).take(pageSize);
+  
+    // Lấy dữ liệu
+    const [results, count] = await qb.getManyAndCount();
+    
+    // Map dữ liệu trả về
+    return {
+      count,
+      results: await Promise.all(results.map(async (resume) => {
+    
+        return {
+          id: resume.id,
+          slug: resume.slug,
+          title: resume.title,
+          salaryMin: resume.salaryMin,
+          salaryMax: resume.salaryMax,
+          experience: resume.experience,
+          updateAt: moment(resume.updateAt).toISOString(),
+          city: resume.city?.id || null,
+          isSaved: await this.checkIsSavedResume(resume), // Nếu có nhà tuyển dụng lưu hồ sơ thì isSaved = true
+          viewEmployerNumber: await this.getViewResumeNumber(resume), // Trả về số lượng nhà tuyển dụng lưu hồ sơ
+          lastViewedDate: await this.getLatViewedDate(resume) || null,
+          userDict: {
+            id: resume.user?.id,
+            fullName: resume.user?.fullName,
+          },
+          jobSeekerProfileDict: {
+            id: resume.jobSeekerProfile?.id,
+            old: resume.jobSeekerProfile?.birthday
+              ? moment().diff(moment(resume.jobSeekerProfile.birthday), 'years')
+              : null, // Tính tuổi từ ngày sinh
+          },
+          type: resume.type,
+        };
+      })),
+    };
+    
+  }
+
+  async getViewResumeNumber(resume:any) {
+    const viewEmployerNumber = await this.resumeSavedRepository.count({
+      where: {
+        resume: { id: resume.id },
+        company: { id: resume.user?.company?.id },
+      },
+    });
+    return viewEmployerNumber
+  }
+  
+}
+
+
+
+
+interface GetResumesQuery {
+  academicLevelId?: string;
+  careerId?: string;
+  cityId?: string;
+  experienceId?: string;
+  genderId?: string;
+  jobTypeId?: string;
+  kw?: string;
+  maritalStatusId?: string;
+  page: number;
+  pageSize: number;
+  positionId?: string;
+  typeOfWorkplaceId?: string;
 }

@@ -35,6 +35,7 @@ export class InfoController {
       data: resumes,
     };
   }
+
   @UseGuards(AuthGuard('jwt'))
   @Get('private-resumes/:slug/resume-active')
   async toggleActiveResume(@Param('slug') slug: string) {
@@ -551,6 +552,111 @@ export class InfoController {
       data: result,
     };
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('resumes/:slug/resume-saved/')
+  async toggleResumeSavedBySlug(
+    @Param('slug') slug: string, // Lấy slug từ URL
+    @Req() req: any // Lấy thông tin user từ JWT
+  ) {
+    const isSaved = await this.infoService.toggleResumeSavedBySlug(slug, req.user.id);
+    return {
+      errors: {},
+      data: { isSaved },
+    };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+@Get('resumes-saved/')
+async getSavedResumes(
+  @Req() req: any,
+  @Query('cityId') cityId?: number,
+  @Query('experienceId') experienceId?: number,
+  @Query('kw') keyword?: string,
+  @Query('page') page: number = 1,
+  @Query('pageSize') pageSize: number = 10,
+  @Query('salaryMax') salaryMax?: number
+) {
+  const result = await this.infoService.getSavedResumes(
+    req.user.id,
+    cityId,
+    experienceId,
+    keyword,
+    page,
+    pageSize,
+    salaryMax
+  );
+
+  return {
+    errors: {},
+    data: result,
+  };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+@Get('resumes-saved/export/')
+async exportSavedResumes(
+  @Req() req: any,
+  @Query('cityId') cityId?: number,
+  @Query('experienceId') experienceId?: number,
+  @Query('kw') keyword?: string,
+  @Query('page') page: number = 1,
+  @Query('pageSize') pageSize: number = 10,
+  @Query('salaryMax') salaryMax?: number,
+) {
+  const data = await this.infoService.exportSavedResumes(
+    req.user.id,
+    cityId,
+    experienceId,
+    keyword,
+    page,
+    pageSize,
+    salaryMax
+  );
+
+  return {
+    errors: {},
+    data,
+  };
+}
+
+@UseGuards(AuthGuard('jwt'))
+@Get('resumes')
+async getResumes(
+  @Query('academicLevelId') academicLevelId: string,
+  @Query('careerId') careerId: string,
+  @Query('cityId') cityId: string,
+  @Query('experienceId') experienceId: string,
+  @Query('genderId') genderId: string,
+  @Query('jobTypeId') jobTypeId: string,
+  @Query('kw') kw: string,
+  @Query('maritalStatusId') maritalStatusId: string,
+  @Query('page') page: number,
+  @Query('pageSize') pageSize: number,
+  @Query('positionId') positionId: string,
+  @Query('typeOfWorkplaceId') typeOfWorkplaceId: string,
+) {
+  const resumes = await this.infoService.getResumes({
+    academicLevelId,
+    careerId,
+    cityId,
+    experienceId,
+    genderId,
+    jobTypeId,
+    kw,
+    maritalStatusId,
+    page: +page,
+    pageSize: +pageSize,
+    positionId,
+    typeOfWorkplaceId,
+  });
+  console.log(resumes)
+  return {
+    errors: {},
+    data: resumes,
+  };
+}
+
 }
 
 @Controller('info')
@@ -579,6 +685,8 @@ export class InfoController2 {
       data: profile,
     };
   }
+
+
 
 
 }

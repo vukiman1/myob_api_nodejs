@@ -1,7 +1,7 @@
 import { Resume } from "../entities/resume.entity";
 
 export class ResumeResponseDto {
-    static toResponse(resume: Resume, isSaved: boolean, isSendMail: boolean) {
+    static toResponse(resume: Resume, isSaved: boolean, isSendMail: boolean, lastViewedDate: Date) {
       return {
         id: resume.id,
         slug: resume.slug,
@@ -58,7 +58,7 @@ export class ResumeResponseDto {
           name: advancedSkill.name,
           level: advancedSkill.level,
         })),
-        lastViewedDate: resume.updateAt, // Giờ hiện tại khi gọi API
+        lastViewedDate: lastViewedDate, // Giờ hiện tại khi gọi API
         isSentEmail:isSendMail,
       };
     }
