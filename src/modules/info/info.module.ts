@@ -25,6 +25,7 @@ import { LanguageSkills } from './entities/language-skills.entity';
 import { EducationDetail } from './entities/educations-detail.entity';
 import { AuthService } from '../auth/auth.service';
 import { Career } from '../common/entities/carrer.entity';
+import { JobPostActivity } from '../job/entities/job-post-activity.entity';
 
 @Module({
   imports: [
@@ -47,7 +48,8 @@ import { Career } from '../common/entities/carrer.entity';
       CertificatesDetail,
       LanguageSkills,
       EducationDetail,
-      Career
+      Career,
+      JobPostActivity
     ]),
     UserModule,
     CloudinaryModule,

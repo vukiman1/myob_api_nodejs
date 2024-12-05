@@ -12,13 +12,14 @@ import { JobPost } from './entities/job-post.entity';
 import { User } from '../user/entities/user.entity';
 import { Career } from '../common/entities/carrer.entity';
 import { JwtService } from '@nestjs/jwt';
-import { JobPostSaved, JobPostSavedResponseDto } from './entities/job-post-saved.entity';
-import { JobActivityResponseDto, JobPostActivity } from './entities/job-post-activity.entity';
+import { JobPostSaved } from './entities/job-post-saved.entity';
+import {  JobPostActivity } from './entities/job-post-activity.entity';
 import { Resume } from '../info/entities/resume.entity';
-import { CreateJobPostActivityDto } from './dto/create-job-post-activity.dto';
+import { CreateJobPostActivityDto, JobActivityResponseDto, JobPostActivityResponseDto } from './dto/create-job-post-activity.dto';
 import { JobPostNotification } from './entities/job-post-notification.entity';
 import { City } from '../common/entities/city.entity';
 import { CreateJobPostNotificationDto, JobPostNotificationResponseDto } from './dto/create-job-post-notification.dto';
+import { JobPostSavedResponseDto } from './dto/job-post-saved.dto';
 
 @Injectable()
 export class JobService {
@@ -563,6 +564,91 @@ export class JobService {
 
     notification.isActive = !notification.isActive;
     return this.jobPostNotificationRepository.save(notification);
+  }
+
+  async getEmployerJobPostsActivity(
+    userId: number,
+    filters: any,
+    page: number,
+    pageSize: number,
+  ) {
+    const skip = (page - 1) * pageSize;
+  
+    const queryBuilder = this.jobPostActivityRepository.createQueryBuilder('activity')
+      .leftJoinAndSelect('activity.jobPost', 'jobPost')
+      .leftJoinAndSelect('activity.resume', 'resume')
+      .where('activity.isDeleted = :isDeleted', { isDeleted: false })
+      .andWhere('jobPost.userId = :userId', { userId });
+  
+    // Apply filters if provided
+    if (filters.academicLevelId) {
+      queryBuilder.andWhere('jobPost.academicLevel = :academicLevelId', { academicLevelId: filters.academicLevelId });
+    }
+    if (filters.careerId) {
+      queryBuilder.andWhere('jobPost.careerId = :careerId', { careerId: filters.careerId });
+    }
+    if (filters.cityId) {
+      queryBuilder.andWhere('jobPost.location = :cityId', { cityId: filters.cityId });
+    }
+    if (filters.experienceId) {
+      queryBuilder.andWhere('jobPost.experience = :experienceId', { experienceId: filters.experienceId });
+    }
+    if (filters.genderId) {
+      queryBuilder.andWhere('jobPost.genderRequired = :genderId', { genderId: filters.genderId });
+    }
+    if (filters.jobPostId) {
+      queryBuilder.andWhere('jobPost.id = :jobPostId', { jobPostId: filters.jobPostId });
+    }
+    if (filters.jobTypeId) {
+      queryBuilder.andWhere('jobPost.jobType = :jobTypeId', { jobTypeId: filters.jobTypeId });
+    }
+    if (filters.maritalStatusId) {
+      queryBuilder.andWhere('jobPost.maritalStatus = :maritalStatusId', { maritalStatusId: filters.maritalStatusId });
+    }
+    if (filters.positionId) {
+      queryBuilder.andWhere('jobPost.position = :positionId', { positionId: filters.positionId });
+    }
+    if (filters.status) {
+      queryBuilder.andWhere('activity.status = :status', { status: filters.status });
+    }
+    if (filters.typeOfWorkplaceId) {
+      queryBuilder.andWhere('jobPost.typeOfWorkplace = :typeOfWorkplaceId', { typeOfWorkplaceId: filters.typeOfWorkplaceId });
+    }
+  
+    const [activities, totalCount] = await queryBuilder
+      .skip(skip)
+      .take(pageSize)
+      .orderBy('activity.createAt', 'DESC')
+      .getManyAndCount();
+  
+    const results = activities.map((activity) =>
+      JobPostActivityResponseDto.toResponse(activity),
+    );
+  
+    return {
+      count: totalCount,
+      results,
+    };
+  }
+  
+  async updateApplicationStatus(activityId: number, status: number): Promise<void> {
+    // Tìm bản ghi theo `activityId`
+    const activity = await this.jobPostActivityRepository.findOne({
+      where: { id: activityId, isDeleted: false }, // Chỉ cập nhật nếu chưa bị xóa
+    });
+  
+    if (!activity) {
+      throw new NotFoundException('Job post activity not found');
+    }
+    activity.status = status;
+  
+    // Cập nhật status
+    if (status === 2) {
+      activity.isSendMail = true;
+    }
+  
+    // Lưu thay đổi vào database
+    await this.jobPostActivityRepository.save(activity);
   }
 
   async generateSlug(companyName: string): Promise<string> {

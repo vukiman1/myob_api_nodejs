@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 
@@ -30,6 +31,10 @@ import { promises } from 'dns';
 import { AuthService } from '../auth/auth.service';
 import { Career } from '../common/entities/carrer.entity';
 import { CreateResumeDto } from './dto/create-resume.dto';
+import { FollowedCompanyResponseDto } from './dto/company-followed.dto';
+import { ResumeResponseDto } from './dto/resume.dto';
+import { ResumeSaved } from './entities/resume-saved.entity';
+import { JobPostActivity } from '../job/entities/job-post-activity.entity';
 
 
 @Injectable()
@@ -58,6 +63,8 @@ export class InfoService {
     private jobSeekerProfileRepository: Repository<JobSeekerProfile>,
     @InjectRepository(Resume)
     private resumeRepository: Repository<Resume>,
+    @InjectRepository(ResumeSaved)
+    private resumeSavedRepository: Repository<ResumeSaved>,
     @InjectRepository(Career)
     private careerRepository: Repository<Career>,
     @InjectRepository(ExperiencesDetail)
@@ -74,6 +81,8 @@ export class InfoService {
 
     @InjectRepository(CertificatesDetail)
     private certificatesDetailRepository: Repository<CertificatesDetail>,
+    @InjectRepository(JobPostActivity)
+    private jobPostActivityRepository: Repository<JobPostActivity>,
   ) {}
 
   async getCompanyInfo(email: string) {
@@ -109,17 +118,20 @@ export class InfoService {
     file: Express.Multer.File,
     email: string,
   ) {
+    console.log('ok');
     const company = await this.findCompanyByEmail(email);
     // Upload file lên Cloudinary và lấy đường dẫn ảnh
-    await this.cloudinaryService.deleteFile(company.companyImagePublicId);
+
     const { publicId, imageUrl } = await this.cloudinaryService.uploadFile(
       file,
       company.slug,
       'companyAvatar',
     );
 
-    await this.cloudinaryService.deleteFile(company.companyImagePublicId);
 
+    if( company.companyImageUrl !== null) {
+      await this.cloudinaryService.deleteFile(company.companyImagePublicId);
+    }
     // Cập nhật trường `avatarUrl` trong bảng `User`
     await this.companyRepository.update(company.id, {
       companyImageUrl: imageUrl,
@@ -161,7 +173,6 @@ export class InfoService {
       company.slug,
       'companyImage',
     );
-
     // Create and save new CompanyImage entry
     const companyImage = new CompanyImage();
     companyImage.imageUrl = imageUrl;
@@ -966,4 +977,112 @@ export class InfoService {
       results,
     };
   }
+
+  async getFollowedCompanies(userId: number, page: number, pageSize: number) {
+    console.log(userId);
+    const skip = (page - 1) * pageSize;
+  
+    // Lấy danh sách công ty mà user đang theo dõi
+    const [followedCompanies, totalCount] = await this.companyFollowedRepository.findAndCount({
+      where: { user: { id: userId.toString() } },
+      relations: ['company'],
+      skip,
+      take: pageSize,
+      order: { createAt: 'DESC' },
+    });
+    // Xử lý dữ liệu thành định dạng DTO
+    const results = await Promise.all(
+      followedCompanies.map(async (followed) => {
+        const company = followed.company;
+  
+        // Lấy thông tin bổ sung cho công ty
+        const stats = await this.getCompanyStatistics(company.id);
+  
+        return FollowedCompanyResponseDto.toResponse({
+          id: followed.id,
+          company: {
+            ...company,
+            followNumber: stats.followNumber,
+            jobPostNumber: stats.jobPostNumber,
+            isFollowed: true, // Mặc định là true vì đang ở bảng `CompanyFollowed`
+          },
+        });
+      }),
+    );
+  
+    return {
+      count: totalCount,
+      results,
+    };
+  }
+
+
+  
+  async getCompanyStatistics(companyId: string) {
+    // Đếm số lượt theo dõi (followNumber)
+    const followNumber = await this.companyFollowedRepository.count({
+      where: { company: { id: companyId } },
+    });
+  
+    // Đếm số bài đăng tuyển (jobPostNumber)
+    const jobPostNumber = await this.jobPostRepository.count({
+      where: { company: { id: companyId }, status: 1 }, // Chỉ đếm bài đang hoạt động
+    });
+  
+    return { followNumber, jobPostNumber };
+  }
+
+
+  async getResumeDetails(slug: string, userId: number): Promise<any> {
+    try {
+      // Truy vấn thông tin Resume cùng với các quan hệ khác
+      const resume = await this.resumeRepository.findOne({
+        where: { slug },
+        relations: [
+          'user',
+          'user.jobSeekerProfile',
+          'city',
+          'career',
+          'user.jobSeekerProfile.location.district',
+          'advancedSkills',       // Quan hệ với AdvancedSkills
+          'languageSkills',       // Quan hệ với LanguageSkills
+          'educationDetail',      // Quan hệ với EducationDetail
+          'certificatesDetail',   // Quan hệ với CertificatesDetail
+        ],
+      });
+  
+      // Kiểm tra nếu không tìm thấy resume
+      if (!resume) {
+        throw new NotFoundException('Resume not found');
+      }
+  
+      const jobPost = await this.jobPostRepository.findOne({
+        where: { user: { id: userId.toString() } }, // user.id lấy từ resume
+      });
+      // Kiểm tra xem user có lưu Resume này không qua mối quan hệ với company và resume
+      const isSaved = await this.resumeSavedRepository.count({
+        where: {
+          resume: { id: resume.id },
+          company: { id: resume.user?.company?.id },
+        },
+      });
+
+      const jobPostActivity = await this.jobPostActivityRepository.findOne({
+        where: {
+          resume: { id: resume.id },
+          jobPost: { id: jobPost.id },
+        },
+      });
+      const isSendEmail = jobPostActivity ? jobPostActivity.isSendMail : false;
+  
+      // Trả về dữ liệu đã được map qua DTO
+      return ResumeResponseDto.toResponse(resume, isSaved > 0, isSendEmail);
+    } catch (error) {
+      console.error('Error in getResumeDetails:', error);
+      throw new InternalServerErrorException('Internal Server Error');
+    }
+  }
+  
+  
+  
 }

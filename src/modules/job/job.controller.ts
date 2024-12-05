@@ -16,6 +16,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { CreateJobPostActivityDto } from './dto/create-job-post-activity.dto';
 import { error } from 'console';
 import { CreateJobPostNotificationDto } from './dto/create-job-post-notification.dto';
+import { UpdateApplicationStatusDto } from './dto/activity-status.dto';
 
 @Controller('job/web/')
 export class JobController {
@@ -172,6 +173,7 @@ export class JobController {
     };
   }
 
+
   @Get('job-posts/:slug')
   async getPublicCompany(@Param('slug') slug: string, @Req() req: any) {
     const result = await this.jobService.getPublicJobPost(slug, req.headers);
@@ -246,7 +248,59 @@ export class JobController {
     };
   }
 
+  @UseGuards(AuthGuard('jwt'))
+  @Get('employer-job-posts-activity')
+  async getEmployerJobPostsActivity(
+    @Req() req: any,
+    @Query('academicLevelId') academicLevelId?: number,
+    @Query('careerId') careerId?: number,
+    @Query('cityId') cityId?: number,
+    @Query('experienceId') experienceId?: number,
+    @Query('genderId') genderId?: string,
+    @Query('jobPostId') jobPostId?: number,
+    @Query('jobTypeId') jobTypeId?: number,
+    @Query('maritalStatusId') maritalStatusId?: number,
+    @Query('positionId') positionId?: number,
+    @Query('status') status?: number,
+    @Query('typeOfWorkplaceId') typeOfWorkplaceId?: number,
+    @Query('page') page: number = 1,
+    @Query('pageSize') pageSize: number = 5,
+  ) {
+    const filters = {
+      academicLevelId,
+      careerId,
+      cityId,
+      experienceId,
+      genderId,
+      jobPostId,
+      jobTypeId,
+      maritalStatusId,
+      positionId,
+      status,
+      typeOfWorkplaceId,
+    };
 
+    const result = await this.jobService.getEmployerJobPostsActivity(
+      req.user.id,
+      filters,
+      page,
+      pageSize,
+    );
+
+    return {
+      errors: {},
+      data: result,
+    };
+  }
+
+  @Put('employer-job-posts-activity/:id/application-status/')
+  async updateApplicationStatus(
+    @Param('id') id: number,
+    @Body() payload: UpdateApplicationStatusDto,
+  ): Promise<any> {
+    await this.jobService.updateApplicationStatus(id, payload.status);
+    return { errors: {}, data: null };
+  }
 
 }
 

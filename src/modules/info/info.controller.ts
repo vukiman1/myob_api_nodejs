@@ -92,6 +92,17 @@ export class InfoController {
     };
   }
 
+  @UseGuards(AuthGuard('jwt'))
+  @Get('resumes/:slug')
+  async getResumeDetails(@Param('slug') slug: string, @Req() req:any) {
+    const data = await this.infoService.getResumeDetails(slug, req.user.id);
+    return {
+      errors: {},
+      data: data,
+    };
+  }
+
+
 
 
   //experience details
@@ -526,6 +537,20 @@ export class InfoController {
       },
     };
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('companies-follow')
+  async getFollowedCompanies(
+    @Query('page') page: number = 1,
+    @Query('pageSize') pageSize: number = 10,
+    @Req() req: any
+  ) {
+    const result = await this.infoService.getFollowedCompanies(req.user.id, page, pageSize);
+    return {
+      errors: {},
+      data: result,
+    };
+  }
 }
 
 @Controller('info')
@@ -554,4 +579,6 @@ export class InfoController2 {
       data: profile,
     };
   }
+
+
 }

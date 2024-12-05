@@ -132,9 +132,11 @@ export class AuthService {
       user.id,
       'avatar',
     );
+    
 
-    await this.cloudinaryService.deleteFile(user.avatarPublicId);
-
+    if (user.avatarPublicId !== null) {
+      await this.cloudinaryService.deleteFile(user.avatarPublicId);
+    }
 
     // Cập nhật trường `avatarUrl` trong bảng `User`
     await this.userRepository.update(+user.id, {

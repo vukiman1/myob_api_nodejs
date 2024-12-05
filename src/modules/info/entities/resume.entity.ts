@@ -72,7 +72,7 @@ export class Resume {
   type: string;
 
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, (user) => user.resume)
   @JoinColumn()
   user: User;
 
