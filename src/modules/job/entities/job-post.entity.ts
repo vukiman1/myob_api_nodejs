@@ -88,7 +88,7 @@ export class JobPost {
   @Column({ default: 0 })
   shares: number;
 
-  @Column({ default: 1 })
+  @Column({ default: 3 })
   status: number;
 
   @ManyToOne(() => User, (user) => user.jobPosts)

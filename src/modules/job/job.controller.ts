@@ -302,7 +302,51 @@ export class JobController {
     return { errors: {}, data: null };
   }
 
-  
+  @UseGuards(AuthGuard('jwt'))
+  @Get('/statistics/job-seeker-total-view')
+  async getJobSeekerTotalView(@Req() req:any): Promise<any> {
+    const data = await this.jobService.getJobSeekerTotalView(req.user.id);
+    return {
+      errors: {},
+      data: {
+        totalView: data
+      }
+    }
+  }
+
+
+
+  @Get('statistics/job-seeker-general-statistics/')
+  async getJobSeekerGeneralStatistics(@Req() req: any): Promise<any> {
+    const userId = req.user?.id; // Assuming userId is retrieved from authenticated request
+     const data = await this.jobService.getJobSeekerGeneralStatistics(userId);
+     return data
+  }
+
+  // @UseGuards(AuthGuard('jwt'))
+  // @Get('statistics/job-seeker-activity-statistics')
+  // async getJobSeekerActivityStatistics(
+  //   @Req() req: any,
+  // ): Promise<any> {
+  //   try {
+  //     const userId = req.user.id;
+
+  //     // Lấy thống kê ứng tuyển, lưu công việc và công ty đang theo dõi
+  //     const statistics = await this.jobService.getJobSeekerActivityStatistics(userId);
+
+  //     return {
+  //       errors: {},
+  //       data: statistics,
+  //     };
+  //   } catch (error) {
+  //     console.error('Error in getJobSeekerActivityStatistics:', error);
+  //     return {
+  //       errors: { message: 'Failed to fetch activity statistics.' },
+  //       data: null,
+  //     };
+  //   }
+  // }
+
 
 }
 

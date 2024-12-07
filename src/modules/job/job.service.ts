@@ -20,6 +20,9 @@ import { JobPostNotification } from './entities/job-post-notification.entity';
 import { City } from '../common/entities/city.entity';
 import { CreateJobPostNotificationDto, JobPostNotificationResponseDto } from './dto/create-job-post-notification.dto';
 import { JobPostSavedResponseDto } from './dto/job-post-saved.dto';
+import { ResumeViewed } from '../info/entities/resume-viewed.entity';
+import { ResumeSaved } from '../info/entities/resume-saved.entity';
+import { CompanyFollowed } from '../info/entities/company-followed.entity';
 
 @Injectable()
 export class JobService {
@@ -43,6 +46,12 @@ export class JobService {
     private readonly jobPostNotificationRepository: Repository<JobPostNotification>,
     @InjectRepository(Resume)
     private resumeRepository: Repository<Resume>,
+    @InjectRepository(ResumeViewed)
+    private resumeViewedRepository: Repository<ResumeViewed>,
+    @InjectRepository(ResumeSaved)
+    private resumeSavedRepository: Repository<ResumeSaved>,
+    @InjectRepository(CompanyFollowed)
+    private companyFollowedRepository: Repository<CompanyFollowed>,
 
   ) {}
 
@@ -651,6 +660,114 @@ export class JobService {
     await this.jobPostActivityRepository.save(activity);
   }
 
+
+  async getJobSeekerTotalView(userId: string): Promise<any> {
+    // Lấy danh sách các resume của user
+    const resumes = await this.resumeRepository.find({
+      where: { user: { id: userId } },
+      select: ['id'], // Chỉ cần lấy ID
+    });
+    
+    // Lấy danh sách ID các resume
+    const resumeIds = resumes.map((resume) => resume.id);
+    // Tính tổng số view từ bảng ResumeViewed
+    const totalViewRaw = await this.resumeViewedRepository
+    .createQueryBuilder('resumeViewed')
+    .where('resumeViewed.resumeId IN (:...resumeIds)', { resumeIds })
+    .select('SUM(resumeViewed.views)', 'totalView') // Aggregate query để tính tổng
+    .getRawOne();
+    
+    return Number(totalViewRaw?.totalView) || 0
+
+  }
+
+  async getJobSeekerTotalFollowed(userId: string): Promise<number> {
+    const resumes = await this.resumeRepository.find({
+      where: { user: { id: userId } },
+      select: ['id'], // Chỉ cần lấy ID
+    });
+
+    // Lấy danh sách ID các resume
+    const resumeIds = resumes.map((resume) => resume.id);
+    const totalFollowedRaw = await this.resumeSavedRepository
+      .createQueryBuilder('resumeSaved')
+      .where('resumeSaved.resumeId IN (:...resumeIds)', { resumeIds })
+      .select('COUNT(resumeSaved.id)', 'totalFollowed') // Aggregate query để tính tổng
+      .getRawOne()
+    return Number(totalFollowedRaw?.totalFollowed) || 0;
+  }
+
+  async getJobSeekerTotalSaved(userId: string): Promise<any> {
+    const resumes = await this.resumeRepository.find({
+      where: { user: { id: userId } },
+      select: ['id'],
+    });
+    const resumeIds = resumes.map((resume) => resume.id);
+
+    const totalSavedRaw = await this.resumeViewedRepository
+    .createQueryBuilder('resumeSaved')
+    .where('resumeSaved.resumeId IN (:...resumeIds)', { resumeIds })
+    .select('COUNT(resumeSaved.id)', 'totalSaved') // Aggregate query để tính tổng
+    .getRawOne();
+    return Number(totalSavedRaw?.totalSaved) || 0
+  }
+
+  async getJobSeekerGeneralStatistics(userId: string): Promise<any> {
+    // 1. Tính totalApply từ bảng JobPostActivity (status = 2)
+    const totalApply = await this.jobPostActivityRepository.count({
+      where: { user: { id: userId }, status: 2 },
+    });
+
+    // 2. Tìm tất cả resumeIds của user
+    const totalSave =  await this.getJobSeekerTotalSaved(userId)
+    // 4. Tính totalView từ ResumeViewed
+    const totalView = await this.getJobSeekerTotalView(userId)
+    // 5. Tính totalFollow từ CompanyFollowed
+    const totalFollow = await this.getJobSeekerTotalFollowed(userId)
+    // 6. Trả về dữ liệu
+    return {
+      errors: {},
+      data: {
+        totalApply,
+        totalSave,
+        totalView,
+        totalFollow,
+      },
+    };
+  }
+
+  async getJobSeekerActivityStatistics(userId: string): Promise<any> {
+    try {
+      // Lấy các tháng trong khoảng từ tháng hiện tại đến cuối năm sau
+      const labels = this.generateMonthlyLabels();
+      const months = labels.map((label) => label.split('-')[1]); // Chỉ lấy phần tháng (e.g., "T12")
+  
+      // 1. Lấy dữ liệu "Việc đã ứng tuyển"
+      const appliedData = await this.getMonthlyAppliedJobs(userId, months);
+  
+      // 2. Lấy dữ liệu "Việc đã lưu"
+      const savedJobsData = await this.getMonthlySavedJobs(userId, months);
+  
+      // 3. Lấy dữ liệu "Công ty đang theo dõi"
+      const followedCompaniesData = await this.getMonthlyFollowedCompanies(userId, months);
+  
+      return {
+        title1: 'Việc đã ứng tuyển',
+        title2: 'Việc đã lưu',
+        title3: 'Công ty đang theo dõi',
+        labels,
+        data1: appliedData,
+        data2: savedJobsData,
+        data3: followedCompaniesData,
+      };
+    } catch (error) {
+      console.error('Error in getJobSeekerActivityStatistics:', error);
+      throw new Error('Failed to calculate activity statistics.');
+    }
+  }
+  
+  
+
   async generateSlug(companyName: string): Promise<string> {
     // Tạo slug cơ bản từ tên công ty
     let slug = companyName
@@ -683,4 +800,78 @@ export class JobService {
 
     return slug;
   }
+
+  generateMonthlyLabels(): string[] {
+    const labels = [];
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+  
+    for (let i = 0; i < 13; i++) {
+      const month = (currentMonth + i) % 12 + 1; // Tính tháng (1-12)
+      const year = currentYear + Math.floor((currentMonth + i) / 12); // Tính năm
+      labels.push(`T${month}-${year}`);
+    }
+  
+    return labels;
+  }
+
+  async getMonthlyAppliedJobs(userId: string, months: string[]): Promise<number[]> {
+    const appliedJobs = await this.jobPostActivityRepository
+      .createQueryBuilder('jobPostActivity') // Alias là 'jobPostActivity'
+      .select("TO_CHAR(jobPostActivity.createdAt, 'MM-YYYY')", 'monthYear') // Format ngày theo PostgreSQL
+      .addSelect('COUNT(jobPostActivity.id)', 'total')
+      .where('jobPostActivity.userId = :userId', { userId })
+      .andWhere('jobPostActivity.status = :status', { status: 2 }) // Status = 2 là đã ứng tuyển
+      .groupBy("TO_CHAR(jobPostActivity.createdAt, 'MM-YYYY')") // Nhóm theo tháng-năm
+      .getRawMany();
+  
+    // Xử lý dữ liệu để khớp với các tháng trong `months`
+    const result = months.map((month) => {
+      const match = appliedJobs.find((job) => job.monthYear === month);
+      return match ? Number(match.total) : 0;
+    });
+  
+    return result;
+  }
+  
+  
+
+  async getMonthlySavedJobs(userId: string, months: string[]): Promise<number[]> {
+    const savedJobs = await this.jobPostSavedRepository
+      .createQueryBuilder('jobSaved') // Alias là 'jobSaved'
+      .select("TO_CHAR(jobSaved.createdAt, 'MM-YYYY')", 'monthYear') // Format ngày
+      .addSelect('COUNT(jobSaved.id)', 'total')
+      .where('jobSaved.userId = :userId', { userId })
+      .groupBy("TO_CHAR(jobSaved.createdAt, 'MM-YYYY')") // Nhóm theo tháng
+      .getRawMany();
+  
+    const result = months.map((month) => {
+      const match = savedJobs.find((job) => job.monthYear === month);
+      return match ? Number(match.total) : 0;
+    });
+  
+    return result;
+  }
+  
+
+  async getMonthlyFollowedCompanies(userId: string, months: string[]): Promise<number[]> {
+    const followedCompanies = await this.companyFollowedRepository
+      .createQueryBuilder('companyFollowed')
+      .select("DATE_FORMAT(companyFollowed.createdAt, '%m-%Y')", 'monthYear')
+      .addSelect('COUNT(companyFollowed.id)', 'total')
+      .where('companyFollowed.userId = :userId', { userId })
+      .groupBy('monthYear')
+      .getRawMany();
+  
+    const result = months.map((month) => {
+      const match = followedCompanies.find((follow) => follow.monthYear === month);
+      return match ? Number(match.total) : 0;
+    });
+  
+    return result;
+  }
+  
+  
+  
 }

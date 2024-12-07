@@ -16,11 +16,13 @@ import { ResumeViewed } from '../info/entities/resume-viewed.entity';
 import { JobPostActivity } from './entities/job-post-activity.entity';
 import { JobPostNotification } from './entities/job-post-notification.entity';
 import { City } from '../common/entities/city.entity';
+import { CompanyFollowed } from '../info/entities/company-followed.entity';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       User,
       Company,
+      CompanyFollowed,
       Location,
       JobPost,
       JobPostSaved,
