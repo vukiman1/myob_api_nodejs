@@ -82,7 +82,7 @@ export class Company {
   @JoinColumn()
   location: Location;
 
-  @OneToOne(() => User, { eager: true })
+  @OneToOne(() => User,(user) => user.company)
   @JoinColumn()
   user: User;
 

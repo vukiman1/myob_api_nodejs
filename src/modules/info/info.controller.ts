@@ -567,6 +567,30 @@ export class InfoController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Get('/resume-views/')
+  async getResumeViews(
+    @Req() req: any,
+    @Query('page') page: number = 1,
+    @Query('pageSize') pageSize: number = 10,
+  ): Promise<any> {
+    return this.infoService.getResumeViews(page, pageSize, req.user.id);
+  }
+
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('resumes/:slug/view-resume')
+  async CreateViewResume(
+    @Param('slug') slug: string, // Lấy slug từ URL
+  ) {
+    
+    return {
+      errors: {},
+      data: null,
+      log: "Hàm này mới chỉ để chống, chưa biết làm gì, hehe"
+    };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
 @Get('resumes-saved/')
 async getSavedResumes(
   @Req() req: any,
@@ -623,6 +647,7 @@ async exportSavedResumes(
 @UseGuards(AuthGuard('jwt'))
 @Get('resumes')
 async getResumes(
+  @Req() req:any,
   @Query('academicLevelId') academicLevelId: string,
   @Query('careerId') careerId: string,
   @Query('cityId') cityId: string,
@@ -649,7 +674,9 @@ async getResumes(
     pageSize: +pageSize,
     positionId,
     typeOfWorkplaceId,
-  });
+  },
+  req.user.id
+);
   console.log(resumes)
   return {
     errors: {},

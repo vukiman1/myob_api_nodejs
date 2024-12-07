@@ -122,7 +122,6 @@ export class InfoService {
     file: Express.Multer.File,
     email: string,
   ) {
-    console.log('ok');
     const company = await this.findCompanyByEmail(email);
     // Upload file lên Cloudinary và lấy đường dẫn ảnh
 
@@ -983,7 +982,6 @@ export class InfoService {
   }
 
   async getFollowedCompanies(userId: number, page: number, pageSize: number) {
-    console.log(userId);
     const skip = (page - 1) * pageSize;
   
     // Lấy danh sách công ty mà user đang theo dõi
@@ -1037,7 +1035,7 @@ export class InfoService {
   }
 
 
-  async getResumeDetails(slug: string, userId: number): Promise<any> {
+  async getResumeDetails(slug: string, userId: string): Promise<any> {
     try {
       // Truy vấn thông tin Resume cùng với các quan hệ khác
       const resume = await this.resumeRepository.findOne({
@@ -1048,13 +1046,13 @@ export class InfoService {
           'city',
           'career',
           'user.jobSeekerProfile.location.district',
+          'user.jobSeekerProfile.location.city',
           'advancedSkills',       // Quan hệ với AdvancedSkills
           'languageSkills',       // Quan hệ với LanguageSkills
           'educationDetail',      // Quan hệ với EducationDetail
           'certificatesDetail',   // Quan hệ với CertificatesDetail
         ],
       });
-  
       // Kiểm tra nếu không tìm thấy resume
       if (!resume) {
         throw new NotFoundException('Resume not found');
@@ -1079,7 +1077,7 @@ export class InfoService {
       });
       const isSendEmail = jobPostActivity ? jobPostActivity.isSendMail : false;
   
-      const lastViewedDate = await this.getLatViewedDate(resume)
+      const lastViewedDate = await this.getLatViewedDate(resume, userId)
 
       // Trả về dữ liệu đã được map qua DTO
       return ResumeResponseDto.toResponse(resume, isSaved > 0, isSendEmail, lastViewedDate);
@@ -1089,11 +1087,12 @@ export class InfoService {
     }
   }
 
-  async getLatViewedDate(resume: any) {
+  async getLatViewedDate(resume: any, userId: string) {
+    const company = await this.companyRepository.findOne({where: {user: {id: userId.toString()}}})
     const existingResumeViewed = await this.resumeViewedRepository.findOne({
       where: {
         resume: { id: resume.id },
-        company: { id: resume.user?.company?.id },
+        company: { id: company.id },
       },
     });
 
@@ -1102,7 +1101,7 @@ export class InfoService {
     if (!existingResumeViewed) {
       const newResumeViewed = this.resumeViewedRepository.create({
         resume: resume,
-        company: resume.user?.company,
+        company: company,
         views: 1,  // Set views mặc định là 1
       });
       await this.resumeViewedRepository.save(newResumeViewed);
@@ -1117,15 +1116,20 @@ export class InfoService {
   }
 
   async checkIsSavedResume(resume: any) {
-    const isSaved = await this.resumeSavedRepository.count({
+    const isSaved = await this.resumeSavedRepository.findOne({
       where: {
         resume: { id: resume.id },
         company: { id: resume.user?.company?.id },
       },
     });
-    return isSaved
+    console.log(resume);
+    return !!isSaved
   }
+
+
   
+
+
   async toggleResumeSavedBySlug(slug: string, userId: string): Promise<boolean> {
     // Tìm Resume theo slug
     const resume = await this.resumeRepository.findOne({ where: { slug } });
@@ -1146,7 +1150,7 @@ export class InfoService {
         company: { id: company.id },
       },
     });
-  
+
     if (existingRecord) {
       // Nếu đã tồn tại, xóa bản ghi
       await this.resumeSavedRepository.remove(existingRecord);
@@ -1307,7 +1311,7 @@ export class InfoService {
   
 
   
-  async getResumes(query: GetResumesQuery): Promise<any> {
+  async getResumes(query: GetResumesQuery, userId): Promise<any> {
     const {
       academicLevelId,
       careerId,
@@ -1353,7 +1357,6 @@ export class InfoService {
     return {
       count,
       results: await Promise.all(results.map(async (resume) => {
-    
         return {
           id: resume.id,
           slug: resume.slug,
@@ -1365,7 +1368,7 @@ export class InfoService {
           city: resume.city?.id || null,
           isSaved: await this.checkIsSavedResume(resume), // Nếu có nhà tuyển dụng lưu hồ sơ thì isSaved = true
           viewEmployerNumber: await this.getViewResumeNumber(resume), // Trả về số lượng nhà tuyển dụng lưu hồ sơ
-          lastViewedDate: await this.getLatViewedDate(resume) || null,
+          lastViewedDate: await this.getLatViewedDate(resume, userId) || null,
           userDict: {
             id: resume.user?.id,
             fullName: resume.user?.fullName,
@@ -1392,6 +1395,56 @@ export class InfoService {
     });
     return viewEmployerNumber
   }
+
+  async getResumeViews(page: number, pageSize: number, userId: number): Promise<any> {
+    const [resumeViews, count] = await this.resumeViewedRepository.findAndCount({
+      where: {
+        resume: { user: { id: userId.toString() } },
+      },
+      relations: ['resume', 'company'],
+      order: { createAt: 'DESC' },
+      take: pageSize,
+      skip: (page - 1) * pageSize,
+    });
+    
+
+    const results = await Promise.all(
+      resumeViews.map(async (viewed) => {
+        const isSavedResume = await this.resumeSavedRepository.count({
+          where: {
+            resume: { id: viewed.resume.id },
+            company: { id: viewed.company.id },
+          },
+        });
+  
+        return {
+          id: viewed.id,
+          views: viewed.views,
+          createAt: moment(viewed.createAt).toISOString(),
+          resume: {
+            id: viewed.resume.id,
+            title: viewed.resume.title,
+          },
+          company: {
+            id: viewed.company.id,
+            slug: viewed.company.slug,
+            companyName: viewed.company.companyName,
+            companyImageUrl: viewed.company.companyImageUrl || null,
+          },
+          isSavedResume: isSavedResume > 0,
+        };
+      })
+    );
+  
+    return {
+      errors: {},
+      data: {
+        count,
+        results,
+      },
+    };
+  }
+  
   
 }
 

@@ -15,8 +15,8 @@ export class ResumeResponseDto {
         typeOfWorkplace: resume.typeOfWorkplace,
         jobType: resume.jobType,
         isActive: resume.isActive,
-        city: resume.city,
-        career: resume.career,
+        city: resume.city.id,
+        career: resume.career.id,
         updateAt: resume.updateAt,
         fileUrl: resume.fileUrl,
         // filePublicId: resume.filePublicId,
@@ -33,7 +33,16 @@ export class ResumeResponseDto {
           birthday: resume.user.jobSeekerProfile.birthday,
           gender: resume.user.jobSeekerProfile.gender,
           maritalStatus: resume.user.jobSeekerProfile.maritalStatus,
-          location: resume.user.jobSeekerProfile.location,
+          location: {
+            city: resume.user.jobSeekerProfile.location.city.id,
+            district: resume.user.jobSeekerProfile.location.district.id,
+            address: resume.user.jobSeekerProfile.location.address,
+            districtDict: {
+              id: resume.user.jobSeekerProfile.location.district.id,
+              name: resume.user.jobSeekerProfile.location.district.name,
+            }
+          }
+          // resume.user.jobSeekerProfile.location,
         },
         experiencesDetails: resume.experiencesDetails,
         educationDetails: resume.educationDetail.map(education => ({
