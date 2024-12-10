@@ -323,29 +323,29 @@ export class JobController {
      return data
   }
 
-  // @UseGuards(AuthGuard('jwt'))
-  // @Get('statistics/job-seeker-activity-statistics')
-  // async getJobSeekerActivityStatistics(
-  //   @Req() req: any,
-  // ): Promise<any> {
-  //   try {
-  //     const userId = req.user.id;
+  @UseGuards(AuthGuard('jwt'))
+  @Get('statistics/job-seeker-activity-statistics')
+  async getJobSeekerActivityStatistics(
+    @Req() req: any,
+  ): Promise<any> {
+    try {
+      const userId = req.user.id;
 
-  //     // Lấy thống kê ứng tuyển, lưu công việc và công ty đang theo dõi
-  //     const statistics = await this.jobService.getJobSeekerActivityStatistics(userId);
+      // Lấy thống kê ứng tuyển, lưu công việc và công ty đang theo dõi
+      const statistics = await this.jobService.getJobSeekerActivityStatistics(userId);
 
-  //     return {
-  //       errors: {},
-  //       data: statistics,
-  //     };
-  //   } catch (error) {
-  //     console.error('Error in getJobSeekerActivityStatistics:', error);
-  //     return {
-  //       errors: { message: 'Failed to fetch activity statistics.' },
-  //       data: null,
-  //     };
-  //   }
-  // }
+      return {
+        errors: {},
+        data: statistics,
+      };
+    } catch (error) {
+      console.error('Error in getJobSeekerActivityStatistics:', error);
+      return {
+        errors: { message: 'Failed to fetch activity statistics.' },
+        data: null,
+      };
+    }
+  }
 
 
 }

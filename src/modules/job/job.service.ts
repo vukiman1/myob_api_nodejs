@@ -741,15 +741,15 @@ export class JobService {
       // Lấy các tháng trong khoảng từ tháng hiện tại đến cuối năm sau
       const labels = this.generateMonthlyLabels();
       const months = labels.map((label) => label.split('-')[1]); // Chỉ lấy phần tháng (e.g., "T12")
-  
+
       // 1. Lấy dữ liệu "Việc đã ứng tuyển"
-      const appliedData = await this.getMonthlyAppliedJobs(userId, months);
+      const appliedData = await this.getMonthlyAppliedJobs(userId, labels);
   
-      // 2. Lấy dữ liệu "Việc đã lưu"
-      const savedJobsData = await this.getMonthlySavedJobs(userId, months);
+      // // 2. Lấy dữ liệu "Việc đã lưu"
+      const savedJobsData = await this.getMonthlySavedJobs(userId, labels);
   
-      // 3. Lấy dữ liệu "Công ty đang theo dõi"
-      const followedCompaniesData = await this.getMonthlyFollowedCompanies(userId, months);
+      // // 3. Lấy dữ liệu "Công ty đang theo dõi"
+      const followedCompaniesData = await this.getMonthlyFollowedCompanies(userId, labels);
   
       return {
         title1: 'Việc đã ứng tuyển',
@@ -801,51 +801,52 @@ export class JobService {
     return slug;
   }
 
-  generateMonthlyLabels(): string[] {
-    const labels = [];
-    const currentDate = new Date();
-    const currentMonth = currentDate.getMonth();
-    const currentYear = currentDate.getFullYear();
-  
-    for (let i = 0; i < 13; i++) {
-      const month = (currentMonth + i) % 12 + 1; // Tính tháng (1-12)
-      const year = currentYear + Math.floor((currentMonth + i) / 12); // Tính năm
-      labels.push(`T${month}-${year}`);
+    generateMonthlyLabels(): string[] {
+      const labels = [];
+      const currentDate = new Date();
+      const currentMonth = currentDate.getMonth();
+      const currentYear = currentDate.getFullYear() - 1
+    
+      for (let i = 0; i < 13; i++) {
+        const month = (currentMonth + i) % 12 + 1; // Tính tháng (1-12)
+        const year = currentYear + Math.floor((currentMonth + i) / 12); // Tính năm
+        labels.push(`T${month}-${year}`);
+      }
+    
+      return labels;
     }
-  
-    return labels;
-  }
 
-  async getMonthlyAppliedJobs(userId: string, months: string[]): Promise<number[]> {
-    const appliedJobs = await this.jobPostActivityRepository
-      .createQueryBuilder('jobPostActivity') // Alias là 'jobPostActivity'
-      .select("TO_CHAR(jobPostActivity.createdAt, 'MM-YYYY')", 'monthYear') // Format ngày theo PostgreSQL
-      .addSelect('COUNT(jobPostActivity.id)', 'total')
-      .where('jobPostActivity.userId = :userId', { userId })
-      .andWhere('jobPostActivity.status = :status', { status: 2 }) // Status = 2 là đã ứng tuyển
-      .groupBy("TO_CHAR(jobPostActivity.createdAt, 'MM-YYYY')") // Nhóm theo tháng-năm
-      .getRawMany();
-  
-    // Xử lý dữ liệu để khớp với các tháng trong `months`
-    const result = months.map((month) => {
-      const match = appliedJobs.find((job) => job.monthYear === month);
-      return match ? Number(match.total) : 0;
-    });
-  
-    return result;
-  }
-  
+    async getMonthlyAppliedJobs(userId: string, months: string[]): Promise<number[]> {
+      const appliedJobs = await this.jobPostActivityRepository
+        .createQueryBuilder('jobPostActivity')
+        .select("('T' || EXTRACT(MONTH FROM jobPostActivity.createAt)::TEXT || '-' || EXTRACT(YEAR FROM jobPostActivity.createAt)::TEXT)", 'monthYear') // Format thành T1-YYYY
+        .addSelect('COUNT(jobPostActivity.id)', 'total') // Đếm số lượng theo tháng
+        .where('jobPostActivity.userId = :userId', { userId }) // Điều kiện userId
+        .andWhere('jobPostActivity.status = :status', { status: 2 }) // Điều kiện status = 2
+        .groupBy("EXTRACT(MONTH FROM jobPostActivity.createAt), EXTRACT(YEAR FROM jobPostActivity.createAt)") // Nhóm theo tháng-năm
+        .getRawMany();
+
+
+      // Xử lý dữ liệu để khớp với các tháng trong `months`
+      const result = months.map((month) => {
+        const match = appliedJobs.find((job) => job.monthYear === month); // So sánh đúng định dạng
+        return match ? Number(match.total) : 0;
+      });
+    
+      return result;
+    }
+    
   
 
   async getMonthlySavedJobs(userId: string, months: string[]): Promise<number[]> {
     const savedJobs = await this.jobPostSavedRepository
       .createQueryBuilder('jobSaved') // Alias là 'jobSaved'
-      .select("TO_CHAR(jobSaved.createdAt, 'MM-YYYY')", 'monthYear') // Format ngày
+      .select("('T' || EXTRACT(MONTH FROM jobSaved.createAt)::TEXT || '-' || EXTRACT(YEAR FROM jobSaved.createAt)::TEXT)", 'monthYear') // Format thành T1-YYYY
       .addSelect('COUNT(jobSaved.id)', 'total')
       .where('jobSaved.userId = :userId', { userId })
-      .groupBy("TO_CHAR(jobSaved.createdAt, 'MM-YYYY')") // Nhóm theo tháng
+      .groupBy("EXTRACT(MONTH FROM jobSaved.createAt), EXTRACT(YEAR FROM jobSaved.createAt)") // Nhóm theo tháng-năm
       .getRawMany();
-  
+
     const result = months.map((month) => {
       const match = savedJobs.find((job) => job.monthYear === month);
       return match ? Number(match.total) : 0;
@@ -856,14 +857,26 @@ export class JobService {
   
 
   async getMonthlyFollowedCompanies(userId: string, months: string[]): Promise<number[]> {
-    const followedCompanies = await this.companyFollowedRepository
-      .createQueryBuilder('companyFollowed')
-      .select("DATE_FORMAT(companyFollowed.createdAt, '%m-%Y')", 'monthYear')
-      .addSelect('COUNT(companyFollowed.id)', 'total')
-      .where('companyFollowed.userId = :userId', { userId })
-      .groupBy('monthYear')
+    // 1. Lấy danh sách resumeIds của user
+    const resumes = await this.resumeRepository.find({
+      where: { user: { id: userId } },
+      select: ['id'], // Chỉ cần lấy ID
+    });
+  
+    const resumeIds = resumes.map((resume) => resume.id);
+  
+
+  
+    // 2. Lấy dữ liệu theo tháng từ ResumeSaved
+    const followedCompanies = await this.resumeSavedRepository
+      .createQueryBuilder('resumeSaved')
+      .select("('T' || EXTRACT(MONTH FROM resumeSaved.createAt)::TEXT || '-' || EXTRACT(YEAR FROM resumeSaved.createAt)::TEXT)", 'monthYear') // Format thành T1-YYYY
+      .addSelect('COUNT(resumeSaved.id)', 'total') // Đếm số lượng
+      .where('resumeSaved.resumeId IN (:...resumeIds)', { resumeIds }) // Điều kiện lọc theo resumeId
+      .groupBy("EXTRACT(MONTH FROM resumeSaved.createAt), EXTRACT(YEAR FROM resumeSaved.createAt)") // Nhóm theo tháng-năm
       .getRawMany();
   
+    // 3. Khớp dữ liệu theo `months` được truyền vào
     const result = months.map((month) => {
       const match = followedCompanies.find((follow) => follow.monthYear === month);
       return match ? Number(match.total) : 0;
@@ -871,6 +884,7 @@ export class JobService {
   
     return result;
   }
+  
   
   
   
