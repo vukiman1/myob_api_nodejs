@@ -347,6 +347,45 @@ export class JobController {
     }
   }
 
+  @UseGuards(AuthGuard('jwt'))
+  @Get('statistics/employer-general-statistics/')
+    async getEmployerGeneralStatistics(@Req() req: any): Promise<any> {
+      const userId = req.user.id; // Lấy userId từ AuthGuard
+      return await this.jobService.getEmployerGeneralStatistics(userId);
+    }
 
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('statistics/employer-recruitment-statistics')
+    async getEmployerRecruitmentStatistics(
+      @Req() req: any,
+      @Body() body: { startDate: string; endDate: string },
+    ) {
+      const userId = req.user.id; // Lấy user ID từ token
+      const { startDate, endDate } = body; // Nhận dữ liệu từ payload
+      const statistics = await this.jobService.getEmployerRecruitmentStatistics(
+        userId,
+        startDate,
+        endDate,
+      );
+      return { errors: {}, data: statistics };
+    }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('statistics/employer-recruitment-statistics-by-rank')
+    async getRecruitmentStatisticsByRank(
+      @Body('startDate') startDate: string,
+      @Body('endDate') endDate: string,
+      @Req() req: any
+    ) {
+      const userId = req.user.id; // Lấy userId từ auth guard
+      const data = await this.jobService.getRecruitmentStatisticsByRank(
+        userId,
+        startDate,
+        endDate
+      );
+      return { errors: {}, data: data };
+    }
+    
 }
 

@@ -677,7 +677,7 @@ async getResumes(
   },
   req.user.id
 );
-  console.log(resumes)
+
   return {
     errors: {},
     data: resumes,

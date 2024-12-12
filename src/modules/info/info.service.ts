@@ -1087,7 +1087,7 @@ export class InfoService {
     }
   }
 
-  async getLatViewedDate(resume: any, userId: string) {
+  async getLatViewedDate(resume: any, userId: string, isGetinfo: boolean = false) {
     const company = await this.companyRepository.findOne({where: {user: {id: userId.toString()}}})
     const existingResumeViewed = await this.resumeViewedRepository.findOne({
       where: {
@@ -1095,6 +1095,10 @@ export class InfoService {
         company: { id: company.id },
       },
     });
+
+    if (isGetinfo) {
+      return existingResumeViewed.updateAt
+    }
 
     let lastViewedDate = new Date()
     // Nếu chưa tồn tại ResumeViewed, tạo mới
@@ -1122,7 +1126,7 @@ export class InfoService {
         company: { id: resume.user?.company?.id },
       },
     });
-    console.log(resume);
+
     return !!isSaved
   }
 
@@ -1368,7 +1372,7 @@ export class InfoService {
           city: resume.city?.id || null,
           isSaved: await this.checkIsSavedResume(resume), // Nếu có nhà tuyển dụng lưu hồ sơ thì isSaved = true
           viewEmployerNumber: await this.getViewResumeNumber(resume), // Trả về số lượng nhà tuyển dụng lưu hồ sơ
-          lastViewedDate: await this.getLatViewedDate(resume, userId) || null,
+          lastViewedDate: await this.getLatViewedDate(resume, userId, true) || null,
           userDict: {
             id: resume.user?.id,
             fullName: resume.user?.fullName,

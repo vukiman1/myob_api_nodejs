@@ -148,6 +148,16 @@ export class JobService {
     };
   }
 
+  async upDateJobPostExpired():Promise<void> {
+    await this.jobPostRepository
+    .createQueryBuilder()
+    .update('JobPost')
+    .set({ isExpired: true })
+    .where('deadline < :currentDate', { currentDate: new Date() }) // So sánh trực tiếp với ngày hiện tại
+    .andWhere('isExpired = false') // Chỉ cập nhật nếu chưa hết hạn
+    .execute();
+  }
+
   async findJobPosts(filters: any) {
     const {
       isUrgent,
@@ -159,6 +169,9 @@ export class JobService {
       statusId,
       companyId,
     } = filters;
+
+    await this.upDateJobPostExpired()
+   
     // Tạo truy vấn với các điều kiện tìm kiếm
     const query = this.jobPostRepository
       .createQueryBuilder('job_post') // Lỗi: thiếu query. ở đây
@@ -885,7 +898,144 @@ export class JobService {
     return result;
   }
   
+  async getEmployerGeneralStatistics(userId: string): Promise<any> {
+    // Cập nhật trạng thái isExpired = true nếu deadline < ngày hiện tại
+    await this.upDateJobPostExpired()
+
+    // 1. Total Job Posts
+    const totalJobPost = await this.jobPostRepository.count({
+      where: { user: { id: userId } },
+    });
+  
+    // 2. Total Job Posting Pending Approval
+    const totalJobPostingPendingApproval = await this.jobPostRepository.count({
+      where: { user: { id: userId }, status: 1 },
+    });
+  
+    // 3. Total Job Post Expired
+    const totalJobPostExpired = await this.jobPostRepository.count({
+      where: { user: { id: userId }, isExpired: true },
+    });
+  
+    // 4. Total Apply
+    const totalApply = await this.jobPostActivityRepository
+      .createQueryBuilder('activity')
+      .leftJoin('activity.jobPost', 'jobPost')
+      .where('jobPost.userId = :userId', { userId })
+      .andWhere('activity.isDeleted = :isDeleted', { isDeleted: false })
+      .getCount();
+  
+    return {
+      errors: {},
+      data: {
+        totalJobPost,
+        totalJobPostingPendingApproval,
+        totalJobPostExpired,
+        totalApply,
+      },
+    };
+  }
+  
+  async getEmployerRecruitmentStatistics(
+    employerId: string, // Đây là userId của nhà tuyển dụng
+    startDate: string,
+    endDate: string,
+  ): Promise<{ label: string; data: number[] }[]> {
+    const statuses = [
+      { label: 'Chờ xác nhận', status: 1 },
+      { label: 'Đã liên hệ', status: 2 },
+      { label: 'Đã test', status: 3 },
+      { label: 'Đã phỏng vấn', status: 4 },
+      { label: 'Trúng tuyển', status: 5 },
+      { label: 'Không trúng tuyển', status: 6 },
+    ];
+  
+    const result = [];
+  
+    for (const { label, status } of statuses) {
+      const count = await this.jobPostActivityRepository
+        .createQueryBuilder('activity')
+        .leftJoin('activity.jobPost', 'jobPost') // Liên kết bảng JobPost
+        .where('activity.status = :status', { status }) // Điều kiện status
+        .andWhere('jobPost.userId = :employerId', { employerId }) // Lọc theo userId của nhà tuyển dụng
+        .andWhere('activity.createAt BETWEEN :startDate AND :endDate', {
+          startDate,
+          endDate,
+        }) // Lọc theo khoảng thời gian
+        .getCount();
+  
+      result.push({ label, data: [count] });
+    }
+  
+    return result;
+  }
+  
+  async getRecruitmentStatisticsByRank(
+    employerId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<any> {
+    try {
+      // Truy vấn dữ liệu
+      const rawData = await this.jobPostActivityRepository
+        .createQueryBuilder('activity')
+        .leftJoin('activity.resume', 'resume') // Liên kết với bảng Resume
+        .leftJoin('activity.jobPost', 'jobPost') // Liên kết với JobPost để lấy employerId
+        .where('jobPost.userId = :employerId', { employerId }) // Lọc theo userId của nhà tuyển dụng
+        .andWhere('activity.createAt BETWEEN :startDate AND :endDate', {
+          startDate,
+          endDate,
+        }) // Lọc theo ngày
+        .select('resume.academicLevel', 'academicLevel') // Lấy cột AcademicLevel từ Resume
+        .addSelect('COUNT(activity.id)', 'total') // Đếm số lượng hoạt động
+        .groupBy('resume.academicLevel') // Nhóm theo cấp học vấn
+        .getRawMany();
+  
+      // Map kết quả thành định dạng yêu cầu
+      const academicLevels = [
+        { id: 1, name: 'Trên Đại học' },
+        { id: 2, name: 'Đại học' },
+        { id: 3, name: 'Cao đẳng' },
+        { id: 4, name: 'Trung cấp' },
+        { id: 5, name: 'Trung học' },
+        { id: 6, name: 'Chứng chỉ nghề' },
+      ];
+  
+      const data = academicLevels.map((level) => {
+        const match = rawData.find((item) => item.academicLevel == level.id);
+        return match ? Number(match.total) : 0;
+      });
+  
+      return {
+
+          data,
+          labels: academicLevels.map((level) => level.name),
+          backgroundColor: [
+            'rgba(255, 99, 132, 1)',
+            'rgba(54, 162, 235, 1)',
+            'rgba(255, 206, 86, 1)',
+            'rgba(75, 192, 192, 1)',
+            'rgba(153, 102, 255, 1)',
+            'rgba(255, 159, 64, 1)',
+          ],
+
+      };cod
+    } catch (error) {
+      console.error('Error in getRecruitmentStatisticsByRank:', error.message);
+      console.error('Stack Trace:', error.stack);
+  
+      return {
+        errors: {
+          message: 'An error occurred while processing the request.',
+        },
+        data: null,
+      };
+    }
+  }
   
   
-  
+
 }
+
+  
+

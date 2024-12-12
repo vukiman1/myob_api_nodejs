@@ -74,6 +74,9 @@ export class JobPost {
   @Column({ default: 0 })
   isUrgent: boolean;
 
+  @Column({ default: 0 })
+  isExpired: boolean;
+
   @Column()
   contactPersonName: string;
   @Column()
