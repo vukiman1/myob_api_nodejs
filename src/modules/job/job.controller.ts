@@ -386,6 +386,21 @@ export class JobController {
       );
       return { errors: {}, data: data };
     }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('statistics/employer-application-statistics')
+    async getEmployerApplicationStatistics(
+      @Req() req: any,
+      @Body('startDate') startDate: string,
+      @Body('endDate') endDate: string,
+    ) {
+      return await this.jobService.getEmployerApplicationStatistics(
+        req.user.id,
+        startDate,
+        endDate,
+      );
+    }
+    
     
 }
 

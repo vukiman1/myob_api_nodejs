@@ -677,12 +677,12 @@ async getResumes(
   },
   req.user.id
 );
-
   return {
     errors: {},
     data: resumes,
   };
 }
+
 
 }
 

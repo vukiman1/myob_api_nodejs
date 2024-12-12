@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -23,6 +24,7 @@ import { JobPostSavedResponseDto } from './dto/job-post-saved.dto';
 import { ResumeViewed } from '../info/entities/resume-viewed.entity';
 import { ResumeSaved } from '../info/entities/resume-saved.entity';
 import { CompanyFollowed } from '../info/entities/company-followed.entity';
+import moment from 'moment';
 
 @Injectable()
 export class JobService {
@@ -601,7 +603,6 @@ export class JobService {
       .leftJoinAndSelect('activity.resume', 'resume')
       .where('activity.isDeleted = :isDeleted', { isDeleted: false })
       .andWhere('jobPost.userId = :userId', { userId });
-  
     // Apply filters if provided
     if (filters.academicLevelId) {
       queryBuilder.andWhere('jobPost.academicLevel = :academicLevelId', { academicLevelId: filters.academicLevelId });
@@ -1019,7 +1020,7 @@ export class JobService {
             'rgba(255, 159, 64, 1)',
           ],
 
-      };cod
+      };
     } catch (error) {
       console.error('Error in getRecruitmentStatisticsByRank:', error.message);
       console.error('Stack Trace:', error.stack);
@@ -1033,6 +1034,80 @@ export class JobService {
     }
   }
   
+  async getEmployerApplicationStatistics(
+    employerId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<any> {
+    const start = moment(startDate);
+    const end = moment(endDate);
+  
+    const daysDiff = end.diff(start, 'days') + 1;
+  
+
+    // Generate labels (dates between startDate and endDate)
+    const labels = [];
+    for (let i = 0; i < daysDiff; i++) {
+      labels.push(start.clone().add(i, 'days').format('DD/MM'));
+    }
+  
+    // Initialize data arrays
+    const data1 = new Array(daysDiff).fill(0); // Job posts
+    const data2 = new Array(daysDiff).fill(0); // Jobs with applications
+  
+    // Query all job posts by employerId
+    const allJobPosts = await this.jobPostRepository.find({
+      where: { user: {id: employerId} },
+      select: ['id', 'createAt', 'deadline', 'isExpired'],
+    });
+  
+    // Calculate data1 for each day
+    for (let i = 0; i < daysDiff; i++) {
+      const currentDate = start.clone().add(i, 'days');
+      data1[i] = allJobPosts.filter(
+        (job) =>
+          moment(job.createAt).isSameOrBefore(currentDate) && // Created before or on the current date
+          (!job.deadline || moment(job.deadline).isSameOrAfter(currentDate)) && // Not expired by deadline
+          !job.isExpired, // Not marked as expired
+      ).length;
+    }
+  
+    // Query job post activities grouped by jobPost ID and date
+    const jobPostActivities = await this.jobPostActivityRepository
+      .createQueryBuilder('activity')
+      .leftJoin('activity.jobPost', 'jobPost')
+      .select('DATE(activity.createAt)', 'date')
+      .addSelect('COUNT(DISTINCT activity.jobPostId)', 'count') // Count unique jobPost IDs
+      .where('jobPost.userId = :employerId', { employerId })
+      .andWhere('activity.createAt BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
+      .groupBy('DATE(activity.createAt)')
+      .getRawMany();
+  
+    // Map jobs with applications to data2
+    jobPostActivities.forEach((activity) => {
+      const index = labels.indexOf(moment(activity.date).format('DD/MM'));
+      if (index !== -1) {
+        data2[index] = parseInt(activity.count, 10); // Number of unique jobs with applications
+      }
+    });
+  
+    // Return response
+    return {
+      errors: {},
+      data: {
+        title1: 'Việc làm',
+        title2: 'Việc làm có ứng tuyển',
+        labels,
+        data1,
+        data2,
+        backgroundColor1: 'rgb(75, 192, 192)',
+        backgroundColor2: 'red',
+      },
+    };
+  }
   
 
 }

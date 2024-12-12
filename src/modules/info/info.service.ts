@@ -1095,11 +1095,9 @@ export class InfoService {
         company: { id: company.id },
       },
     });
-
-    if (isGetinfo) {
-      return existingResumeViewed.updateAt
-    }
-
+ 
+    
+   
     let lastViewedDate = new Date()
     // Nếu chưa tồn tại ResumeViewed, tạo mới
     if (!existingResumeViewed) {
@@ -1115,7 +1113,10 @@ export class InfoService {
       lastViewedDate = existingResumeViewed.updateAt
       await this.resumeViewedRepository.save(existingResumeViewed);
     }
-    
+
+    if (isGetinfo) {
+      return lastViewedDate
+    }
     return lastViewedDate
   }
 
@@ -1361,6 +1362,7 @@ export class InfoService {
     return {
       count,
       results: await Promise.all(results.map(async (resume) => {
+
         return {
           id: resume.id,
           slug: resume.slug,
@@ -1448,9 +1450,15 @@ export class InfoService {
       },
     };
   }
-  
+
+
+
   
 }
+
+  
+  
+
 
 
 
