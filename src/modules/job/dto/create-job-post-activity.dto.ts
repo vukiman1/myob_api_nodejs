@@ -56,7 +56,7 @@ export class JobActivityResponseDto {
             : null,
         },
         locationDict: {
-          city: jobPost.location?.city,
+          city: jobPost.location.city?.id || null,
         },
       },
       resumeDict: {

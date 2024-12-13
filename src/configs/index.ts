@@ -1,5 +1,6 @@
 import { AppConfig, appRegToken, IAppConfig } from './app.config';
 import { DatabaseConfig, dbRegToken, IDatabaseConfig } from './database.config';
+import { IMailerConfig, MailerConfig, mailerRegToken } from './mailer.config';
 import { ISecurityConfig, SecurityConfig, securityRegToken } from './security.config';
 import { ISwaggerConfig, SwaggerConfig, swaggerRegToken } from './swagger.config';
 
@@ -12,7 +13,8 @@ export interface AllConfigType {
     [appRegToken]: IAppConfig,
     [swaggerRegToken]: ISwaggerConfig,
     [dbRegToken]: IDatabaseConfig,
-    [securityRegToken]: ISecurityConfig
+    [securityRegToken]: ISecurityConfig,
+    [mailerRegToken]: IMailerConfig;
 }
 
 
@@ -29,5 +31,6 @@ export default {
     AppConfig,
     DatabaseConfig,
     SwaggerConfig,
-    SecurityConfig
+    SecurityConfig,
+    MailerConfig,
 };

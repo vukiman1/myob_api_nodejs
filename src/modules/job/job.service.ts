@@ -211,30 +211,9 @@ export class JobService {
     // Chuẩn bị dữ liệu trả về
     return {
       count,
-      results: results.map((job) => ({
-        id: job.id,
-        slug: job.slug,
-        jobName: job.jobName,
-        deadline: job.deadline,
-        salaryMin: job.salaryMin,
-        salaryMax: job.salaryMax,
-        isHot: job.isHot,
-        isUrgent: job.isUrgent,
-        companyDict: job.company
-          ? {
-              id: job.company.id,
-              slug: job.company.slug,
-              companyName: job.company.companyName,
-              employeeSize: job.company.employeeSize,
-              companyImageUrl: job.company.companyImageUrl,
-            }
-          : null,
-        locationDict: job.location
-          ? {
-              city: job.location.city ? job.location.city.id : null,
-            }
-          : null,
-      })),
+      results: results.map((job) => 
+        JobPostSavedResponseDto.toResponse(job, false)
+      ),
     };
   }
 
@@ -374,19 +353,27 @@ export class JobService {
   async getPublicJobPost(slug: string, headers: any) {
     const jobPost = await this.findJobPostBySlug(slug);
     const userId = await this.getUserByHeader(headers);
+    let isApplied = false;
     let isSaved = null;
     if (userId) {
       isSaved = (await this.checkIsSavedJobPost(slug, userId)).isSaved;
+      const appliedActivity = await this.jobPostActivityRepository.findOne({
+        where: {
+          user: {id: userId},
+          jobPost: {id: jobPost.id},
+
+        },
+      });
+      isApplied = !!appliedActivity;
     }
 
     // Save the job post
     const savedJobPost = await this.jobPostRepository.save(jobPost);
-
     // Increment the views count
     savedJobPost.views++;
     await this.jobPostRepository.save(savedJobPost);
 
-    return JobPostResponseDto.toResponse({ ...jobPost, isSaved });
+    return JobPostResponseDto.toResponse({ ...jobPost, isSaved, isApplied });
   }
 
   async checkIsSavedJobPost(slug: string, userId: number) {
@@ -476,6 +463,7 @@ export class JobService {
         'user',
         'jobPost.location',
         'resume',
+        'jobPost.location.city'
       ],
       order: { createAt: 'DESC' },
     });
@@ -498,6 +486,7 @@ export class JobService {
       relations: ['career', 'city'],
       order: { createAt: 'DESC' },
     });
+
 
 
     const results = notifications.map((notification) =>
@@ -729,7 +718,7 @@ export class JobService {
   async getJobSeekerGeneralStatistics(userId: string): Promise<any> {
     // 1. Tính totalApply từ bảng JobPostActivity (status = 2)
     const totalApply = await this.jobPostActivityRepository.count({
-      where: { user: { id: userId }, status: 2 },
+      where: { user: { id: userId }},
     });
 
     // 2. Tìm tất cả resumeIds của user
@@ -836,7 +825,7 @@ export class JobService {
         .select("('T' || EXTRACT(MONTH FROM jobPostActivity.createAt)::TEXT || '-' || EXTRACT(YEAR FROM jobPostActivity.createAt)::TEXT)", 'monthYear') // Format thành T1-YYYY
         .addSelect('COUNT(jobPostActivity.id)', 'total') // Đếm số lượng theo tháng
         .where('jobPostActivity.userId = :userId', { userId }) // Điều kiện userId
-        .andWhere('jobPostActivity.status = :status', { status: 2 }) // Điều kiện status = 2
+        // .andWhere('jobPostActivity.status = :status', { status: 2 }) // Điều kiện status = 2
         .groupBy("EXTRACT(MONTH FROM jobPostActivity.createAt), EXTRACT(YEAR FROM jobPostActivity.createAt)") // Nhóm theo tháng-năm
         .getRawMany();
 
@@ -1108,9 +1097,123 @@ export class JobService {
       },
     };
   }
-  
 
+  async getEmployerCandidateStatistics(
+    employerId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<any> {
+    // Validate dates
+    const start = moment(startDate, 'YYYY-MM-DD');
+    const end = moment(endDate, 'YYYY-MM-DD');
+  
+    // Generate labels (days from startDate to endDate)
+    const daysDiff = end.diff(start, 'days') + 1;
+    const labels = Array.from({ length: daysDiff }, (_, i) =>
+      start.clone().add(i, 'days').format('DD/MM'),
+    );
+  
+    // Get all jobPost IDs belonging to the employer
+    const jobPostIds = await this.jobPostRepository
+      .createQueryBuilder('jobPost')
+      .select('jobPost.id', 'id')
+      .where('jobPost.userId = :employerId', { employerId })
+      .getRawMany();
+  
+    if (jobPostIds.length === 0) {
+      // If no job posts, return empty data
+      return {
+        errors: {},
+        data: {
+          title1: moment().year(), // Current year
+          labels,
+          data1: new Array(daysDiff).fill(0),
+          borderColor1: 'rgb(53, 162, 235)',
+          backgroundColor1: 'rgba(53, 162, 235, 0.5)',
+        },
+      };
+    }
+  
+    // Extract IDs from jobPostIds
+    const jobPostIdList = jobPostIds.map((item) => item.id);
+  
+    // Query job post activities grouped by day
+    const activities = await this.jobPostActivityRepository
+      .createQueryBuilder('activity')
+      .select(
+        "TO_CHAR(activity.createAt AT TIME ZONE 'Asia/Ho_Chi_Minh', 'YYYY-MM-DD')",
+        'date',
+      )
+      .addSelect('COUNT(activity.id)', 'count') // Count each application
+      .where('activity.jobPostId IN (:...jobPostIdList)', { jobPostIdList })
+      .andWhere('activity.createAt BETWEEN :startDate AND :endDate', {
+        startDate: start.format('YYYY-MM-DD'),
+        endDate: end.format('YYYY-MM-DD'),
+      })
+      .groupBy('date')
+      .getRawMany();
+  
+    // Map activities to data array
+    const data = new Array(daysDiff).fill(0);
+    activities.forEach((activity) => {
+      const index = labels.indexOf(
+        moment(activity.date, 'YYYY-MM-DD').format('DD/MM'),
+      );
+      if (index !== -1) {
+        data[index] = parseInt(activity.count, 10);
+      }
+    });
+  
+    // Return response
+    return {
+      errors: {},
+      data: {
+        title1: moment().year(), // Current year
+        labels,
+        data1: data,
+        borderColor1: 'rgb(53, 162, 235)',
+        backgroundColor1: 'rgba(53, 162, 235, 0.5)',
+      },
+    };
+  }
+  
+  async getSuggestedJobPosts(page: number, pageSize: number, userId: string) {
+    // Lấy Resume đang active của user
+    const activeResume = await this.resumeRepository.findOne({
+      where: { user: { id: userId }, isActive: true },
+      relations: ['career', 'city'],
+    });
+  
+    if (!activeResume) {
+      throw new NotFoundException('Active resume not found for user');
+    }
+  
+    const { career, city } = activeResume;
+  
+    // Lọc JobPost theo career và city
+    const [jobPosts, count] = await this.jobPostRepository.findAndCount({
+      where: {
+        career: { id: career?.id },
+        location: { city: { id: city?.id } },
+        isExpired: false,
+        status: 3,
+      },
+      relations: ['company', 'company.user', 'location.city'],
+      take: pageSize,
+      skip: (page - 1) * pageSize,
+      order: { isHot: 'DESC', isUrgent: 'DESC', createAt: 'DESC' },
+    });
+  
+    // Sử dụng JobPostSavedResponseDto để định dạng dữ liệu
+    const results = jobPosts.map((jobPost) => JobPostSavedResponseDto.toResponse(jobPost, false));
+  
+    return {
+      errors: {},
+      data: {
+        count,
+        results,
+      },
+    };
+  }
+  
 }
-
-  
-

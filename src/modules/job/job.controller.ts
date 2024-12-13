@@ -39,6 +39,18 @@ export class JobController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Get('private-job-posts/suggested-job-posts')
+  async getSuggestedJobPosts(
+    @Query('page') page: number = 1,
+    @Query('pageSize') pageSize: number = 10,
+    @Req() req: any, // UserId lấy từ token trong `req.user`
+  ) {
+    const userId = req.user.id;
+    const result = await this.jobService.getSuggestedJobPosts(page, pageSize, userId);
+
+    return result
+  }
+  @UseGuards(AuthGuard('jwt'))
   @Get('private-job-posts')
   async getPrivateJobPosts(
     @Req() req: any,
@@ -400,7 +412,22 @@ export class JobController {
         endDate,
       );
     }
-    
+
+    @UseGuards(AuthGuard('jwt'))
+    @Post('statistics/employer-candidate-statistics')
+    async getEmployerCandidateStatistics(
+      @Req() req: any,
+      @Body('startDate') startDate: string,
+      @Body('endDate') endDate: string,
+    ) {
+      return this.jobService.getEmployerCandidateStatistics(
+        req.user.id,
+        startDate,
+        endDate,
+      );
+    }
+
+   
     
 }
 
