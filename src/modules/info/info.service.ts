@@ -37,6 +37,7 @@ import { ResumeSaved } from './entities/resume-saved.entity';
 import { JobPostActivity } from '../job/entities/job-post-activity.entity';
 import { ResumeViewed } from './entities/resume-viewed.entity';
 import moment from 'moment';
+import { NodemailerService } from '../nodemailer/nodemailer.service';
 
 
 @Injectable()
@@ -45,6 +46,7 @@ export class InfoService {
     private readonly jwtService: JwtService,
     private readonly authService: AuthService,
     private cloudinaryService: CloudinaryService,
+    private nodemailerService: NodemailerService,
     @InjectRepository(Location)
     private locationRepository: Repository<Location>,
     @InjectRepository(City)
@@ -447,11 +449,14 @@ export class InfoService {
   }
 
   async getJobSeekerProfile(email: string) {
+    await this.nodemailerService.sendMail()
+
     // Tìm profile với các relations cần thiết
     const profile = await this.jobSeekerProfileRepository.findOne({
       where: { user: { email } },
       relations: ['user', 'location', 'location.city', 'location.district'],
     });
+
 
     if (!profile) {
       throw new NotFoundException('Không tìm thấy hồ sơ ứng viên');
@@ -1180,6 +1185,7 @@ export class InfoService {
     pageSize: number = 10,
     salaryMax?: number
   ): Promise<{ count: number; results: any[] }> {
+
 
     const company = await this.companyRepository.findOne({where: {user: {id: userId}}})
     const companyId = company.id
