@@ -26,6 +26,7 @@ import { EducationDetail } from './entities/educations-detail.entity';
 import { AuthService } from '../auth/auth.service';
 import { Career } from '../common/entities/carrer.entity';
 import { JobPostActivity } from '../job/entities/job-post-activity.entity';
+import { NodemailerService } from '../nodemailer/nodemailer.service';
 
 @Module({
   imports: [
@@ -57,6 +58,6 @@ import { JobPostActivity } from '../job/entities/job-post-activity.entity';
   ],
   exports: [InfoService],
   controllers: [InfoController, InfoController2],
-  providers: [InfoService, UserService, AuthService],
+  providers: [InfoService, UserService, AuthService, NodemailerService],
 })
 export class InfoModule {}
