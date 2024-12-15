@@ -20,11 +20,13 @@ import { UserResponseDto } from '../user/dto/user.dto';
 import { UpDateUserDto } from './dto/user.dto';
 import { CloudinaryService } from './../cloudinary/cloudinary.service';
 import { Resume } from '../info/entities/resume.entity';
+import { NodemailerService } from '../nodemailer/nodemailer.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private cloudinaryService: CloudinaryService,
+    private nodemailerService: NodemailerService,
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private readonly jwtService: JwtService,
@@ -74,6 +76,15 @@ export class AuthService {
       jobSeekerProfile: savedProfile,
     });
     await this.resumeRepository.save(newResume);
+
+    // Tạo JWT token xác thực email
+    const payload = { email: savedUser.email };
+    const verificationToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET, // Secret key từ .env
+      expiresIn: '360d', // Thời gian token hết hạn
+    });
+
+    await this.nodemailerService.sendEmailVerification(savedUser.fullName, savedUser.email, verificationToken)
 
     return savedUser;
   }
@@ -158,7 +169,7 @@ export class AuthService {
       };
     }
 
-    if (!user.isVerifyEmail) {
+    if (user.isVerifyEmail === false) {
       return {
         email: authCredDto.email,
         email_verified: false,
@@ -222,6 +233,34 @@ export class AuthService {
     }
   }
 
+  async verifyUserEmail(token: string) {
+    const payload = await this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
+    const user = await this.findUserByEmail(payload.email);   
+    user.isVerifyEmail = true;
+    await this.userRepository.save(user);
+  }
+
+  async forgotPassword(forgotPasswordDto: any) {
+    const payload = { email: forgotPasswordDto.email};
+    const Token = this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET, // Secret key từ .env
+      expiresIn: '1h', // Thời gian token hết hạn
+    });
+    await this.nodemailerService.sendEmailforgotPassword(forgotPasswordDto.email, Token)
+
+  }
+
+  async resetPassword(resetPasswordto: any) {
+    const payload = await this.jwtService.verify(resetPasswordto.token, { secret: process.env.JWT_SECRET });
+    const user = await this.findUserByEmail(payload.email);  
+    if (resetPasswordto.newPassword === resetPasswordto.confirmPassword) {
+      user.password = await this.hashPassword(resetPasswordto.newPassword);
+      await this.userRepository.save(user);
+      return 'Password has been updated successfully!';
+    }
+    throw new BadRequestException()
+  }
+
   async validate_user(authGetTokenDto: AuthGetTokenDto): Promise<any> {
     const user = await this.findUserByEmail(authGetTokenDto.username);
     if (
@@ -233,7 +272,9 @@ export class AuthService {
       return { id, roleName, email };
     }
 
-    throw new NotFoundException(`User not found!`);
+    throw new BadRequestException({
+      errorMessage: ['Mật khẩu không chính xác!']
+    });
   }
 
   async hashPassword(password: string): Promise<string> {

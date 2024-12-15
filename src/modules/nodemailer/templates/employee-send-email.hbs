@@ -102,21 +102,48 @@
           alt="Logo"
           style="display: block; margin: 0 auto; max-width: 120px;"
         />
-        <span style="display: block; margin-top: 10px;">XÁC THỰC EMAIL</span>
+        <span style="display: block; margin-top: 10px;">THƯ TỪ NHÀ TUYỂN DỤNG</span>
       </div>
 
-      <h1 style="color:rgb(30, 13, 185);">Chào mừng đến với <b>Việc làm 365</b></h1>
-      <p>Chào <b>{{name}}</b>!,</p>
-      <p>Chúng tôi rất vui khi bạn gia nhập Việc làm 365 – nơi bạn có thể tìm kiếm và ứng tuyển vào mọi công việc mơ ước. Hãy bắt đầu ngay hôm nay!</p>
-      
-      <p>Cảm ơn bạn đã đăng ký. Vui lòng nhấn vào nút dưới đây để xác thực email của bạn:</p>
-      
-      <a href="{{verificationLink}}" style="display: inline-block; padding: 10px 20px; background-color: #4caf50; color: #fff; text-decoration: none; border-radius: 5px; margin-top: 10px;">Xác thực email</a>
-      
-      <p style="margin-top: 20px;">Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.</p>
-      
-      <p>Trân trọng,</p>
-      <p>Đội ngũ hỗ trợ Việc làm 365</p>
+      <!-- Body -->
+      <div class="body">
+        <h2>Xin chào {{fullName}},</h2>
+        <p>Bạn nhận được thư từ nhà tuyển dụng trên trang <strong>Việc làm 365</strong>.</p>
+        <p>
+          Từ: 
+          <a
+            href="https://vieclam365.top/cong-ty/{{companySlug}}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <strong>{{companyName}}</strong>
+          </a>
+        </p>
+        <p>
+          Vị trí đã ứng tuyển: 
+          <a
+            href="https://vieclam365.top/viec-lam/{{jobPostSlug}}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <strong>{{jobName}}</strong>
+          </a>
+        </p>
+
+        <h1><strong>{{title}}</strong></h1>
+        <p>{{{content}}}</p>
+
+        <div class="button-container">
+          <a
+            href="https://vieclam365.top"
+            class="cta-button"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Đi đến trang web
+          </a>
+        </div>
+      </div>
 
       <!-- Footer -->
       <div class="footer">

@@ -14,6 +14,7 @@ import { Location } from '../common/entities/location.entity';
 import { Company } from '../info/entities/company.entity';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { Resume } from '../info/entities/resume.entity';
+import { NodemailerService } from '../nodemailer/nodemailer.service';
 
 @Module({
   imports: [
@@ -44,6 +45,6 @@ import { Resume } from '../info/entities/resume.entity';
   ],
   exports: [JwtModule, AuthService],
   controllers: [AuthController],
-  providers: [AuthService, UserService, JwtStrategy],
+  providers: [AuthService, UserService, JwtStrategy, NodemailerService],
 })
 export class AuthModule {}

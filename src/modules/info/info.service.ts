@@ -449,7 +449,6 @@ export class InfoService {
   }
 
   async getJobSeekerProfile(email: string) {
-    await this.nodemailerService.sendMail()
 
     // Tìm profile với các relations cần thiết
     const profile = await this.jobSeekerProfileRepository.findOne({

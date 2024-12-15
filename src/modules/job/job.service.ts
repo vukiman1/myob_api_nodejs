@@ -25,10 +25,13 @@ import { ResumeViewed } from '../info/entities/resume-viewed.entity';
 import { ResumeSaved } from '../info/entities/resume-saved.entity';
 import { CompanyFollowed } from '../info/entities/company-followed.entity';
 import moment from 'moment';
+import { EmployeeSendEmailDto } from './dto/employee-send-email.dto';
+import { NodemailerService } from '../nodemailer/nodemailer.service';
 
 @Injectable()
 export class JobService {
   constructor(
+    private nodemailerService: NodemailerService,
     private readonly jwtService: JwtService,
     @InjectRepository(Location)
     private locationRepository: Repository<Location>,
@@ -648,18 +651,7 @@ export class JobService {
     const activity = await this.jobPostActivityRepository.findOne({
       where: { id: activityId, isDeleted: false }, // Chỉ cập nhật nếu chưa bị xóa
     });
-  
-    if (!activity) {
-      throw new NotFoundException('Job post activity not found');
-    }
     activity.status = status;
-  
-    // Cập nhật status
-    if (status === 2) {
-      activity.isSendMail = true;
-    }
-  
-    // Lưu thay đổi vào database
     await this.jobPostActivityRepository.save(activity);
   }
 
@@ -1215,5 +1207,21 @@ export class JobService {
       },
     };
   }
+
+  async employeeSendEmail(
+    employeeSendEmailDto: EmployeeSendEmailDto,
+    activityId: number,
+    employeeEmail: string,
+  ) {
+    const activity = await this.jobPostActivityRepository.findOne({
+      where: { id: activityId, isDeleted: false },
+      relations: ['jobPost', 'jobPost.company'], 
+    });
+    // Cập nhật trạng thái isSendMail
+      await this.nodemailerService.employeeSendEmail(employeeSendEmailDto, employeeEmail, activity.jobPost.company.companyName, activity.jobPost.jobName, activity.jobPost.slug,  activity.jobPost.company.slug);
+      activity.isSendMail = true;
+      await this.jobPostActivityRepository.save(activity);
+  }
+  
   
 }

@@ -8,6 +8,8 @@ import {
   Patch,
   Post,
   Put,
+  Query,
+  Redirect,
   Req,
   UploadedFile,
   UseGuards,
@@ -23,6 +25,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('auth')
 export class AuthController {
+  jwtService: any;
   constructor(private readonly authService: AuthService) {}
 
   //Job Seaker
@@ -53,6 +56,27 @@ export class AuthController {
     return newEmployer;
   }
 
+  @Get('verify-email')
+  @Redirect('https://vieclam365.top/dang-nhap-ung-vien?successMessage=Email+xác+thực+thành+công')
+  async verifyEmail(@Query('token') token: string) {
+    const payload = await this.authService.verifyUserEmail(token)  
+    console.log(payload);
+    //This will be executed!
+  }
+
+  @Post('forgot-password')
+  async forgotPassword(@Body() forgotPasswordDto: any) {
+    await this.authService.forgotPassword(forgotPasswordDto);
+    return { message: 'Check your email for reset password link' };
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() resetPasswordto: any) {
+    await this.authService.resetPassword(resetPasswordto);
+    return { data: {
+      redirectLoginUrl: '/dang-nhap-ung-vien'
+    } };
+  }
   //user
   @UseGuards(AuthGuard('jwt'))
   @Get('user-info')

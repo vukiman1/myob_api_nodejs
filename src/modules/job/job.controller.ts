@@ -17,6 +17,7 @@ import { CreateJobPostActivityDto } from './dto/create-job-post-activity.dto';
 import { error } from 'console';
 import { CreateJobPostNotificationDto } from './dto/create-job-post-notification.dto';
 import { UpdateApplicationStatusDto } from './dto/activity-status.dto';
+import { EmployeeSendEmailDto } from './dto/employee-send-email.dto';
 
 @Controller('job/web/')
 export class JobController {
@@ -228,6 +229,8 @@ export class JobController {
     };
   }
 
+
+
   @Get('job-post-notifications')
   async getJobPostNotifications(
     @Query('page') page: number = 1,
@@ -312,6 +315,16 @@ export class JobController {
   ): Promise<any> {
     await this.jobService.updateApplicationStatus(id, payload.status);
     return { errors: {}, data: null };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('employer-job-posts-activity/:id/send-email')
+  async employeeSendEmail(@Req() req:any, @Param('id') id: number,@Body() employeeSendEmailDto: EmployeeSendEmailDto) {
+      const result = await this.jobService.employeeSendEmail(employeeSendEmailDto, id, req.user.email);
+      return {
+        errors: {},
+        data: result,
+      }
   }
 
   @UseGuards(AuthGuard('jwt'))

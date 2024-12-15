@@ -17,6 +17,7 @@ import { JobPostActivity } from './entities/job-post-activity.entity';
 import { JobPostNotification } from './entities/job-post-notification.entity';
 import { City } from '../common/entities/city.entity';
 import { CompanyFollowed } from '../info/entities/company-followed.entity';
+import { NodemailerService } from '../nodemailer/nodemailer.service';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -38,6 +39,6 @@ import { CompanyFollowed } from '../info/entities/company-followed.entity';
     AuthModule,
   ],
   controllers: [JobController],
-  providers: [JobService],
+  providers: [JobService, NodemailerService],
 })
 export class JobModule {}

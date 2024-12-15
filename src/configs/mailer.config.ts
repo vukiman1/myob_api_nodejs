@@ -4,8 +4,6 @@ import { join } from 'path';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter'; // Import HandlebarsAdapter
 
 export const mailerRegToken = 'mailer';
-console.log('Template path:', join(__dirname, '../modules/nodemailer/templates'));
-
 export const MailerConfig = registerAs(mailerRegToken, () => ({
   transport: {
     host: env('MAIL_HOST', 'smtp.gmail.com'),
