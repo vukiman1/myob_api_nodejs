@@ -53,11 +53,11 @@ export class CreateLocationDto2 {
   @IsNumber()
   district: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
   lat: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
   lng: number;
 }

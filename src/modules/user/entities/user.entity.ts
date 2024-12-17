@@ -35,7 +35,7 @@ export class User {
   @Column({ default: 1 })
   isActive: boolean;
 
-  @Column({ default: 0 })
+  @Column({ default: 1 })
   isVerifyEmail: boolean;
 
   @Column({ default: 0 })

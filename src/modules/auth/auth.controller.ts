@@ -59,9 +59,13 @@ export class AuthController {
   @Get('verify-email')
   @Redirect('https://vieclam365.top/dang-nhap-ung-vien?successMessage=Email+xác+thực+thành+công')
   async verifyEmail(@Query('token') token: string) {
-    const payload = await this.authService.verifyUserEmail(token)  
-    console.log(payload);
-    //This will be executed!
+     await this.authService.verifyUserEmail(token)  
+  }
+
+  @Get('employee-verify-email')
+  @Redirect('https://vieclam365.top/dang-nhap-nha-tuyen-dung?successMessage=Email+xác+thực+thành+công')
+  async employeeVerifyEmail(@Query('token') token: string) {
+    await this.authService.verifyUserEmail(token)  
   }
 
   @Post('forgot-password')

@@ -7,7 +7,6 @@ import { EmployeeSendEmailDto } from './../job/dto/employee-send-email.dto';
 export class NodemailerService {
     constructor(private readonly mailService: MailerService) {}
     async sendMail() {
-        console.log('ok');
         const name = 'nodemailer'
         const verificationLink = 'https://vieclam365.top/dang-nhap-ung-vien?successMessage=Email+xác+thực+thành+công'
         this.mailService.sendMail({
@@ -22,8 +21,12 @@ export class NodemailerService {
         });
       }
 
-      async sendEmailVerification(name: string, email: string, verificationToken: string) {
-        const verificationLink = `http://localhost:8000/api/auth/verify-email?token=${verificationToken}`; 
+      async sendEmailVerification(name: string, email: string, verificationToken: string, role: string) {
+        let verificationLink = `http://localhost:8000/api/auth/verify-email?token=${verificationToken}`; 
+
+        if (role === 'EMPLOYEE') {
+          verificationLink = `http://localhost:8000/api/auth/employee-verify-email?token=${verificationToken}`; 
+        }
         await this.mailService.sendMail({
           to: email,
           subject: 'Xác thực email của bạn',

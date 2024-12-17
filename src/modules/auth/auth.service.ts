@@ -84,7 +84,7 @@ export class AuthService {
       expiresIn: '360d', // Thời gian token hết hạn
     });
 
-    await this.nodemailerService.sendEmailVerification(savedUser.fullName, savedUser.email, verificationToken)
+    await this.nodemailerService.sendEmailVerification(savedUser.fullName, savedUser.email, verificationToken, 'JOBSEEKER')
 
     return savedUser;
   }
@@ -117,6 +117,16 @@ export class AuthService {
       location: savedLocation,
       user: savedUser,
     });
+     // Tạo JWT token xác thực email
+    //  const payload = { email: savedUser.email };
+    //  const verificationToken = this.jwtService.sign(payload, {
+    //    secret: process.env.JWT_SECRET, // Secret key từ .env
+    //    expiresIn: '360d', // Thời gian token hết hạn
+    //  });
+ 
+    //  await this.nodemailerService.sendEmailVerification(savedUser.fullName, savedUser.email, verificationToken, 'EMPLOYEE')
+ 
+
     return this.companyRepository.save(newCompany);
   }
 
