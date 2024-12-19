@@ -454,10 +454,13 @@ export class JobService {
   }
 
 
-  async getJobPostActivities(page: number, pageSize: number) {
+  async getJobPostActivities(page: number, pageSize: number, userId: string) {
     const skip = (page - 1) * pageSize;
     // Lấy danh sách hoạt động kèm quan hệ liên quan
     const [activities, totalCount] = await this.jobPostActivityRepository.findAndCount({
+      where: {
+        user: {id: userId}
+      },
       skip,
       take: pageSize,
       relations: [
@@ -1177,7 +1180,13 @@ export class JobService {
     });
   
     if (!activeResume) {
-      throw new NotFoundException('Active resume not found for user');
+      return {
+        errors: {},
+        data: {
+          count: 0,
+          results: [],
+        }
+      };
     }
   
     const { career, city } = activeResume;
@@ -1208,6 +1217,28 @@ export class JobService {
     };
   }
 
+  async deletePrivateJobPost(jobPostId: number, userId: string) {
+    const jobPost = await this.jobPostRepository.findOne({
+      where: {
+        id: jobPostId,
+        user: { id: userId }
+      }
+    });
+
+    if (!jobPost) {
+      throw new NotFoundException('Job post not found or you do not have permission to delete it');
+    }
+
+    await this.jobPostRepository.remove(jobPost);
+    
+    return {
+      errors: {},
+      data: {
+        message: 'Job post deleted successfully'
+      }
+    };
+  }
+
   async employeeSendEmail(
     employeeSendEmailDto: EmployeeSendEmailDto,
     activityId: number,
@@ -1222,6 +1253,5 @@ export class JobService {
       activity.isSendMail = true;
       await this.jobPostActivityRepository.save(activity);
   }
-  
   
 }

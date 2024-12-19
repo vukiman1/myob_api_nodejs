@@ -8,6 +8,7 @@ import {
   Req,
   Query,
   Put,
+  Delete,
 } from '@nestjs/common';
 import { JobService } from './job.service';
 
@@ -140,6 +141,15 @@ export class JobController {
     };
   }
 
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('private-job-posts/:id')
+  async deletePrivateJobPost(
+    @Param('id') id: number,
+    @Req() req: any
+  ): Promise<any> {
+    return await this.jobService.deletePrivateJobPost(id, req.user.id);
+  }
+
   @Get('job-posts')
   async getJobPosts(
     @Query('isUrgent') isUrgent: boolean,
@@ -217,12 +227,14 @@ export class JobController {
       }
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Get('job-seeker-job-posts-activity')
   async getJobPostActivities(
+    @Req() req: any,
     @Query('page') page: number = 1,
     @Query('pageSize') pageSize: number = 10,
   ): Promise<any> {
-    const result = await this.jobService.getJobPostActivities(page, pageSize);
+    const result = await this.jobService.getJobPostActivities(page, pageSize, req.user.id);
     return {
       errors: {},
       data: result,
@@ -341,10 +353,10 @@ export class JobController {
 
 
 
+  @UseGuards(AuthGuard('jwt'))
   @Get('statistics/job-seeker-general-statistics/')
   async getJobSeekerGeneralStatistics(@Req() req: any): Promise<any> {
-    const userId = req.user?.id; // Assuming userId is retrieved from authenticated request
-     const data = await this.jobService.getJobSeekerGeneralStatistics(userId);
+     const data = await this.jobService.getJobSeekerGeneralStatistics(req.user.id);
      return data
   }
 
@@ -443,4 +455,3 @@ export class JobController {
    
     
 }
-

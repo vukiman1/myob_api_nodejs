@@ -153,10 +153,31 @@ export class AuthController {
     return true;
   }
 
+  @Post('convert-token')
+  async convertGoogleToken(@Body() body: {
+    backend: string;
+    token: string;
+    client_id: string;
+    client_secret: string;
+    grant_type: string;
+  }) {
+    const { token } = body;
+    const result = await this.authService.convertGoogleToken(token);
+    return {
+      errors: {},
+      data: {
+        errors: {},
+        scope: "read write",
+        token_type: "Bearer",
+        backend: "backend",
+        ...result
+      }
+    };
+  }
+
   @UseGuards(AuthGuard('jwt'))
   @Get('settings')
   async getUserSetting(@Req() req: any): Promise<any> {
-    console.log(req.user);
     return {
       errors: {},
       data: {

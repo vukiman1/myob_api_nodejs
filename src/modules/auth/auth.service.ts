@@ -118,13 +118,13 @@ export class AuthService {
       user: savedUser,
     });
      // Tạo JWT token xác thực email
-    //  const payload = { email: savedUser.email };
-    //  const verificationToken = this.jwtService.sign(payload, {
-    //    secret: process.env.JWT_SECRET, // Secret key từ .env
-    //    expiresIn: '360d', // Thời gian token hết hạn
-    //  });
+     const payload = { email: savedUser.email };
+     const verificationToken = this.jwtService.sign(payload, {
+       secret: process.env.JWT_SECRET, // Secret key từ .env
+       expiresIn: '360d', // Thời gian token hết hạn
+     });
  
-    //  await this.nodemailerService.sendEmailVerification(savedUser.fullName, savedUser.email, verificationToken, 'EMPLOYEE')
+     await this.nodemailerService.sendEmailVerification(savedUser.fullName, savedUser.email, verificationToken, 'EMPLOYEE')
  
 
     return this.companyRepository.save(newCompany);
@@ -355,5 +355,82 @@ export class AuthService {
 
     // Tạo slug mới với số tiếp theo
     return `${baseSlug}-${maxNumber + 1}`;
+  }
+
+  async convertGoogleToken(googleToken: string) {
+    try {
+      const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${googleToken}` }
+      });
+      
+      if (!response.ok) {
+        throw new BadRequestException('Invalid Google token');
+      }
+      const googleUser = await response.json();
+      let user = await this.userRepository.findOne({ where: { email: googleUser.email } });
+      
+      if (!user) {
+        user = this.userRepository.create({
+          email: googleUser.email,
+          fullName: googleUser.name,
+          roleName: 'JOB_SEEKER',
+          avatarUrl: googleUser.picture,
+          isVerifyEmail: true,
+          isActive: true,
+          lastLogin: new Date(),
+          password: await this.hashPassword(Math.random().toString(36).slice(-8))
+        });
+        user = await this.userRepository.save(user);
+  
+        // Generate resume slug
+        const resumeSlug = await this.generateResumeSlug();
+  
+        // Create JobSeekerProfile
+        const newJobSeekerProfile = this.jobSeekerProfileRepository.create({
+          user: user
+        });
+        const savedProfile = await this.jobSeekerProfileRepository.save(newJobSeekerProfile);
+  
+        // Create Resume with slug
+        const newResume = this.resumeRepository.create({
+          user: user,
+          slug: resumeSlug,
+          jobSeekerProfile: savedProfile,
+        });
+        await this.resumeRepository.save(newResume);
+  
+        // Send verification email
+        const payload = { email: user.email };
+        const verificationToken = this.jwtService.sign(payload, {
+          secret: process.env.JWT_SECRET,
+          expiresIn: '360d',
+        });
+        await this.nodemailerService.sendEmailVerification(
+          user.fullName, 
+          user.email, 
+          verificationToken, 
+          'JOBSEEKER'
+        );
+      }
+  
+      // Generate JWT tokens
+      const payload = { id: user.id, roleName: user.roleName, email: user.email };
+      const access_token = this.jwtService.sign(payload, {
+        secret: process.env.JWT_SECRET,
+        expiresIn: '24h'
+      });
+      
+      const refresh_token = this.jwtService.sign(payload, {
+        secret: process.env.JWT_SECRET,
+        expiresIn: '7d'
+      });
+  
+      return {
+        access_token,
+        refresh_token
+      };
+    } catch (error) {
+      throw new BadRequestException('Failed to authenticate with Google');
+    }
   }
 }
