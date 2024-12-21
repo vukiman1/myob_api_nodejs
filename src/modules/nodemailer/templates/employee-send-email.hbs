@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f9;
+        margin: 0;
+        padding: 0;
+      }
+      a {
+        text-decoration: none;
+      }
+      .email-container {
+        max-width: 600px;
+        margin: 20px auto;
+        background: #ffffff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .header {
+        background-color: #4caf50;
+        color: #ffffff;
+        padding: 20px;
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        text-transform: uppercase;
+        line-height: 1.5;
+      }
+      
+
+      .header img {
+        max-width: 120px;
+        margin-bottom: 10px;
+      }
+
+      .body {
+        padding: 20px;
+        color: #333333;
+        line-height: 1.6;
+      }
+
+      .body h2 {
+        font-size: 22px;
+        margin-bottom: 10px;
+        color: #4caf50;
+      }
+
+      .body p {
+        margin: 10px 0;
+      }
+
+      .button-container {
+        text-align: center;
+        margin-top: 20px;
+      }
+
+      .cta-button {
+        display: inline-block;
+        padding: 12px 24px;
+        color: #ffffff;
+        background-color: #007bff;
+        text-decoration: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: bold;
+        transition: background-color 0.3s ease;
+      }
+
+      .cta-button:hover {
+        background-color: #0056b3;
+      }
+
+      .footer {
+        background-color: #f4f4f4;
+        text-align: center;
+        padding: 10px 20px;
+        font-size: 14px;
+        color: #555555;
+        border-top: 1px solid #dddddd;
+      }
+
+      .footer a {
+        color: #007bff;
+        text-decoration: none;
+      }
+
+      .footer a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-container">
+      <!-- Header -->
+      <div class="header">
+        <img
+          src="https://res.cloudinary.com/myjob/image/upload/v1734257017/myjob/logo/qirppmwk0v9muaseuspn.png"
+          alt="Logo"
+          style="display: block; margin: 0 auto; max-width: 120px;"
+        />
+        <span style="display: block; margin-top: 10px;">THƯ TỪ NHÀ TUYỂN DỤNG</span>
+      </div>
+
+      <!-- Body -->
+      <div class="body">
+        <h2>Xin chào {{fullName}},</h2>
+        <p>Bạn nhận được thư từ nhà tuyển dụng trên trang <strong>Việc làm 365</strong>.</p>
+        <p>
+          Từ: 
+          <a
+            href="https://vieclam365.top/cong-ty/{{companySlug}}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <strong>{{companyName}}</strong>
+          </a>
+        </p>
+        <p>
+          Vị trí đã ứng tuyển: 
+          <a
+            href="https://vieclam365.top/viec-lam/{{jobPostSlug}}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <strong>{{jobName}}</strong>
+          </a>
+        </p>
+
+        <h1><strong>{{title}}</strong></h1>
+        <p>{{{content}}}</p>
+
+        <div class="button-container">
+          <a
+            href="https://vieclam365.top"
+            class="cta-button"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Đi đến trang web
+          </a>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <p>Bạn nhận được email này từ <a href="https://vieclam365.top">Việc làm 365</a>.</p>
+        <p>
+          Liên hệ với chúng tôi qua:
+          <a href="https://fb.com/vukiman1">Facebook</a> |
+          <a href="https://github.com/vukiman1">Github</a>
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

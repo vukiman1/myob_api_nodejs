@@ -12,6 +12,9 @@ import { AuthModule } from './modules/auth/auth.module';
 import { InfoModule } from './modules/info/info.module';
 import { MyjobModule } from './modules/myjob/myjob.module';
 import { CommonModule } from './modules/common/common.module';
+import { JobModule } from './modules/job/job.module';
+import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
+import { NodemailerModule } from './modules/nodemailer/nodemailer.module';
 
 @Module({
   imports: [
@@ -36,6 +39,9 @@ import { CommonModule } from './modules/common/common.module';
     InfoModule,
     MyjobModule,
     CommonModule,
+    JobModule,
+    CloudinaryModule,
+    NodemailerModule
   ],
   controllers: [AppController],
   providers: [AppService],
