@@ -101,7 +101,7 @@ export class JobController {
       page: page,
       pageSize: pageSize,
       statusId: statusId,
-    });
+  });
 
     return {
       errors: {},
@@ -225,6 +225,24 @@ export class JobController {
         errors: {},
         data: result,
       }
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('job-seeker-job-posts-activity/chat')
+  async getJobSeekerJobPostsActivityChat(
+    @Query('page') page: number = 1,
+    @Query('pageSize') pageSize: number = 12,
+    @Req() req: any,
+  ) {
+    const result = await this.jobService.getJobSeekerJobPostsActivityChat(
+      page,
+      pageSize,
+      req.user.id,
+    );
+    return {
+      errors: {},
+      data: result,
+    };
   }
 
   @UseGuards(AuthGuard('jwt'))

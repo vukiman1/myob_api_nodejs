@@ -597,7 +597,7 @@ export class JobService {
       .leftJoinAndSelect('activity.jobPost', 'jobPost')
       .leftJoinAndSelect('activity.resume', 'resume')
       .where('activity.isDeleted = :isDeleted', { isDeleted: false })
-      .andWhere('jobPost.userId = :userId', { userId });
+      .andWhere('jobPost.userId = :userId', { userId }); // Lọc theo userId của nhà tuyển dụng
     // Apply filters if provided
     if (filters.academicLevelId) {
       queryBuilder.andWhere('jobPost.academicLevel = :academicLevelId', { academicLevelId: filters.academicLevelId });
@@ -1254,4 +1254,40 @@ export class JobService {
       await this.jobPostActivityRepository.save(activity);
   }
   
+  async getJobSeekerJobPostsActivityChat(
+    page: number,
+    pageSize: number,
+    userId: number,
+  ) {
+    const skip = (page - 1) * pageSize;
+
+    const [activities, total] = await this.jobPostActivityRepository
+      .createQueryBuilder('activity')
+      .leftJoinAndSelect('activity.jobPost', 'jobPost')
+      .leftJoinAndSelect('jobPost.user', 'employer')
+      .leftJoinAndSelect('jobPost.company', 'company')
+      .where('activity.userId = :userId', { userId })
+      .orderBy('activity.id', 'DESC')
+      .skip(skip)
+      .take(pageSize)
+      .getManyAndCount();
+
+    const results = activities.map((activity) => ({
+      id: activity.id,
+      userId: activity.jobPost.user.id,
+      fullName: activity.jobPost.user.fullName,
+      userEmail: activity.jobPost.user.email,
+      companyId: activity.jobPost.company.id,
+      companyName: activity.jobPost.company.companyName,
+      companySlug: activity.jobPost.company.slug,
+      companyImageUrl: activity.jobPost.company.companyImageUrl,
+      jobPostTitle: activity.jobPost.jobName,
+    }));
+
+    return {
+      count: total,
+      results,
+    };
+  }
+
 }
