@@ -8,12 +8,13 @@ import { User } from 'src/modules/user/entities/user.entity'
 import { JobSeekerProfile } from 'src/modules/info/entities/job_seeker_profle.entities'
 
 
+
 const dataSourceOptions: DataSourceOptions = {
   type: 'postgres',
   host: env('DB_HOST', 'localhost'),
   port: envNumber('DB_PORT', 5432),
   username: env('DB_USERNAME', 'postgres'),
-  password: env('DB_PASSWORD', 'postgres'),
+  password: env('DB_PASSWORD', 'kiman0102'),
   database: env('DB_DATABASE', 'MyJobAPI'),
   synchronize: envBoolean('DB_SYNCHRONIZE', false),
   ssl: {

@@ -16,9 +16,9 @@ function formatValue<T extends BaseType = string>(key: string, defaultValue: T, 
 
 
 export function env(key: string, defaultValue: string = '') {
+
     return formatValue(key, defaultValue)
   }
-
 
   export function envNumber(key: string, defaultValue: number = 0) {
     return formatValue(key, defaultValue, (value) => {
