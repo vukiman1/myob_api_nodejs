@@ -146,6 +146,15 @@ export class AuthController {
     };
   }
 
+  @Post('admin-login')
+  async adminLogin(@Body() formData: any): Promise<any> {
+    const data = await this.authService.adminLogin(formData);
+    return {
+      errors: {},
+      data,
+    };
+  }
+
   @Post('revoke-token')
   async revokeToken(token: string): Promise<any> {
 

@@ -139,6 +139,33 @@ export class AuthService {
     return UserResponseDto.toResponse(user);
   }
 
+  async adminLogin(formData: any): Promise<any> {
+    const user = await this.findUserByEmail(formData.email);
+    if (
+      user &&
+      (await bcrypt.compare(formData.password, user.password))
+    ) {
+      const payload = { email: formData.email };
+      const verificationToken = this.jwtService.sign(payload, {
+       secret: process.env.JWT_SECRET, // Secret key từ .env
+       expiresIn: '1h', // Thời gian token hết hạn
+     });
+      return {
+        accessToken: verificationToken,
+        user: {
+          email: user.email,
+          fullName: user.fullName,
+          avatarUrl: user.avatarUrl,
+          roleName: user.roleName
+        }
+      };
+    }
+
+    throw new BadRequestException({
+      errorMessage: ['Mật khẩu không chính xác!']
+    });
+  }
+
   async updateUser(upDateUserDto: UpDateUserDto, email: string, id: number) {
     await this.userRepository.update(id, { fullName: upDateUserDto.fullName });
     return await this.get_user_info(email);
