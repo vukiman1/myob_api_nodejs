@@ -139,6 +139,14 @@ export class AuthService {
     return UserResponseDto.toResponse(user);
   }
 
+  async getAdminUserInfo(id: number): Promise<any> {
+    const user = await this.userRepository.findOne({
+      where: { id: id.toString() },
+      relations: ['jobSeekerProfile', 'company', 'resume'], // Liên kết với bảng JobSeekerProfile
+    });
+    return user;
+  }
+
   async adminLogin(formData: any): Promise<any> {
     const user = await this.findUserByEmail(formData.email);
     if (
@@ -256,7 +264,10 @@ export class AuthService {
   }
 
   async get_user_info_services() {}
-
+  async getUserList() {
+    const users = await this.userRepository.find();
+    return users;
+  }
   // service function
   async findUserByEmail(email: string): Promise<User> {
     const user = this.userRepository.findOne({ where: { email } });

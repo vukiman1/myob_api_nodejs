@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Options,
+  Param,
   Patch,
   Post,
   Put,
@@ -40,6 +41,9 @@ export class AuthController {
       user: newJobSeeker,
     };
   }
+
+
+
 
   @Options('job-seeker/register')
   @HttpCode(204) // 204 No Content for OPTIONS requests
@@ -81,12 +85,34 @@ export class AuthController {
       redirectLoginUrl: '/dang-nhap-ung-vien'
     } };
   }
+
+  @Get('admin/user-info/:id')
+  async getAdminUserInfo( @Param('id') id: number): Promise<any> {
+
+    const user = await this.authService.getAdminUserInfo(id);
+    return {
+      errors: {},
+      data: user,
+    };
+  }
   //user
   @UseGuards(AuthGuard('jwt'))
   @Get('user-info')
   async getUserInfo(@Req() req: any): Promise<any> {
 
     const user = await this.authService.get_user_info(req.user.email);
+    return {
+      errors: {},
+      data: user,
+    };
+  }
+
+
+
+  @Get('admin/user-list')
+  async getUserList(): Promise<any> {
+
+    const user = await this.authService.getUserList();
     return {
       errors: {},
       data: user,
@@ -154,6 +180,8 @@ export class AuthController {
       data,
     };
   }
+
+
 
   @Post('revoke-token')
   async revokeToken(token: string): Promise<any> {
