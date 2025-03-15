@@ -50,6 +50,9 @@ export class User {
   @Column({ default: 'JOB_SEEKER' })
   roleName: string;
 
+  @Column({ default: 0 })
+  money: number;
+
   @Column({
     default:
       'https://res.cloudinary.com/myjob/image/upload/c_scale,h_200,w_200/myjob/Avatar/defaultAvatar.jpg',

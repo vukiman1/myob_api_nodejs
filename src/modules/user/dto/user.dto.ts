@@ -9,6 +9,7 @@ export class UserResponseDto {
         isVerifyEmail: user.isVerifyEmail,
         avatarUrl: user.avatarUrl,
         roleName: user.roleName,
+        money: user.money,
         jobSeekerProfileId: user.jobSeekerProfile ? user.jobSeekerProfile.id : null,  // Sửa cú pháp ở đây
         jobSeekerProfile: user.jobSeekerProfile ? {
             id: user.jobSeekerProfile.id,

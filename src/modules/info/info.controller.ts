@@ -714,7 +714,10 @@ export class InfoController2 {
     };
   }
 
-
+  @Get('admin/getAllCompany')
+  async getAllCompany() {
+    return await this.infoService.getAllCompany();
+  }
 
 
 }

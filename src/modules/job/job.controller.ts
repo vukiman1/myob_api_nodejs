@@ -452,6 +452,9 @@ export class JobController {
       );
     }
 
-   
+   @Get('admin/getAllJobPost')
+    async getAllJobPost() {
+      return await this.jobService.getAllJobPost();
+    }
     
 }

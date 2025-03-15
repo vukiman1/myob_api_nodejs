@@ -17,9 +17,9 @@ const dataSourceOptions: DataSourceOptions = {
   password: env('DB_PASSWORD', 'kiman0102'),
   database: env('DB_DATABASE', 'MyJobAPI'),
   synchronize: envBoolean('DB_SYNCHRONIZE', false),
-  ssl: {
-    rejectUnauthorized: false, // Nếu bạn không có chứng chỉ SSL hợp lệ
-  },
+  // ssl: {
+  //   rejectUnauthorized: false, // Nếu bạn không có chứng chỉ SSL hợp lệ
+  // },
   // entities: [User, JobSeekerProfile],
 //   migrations: ['dist/migrations/*{.ts,.js}'],
 }

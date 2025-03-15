@@ -1254,4 +1254,8 @@ export class JobService {
       await this.jobPostActivityRepository.save(activity);
   }
   
+  async getAllJobPost() {
+    return await this.jobPostRepository.find();
+  }
+
 }

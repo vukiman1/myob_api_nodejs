@@ -15,6 +15,7 @@ import { CommonModule } from './modules/common/common.module';
 import { JobModule } from './modules/job/job.module';
 import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
 import { NodemailerModule } from './modules/nodemailer/nodemailer.module';
+import { PaymentModule } from './modules/payment/payment.module';
 
 @Module({
   imports: [
@@ -41,7 +42,8 @@ import { NodemailerModule } from './modules/nodemailer/nodemailer.module';
     CommonModule,
     JobModule,
     CloudinaryModule,
-    NodemailerModule
+    NodemailerModule,
+    PaymentModule
   ],
   controllers: [AppController],
   providers: [AppService],

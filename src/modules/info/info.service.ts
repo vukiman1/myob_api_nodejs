@@ -1457,7 +1457,9 @@ export class InfoService {
   }
 
 
-
+  async getAllCompany() {
+    return await this.companyRepository.find();
+  }
   
 }
 

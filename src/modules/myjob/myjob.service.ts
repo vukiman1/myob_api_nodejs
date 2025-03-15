@@ -66,6 +66,11 @@ export class MyjobService {
       descriptionLocation: banner.descriptionLocation
     }));
   }
+
+  async adminGetAllBanner() {
+    const banners = await this.bannerRepository.find({});
+    return banners
+  }
   //ok
 
   findOne(id: number) {

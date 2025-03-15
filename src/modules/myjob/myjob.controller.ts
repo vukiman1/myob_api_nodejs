@@ -20,7 +20,17 @@ export class MyjobController {
     return {
       errors: {},
       data: banner
+    }
   }
+
+
+  @Get('admin/banner')
+  async getAllBanner() {
+    const banner = await this.myjobService.getAllBaner()
+    return {
+      errors: {},
+      data: banner
+    }
   }
 
   @Patch('web/banner/:id')
