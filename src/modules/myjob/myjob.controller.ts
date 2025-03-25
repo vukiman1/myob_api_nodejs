@@ -3,6 +3,7 @@ import { MyjobService } from './myjob.service';
 import { CreateBannerDto, UpdateBannerDto } from './dto/banner.dto';
 import { CreateFeedBackDto } from './dto/feedback.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { UpdateFeedbackDto } from './dto/updateFeedback.dto';
 
 @Controller('myjob')
 export class MyjobController {
@@ -25,8 +26,8 @@ export class MyjobController {
 
 
   @Get('admin/banner')
-  async getAllBanner() {
-    const banner = await this.myjobService.getAllBaner()
+  async adminGetAllBanner() {
+    const banner = await this.myjobService.adminGetAllBanner()
     return {
       errors: {},
       data: banner
@@ -52,9 +53,33 @@ export class MyjobController {
     return this.myjobService.createFeedback(createFeedBackDto, req.user.email);
   }
 
+  @Post('web/feedbacks/status/:id')
+  changeFeedbackStatus(@Param('id') id: string) {
+    return this.myjobService.changeFeedbackStatus(id);
+  }
+
+  @Post('web/feedbacks/update/:id')
+  updateFeedback(@Param('id') id: string, @Body() updateFeedBackDto: UpdateFeedbackDto) {
+    return this.myjobService.updateFeedback(id, updateFeedBackDto);
+  }
+
+  @Post('web/banner/status/:id')
+  changeBannerStatus(@Param('id') id: string) {
+    return this.myjobService.changeBannerStatus(id);
+  }
+
   @Get('web/feedbacks')
   async getFeedbacks() {
     const feedback = await this.myjobService.getFeedbacks()
+    return {
+      errors: {},
+      data: feedback
+  }
+  }
+
+  @Get('web/all-feedbacks')
+  async getAllFeedbacks() {
+    const feedback = await this.myjobService.getAllFeedbacks()
     return {
       errors: {},
       data: feedback

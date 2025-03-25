@@ -16,7 +16,6 @@ import { InfoService } from './info.service';
 import { AuthGuard } from '@nestjs/passport';
 import { UpdateCompanyDto } from './dto/company.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ExperiencesDetail } from './entities/experiences-detail.entity';
 import { CreateResumeDto } from './dto/create-resume.dto';
 
 @Controller('info/web')
@@ -676,6 +675,44 @@ async getResumes(
     typeOfWorkplaceId,
   },
   req.user.id
+);
+  return {
+    errors: {},
+    data: resumes,
+  };
+}
+
+
+@Get('resumes-all')
+async getResumesAdmin(
+  @Req() req:any,
+  @Query('academicLevelId') academicLevelId: string,
+  @Query('careerId') careerId: string,
+  @Query('cityId') cityId: string,
+  @Query('experienceId') experienceId: string,
+  @Query('genderId') genderId: string,
+  @Query('jobTypeId') jobTypeId: string,
+  @Query('kw') kw: string,
+  @Query('maritalStatusId') maritalStatusId: string,
+  @Query('page') page: number,
+  @Query('pageSize') pageSize: number,
+  @Query('positionId') positionId: string,
+  @Query('typeOfWorkplaceId') typeOfWorkplaceId: string,
+) {
+  const resumes = await this.infoService.getResumesAdmin({
+    academicLevelId,
+    careerId,
+    cityId,
+    experienceId,
+    genderId,
+    jobTypeId,
+    kw,
+    maritalStatusId,
+    page: +page,
+    pageSize: +pageSize,
+    positionId,
+    typeOfWorkplaceId,
+  }
 );
   return {
     errors: {},

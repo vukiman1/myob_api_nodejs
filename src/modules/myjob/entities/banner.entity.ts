@@ -32,6 +32,9 @@ export class Banner {
     @Column({  default: 1 })
     isActive: boolean;
 
+    @Column({ type: 'enum', enum: ['BANNER', 'POPUP'], default: 'BANNER' })
+    type: string;
+
     @CreateDateColumn()
     createAt: Date;
   

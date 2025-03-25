@@ -16,6 +16,11 @@ import { JobModule } from './modules/job/job.module';
 import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
 import { NodemailerModule } from './modules/nodemailer/nodemailer.module';
 import { PaymentModule } from './modules/payment/payment.module';
+import { AdminUserModule } from './modules/admin/user/user.module';
+import { AdminCompanyModule } from './modules/admin/admin-company/admin-company.module';
+import { AdminJobPostModule } from './modules/admin/admin-job-post/admin-job-post.module';
+import { AdminWebModule } from './modules/admin/admin-web/admin-web.module';
+import { AdminJobModule } from './modules/admin/admin-job/admin-job.module';
 
 @Module({
   imports: [
@@ -43,7 +48,12 @@ import { PaymentModule } from './modules/payment/payment.module';
     JobModule,
     CloudinaryModule,
     NodemailerModule,
-    PaymentModule
+    PaymentModule,
+    AdminUserModule,
+    AdminCompanyModule,
+    AdminJobPostModule,
+    AdminWebModule,
+    AdminJobModule
   ],
   controllers: [AppController],
   providers: [AppService],

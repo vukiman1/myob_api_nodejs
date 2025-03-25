@@ -7,6 +7,7 @@ import { CreateFeedBackDto } from './dto/feedback.dto';
 import { Feedback } from './entities/feedback.entity';
 import { User } from '../user/entities/user.entity';
 import { AuthService } from '../auth/auth.service';
+import { UpdateFeedbackDto } from './dto/updateFeedback.dto';
 
 @Injectable()
 export class MyjobService {
@@ -87,5 +88,44 @@ export class MyjobService {
   }
   async findBannerById(id: string): Promise<any> {
     return this.bannerRepository.findOne({ where: {id} });
+  }
+
+  async getAllFeedbacks() {
+    const feedbacks = await this.feedbackRepository.find({relations: ['user'],});
+    return feedbacks.map(feedback => ({
+      id: feedback.id,
+      content: feedback.content,
+      rating: feedback.rating,
+      isActive: feedback.isActive,
+      createAt: feedback.createAt,
+      userDict: {
+        id: feedback.user.id,
+        fullName: feedback.user.fullName,
+        avatarUrl: feedback.user.avatarUrl,
+      }
+    }));
+  }
+
+  async updateFeedback(id: string, updateFeedbackDto: UpdateFeedbackDto):Promise<any> {
+    await this.feedbackRepository.update(id, updateFeedbackDto);
+    return this.findFeedbackById(id)
+  }
+
+  async findFeedbackById(id: string): Promise<any> {
+    return this.feedbackRepository.findOne({ where: {id} });
+  }
+
+  async changeFeedbackStatus(id: string) {
+    const feedback = await this.feedbackRepository.findOne({ where: {id} });
+    feedback.isActive = !feedback.isActive;
+    await this.feedbackRepository.save(feedback);
+    return feedback
+  }
+
+  async changeBannerStatus(id: string) {
+    const banner = await this.bannerRepository.findOne({ where: {id} });
+    banner.isActive = !banner.isActive;
+    await this.bannerRepository.save(banner);
+    return banner
   }
 }

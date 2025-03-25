@@ -112,7 +112,6 @@ export class JobController {
   @UseGuards(AuthGuard('jwt'))
   @Get('private-job-posts/:id')
   async getPrivateJobPostById(@Req() req: any, @Param('id') id: string) {
-    // console.log(id);
     const jobPost = await this.jobService.getPrivateJobPostById(
       +id,
       req.user.id,
