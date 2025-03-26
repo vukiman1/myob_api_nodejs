@@ -7,7 +7,7 @@ import { HttpExceptionFilter } from './common/exceptions/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    logger:  ['warn', 'error'],
+    logger: ['warn', 'error'],
   });
 
 
@@ -28,19 +28,20 @@ async function bootstrap() {
     }),
   )
 
-  
+  const port = process.env.PORT || 4000;
+
 
   const configService = app.get<ConfigService>(ConfigService);
   setupSwagger(app, configService)
-  
 
-  const {baseUrl, port, globalPrefix } = configService.get('app')
+
+  const { baseUrl, globalPrefix } = configService.get('app')
   app.setGlobalPrefix(globalPrefix)
   app.useGlobalFilters(new HttpExceptionFilter());
   app.enableCors();
   await app.listen(port, async () => {
     const logger = new Logger('App Port')
-      logger.warn(`Server running on ${baseUrl}:${port}/${globalPrefix}`)
+    logger.warn(`Server running on ${baseUrl}:${port}/${globalPrefix}`)
   });
 }
 bootstrap();
