@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { MyjobService } from './myjob.service';
-import { CreateBannerDto, UpdateBannerDto } from './dto/banner.dto';
+import { CreateBannerDto, CreateBannerDto2, UpdateBannerDto } from './dto/banner.dto';
 import { CreateFeedBackDto } from './dto/feedback.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { UpdateFeedbackDto } from './dto/updateFeedback.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('myjob')
 export class MyjobController {
@@ -13,6 +14,19 @@ export class MyjobController {
   createBanner(@Body() createBannerDto: CreateBannerDto) {
     return this.myjobService.createBanner(createBannerDto);
   }
+
+  // @Post('web/banner2')
+  // @UseInterceptors(FileInterceptor('file'))
+  // createBanner2(@Body() createBannerDto2: CreateBannerDto2, @UploadedFile() file: Express.Multer.File) {
+  //   return this.myjobService.createBanner2(createBannerDto2, file);
+  // }
+
+  @Post('web/banner2')
+  @UseInterceptors(FileInterceptor('file'))
+  createBanner2( @UploadedFile() file: Express.Multer.File) {
+    return file
+  }
+
 
 
   @Get('web/banner')

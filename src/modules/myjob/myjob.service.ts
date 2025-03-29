@@ -1,18 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UploadedFile } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import {  CreateBannerDto, UpdateBannerDto } from './dto/banner.dto';
+import {  CreateBannerDto, CreateBannerDto2, UpdateBannerDto } from './dto/banner.dto';
 import { Banner } from './entities/banner.entity';
 import { CreateFeedBackDto } from './dto/feedback.dto';
 import { Feedback } from './entities/feedback.entity';
 import { User } from '../user/entities/user.entity';
 import { AuthService } from '../auth/auth.service';
 import { UpdateFeedbackDto } from './dto/updateFeedback.dto';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Injectable()
 export class MyjobService {
-  
+
   constructor(
+    private readonly cloudinaryService: CloudinaryService,
     @InjectRepository(Banner)
     private bannerRepository: Repository<Banner>,
 
@@ -60,11 +62,9 @@ export class MyjobService {
     return activeBanners.map(banner => ({
       id: banner.id,
       imageUrl: banner.imageUrl,
-      buttonText: banner.buttonText,
       description: banner.description,
       buttonLink: banner.buttonLink,
-      isShowButton: banner.isShowButton,
-      descriptionLocation: banner.descriptionLocation
+
     }));
   }
 
@@ -127,5 +127,16 @@ export class MyjobService {
     banner.isActive = !banner.isActive;
     await this.bannerRepository.save(banner);
     return banner
+  }
+
+  async createBanner2(createBannerDto2: CreateBannerDto2, @UploadedFile() file: Express.Multer.File) {
+    const { imageUrl } = await this.cloudinaryService.uploadPageBanner(
+      file,
+      'banner',
+      'banner'
+    )
+    const newBanner = this.bannerRepository.create({ ...createBannerDto2, imageUrl });
+    const savedBanner = await this.bannerRepository.save(newBanner);
+    return savedBanner
   }
 }

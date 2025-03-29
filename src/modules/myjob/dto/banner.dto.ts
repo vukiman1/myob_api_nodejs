@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { isBoolean, IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator"
+import { BannerType } from "../entities/banner.entity";
 
 export class BannerDto {
     id: string;
@@ -33,6 +34,24 @@ export class CreateBannerDto {
     @IsNotEmpty()
     @IsString()
     description: string;
+
+}
+
+export class CreateBannerDto2 {
+    @ApiProperty({ example: 'fb.com/vukiman1', description: 'Liên kết khi bấm bảo banner' })
+    @IsNotEmpty()
+    @IsString()
+    buttonLink: string;
+
+    @ApiProperty({ example: 'banner sale tháng 10', description: 'Mô tả' })
+    @IsNotEmpty()
+    @IsString()
+    description: string;
+
+    @ApiProperty({ example: 'BANNER', description: 'Loại banner' })
+    @IsNotEmpty()
+    @IsString()
+    type: BannerType;
 
 }
 

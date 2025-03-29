@@ -16,7 +16,7 @@ const dataSourceOptions: DataSourceOptions = {
   username: env('DB_USERNAME', 'postgres'),
   password: env('DB_PASSWORD', 'kiman0102'),
   database: env('DB_DATABASE', 'MyJobAPI'),
-  synchronize: envBoolean('DB_SYNCHRONIZE', false),
+  synchronize: true,
   // ssl: {
   //   rejectUnauthorized: false, // Nếu bạn không có chứng chỉ SSL hợp lệ
   // },

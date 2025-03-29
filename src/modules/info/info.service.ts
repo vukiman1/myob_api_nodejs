@@ -173,7 +173,7 @@ export class InfoService {
     email: string,
   ) {
     const company = await this.findCompanyByEmail(email);
-    const { publicId, imageUrl } = await this.cloudinaryService.uploadFile(
+    const { publicId, imageUrl } = await this.cloudinaryService.uploadCompanyImage(
       file,
       company.slug,
       'companyImage',

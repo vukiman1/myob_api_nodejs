@@ -39,19 +39,28 @@ export class CloudinaryService {
   /**
    * Hàm xóa file trên Cloudinary theo publicId
    */
+  // async deleteFile(publicId: string, resourceType: string = 'image'): Promise<void> {
+  //   if (!publicId) {
+  //     return; // Không làm gì nếu không có publicId
+  //   }
+  //   try {
+  //       const result = await cloudinary.uploader.destroy(publicId,  { type: 'upload', resource_type: resourceType, });
+  //       if (result.result !== 'ok') {
+  //         throw new Error(`Không thể xóa file trên Cloudinary: ${result.result}`);
+  //       }
+  //   } catch (error) {
+  //     console.error('Lỗi khi xóa file trên Cloudinary:', error);
+  //     throw new Error('Không thể xóa file trên Cloudinary');
+  //   }
+  // }
+
   async deleteFile(publicId: string, resourceType: string = 'image'): Promise<void> {
     if (!publicId) {
       return; // Không làm gì nếu không có publicId
     }
-    try {
-        const result = await cloudinary.uploader.destroy(publicId,  { type: 'upload', resource_type: resourceType, });
-        if (result.result !== 'ok') {
-          throw new Error(`Không thể xóa file trên Cloudinary: ${result.result}`);
-        }
-    } catch (error) {
-      console.error('Lỗi khi xóa file trên Cloudinary:', error);
-      throw new Error('Không thể xóa file trên Cloudinary');
-    }
+
+    const result = await cloudinary.uploader.destroy(publicId,  { type: 'upload', resource_type: resourceType, });
+    return result
   }
 
   transformValue(moduleName: string) {
@@ -105,5 +114,107 @@ export class CloudinaryService {
       };
     }
     
+
+    async uploadBanner(file: Express.Multer.File, fileName: string, moduleName: string = 'banner') {
+      return new Promise((resolve, reject) => {
+        try {
+          const publicId = this.createPublicUrl(moduleName, fileName).toString();
+          const transformValue = this.transformValue(moduleName)
+          const uploadStream = cloudinary.uploader.upload_stream(
+            {
+              public_id: publicId,
+              transformation: transformValue,
+              resource_type: 'auto'
+            },
+            (error, result) => {
+              if (error) return reject(error);
+  
+              resolve({
+                publicId: result.public_id, // Lưu publicId
+                imageUrl: result.secure_url, // Trả về URL ảnh
+              });
+            }
+          );
+  
+          // Đọc dữ liệu từ buffer và gửi tới Cloudinary
+          streamifier.createReadStream(file.buffer).pipe(uploadStream);
+        } catch (error) {
+          reject(error);
+        }
+      });
+    }
+
+    async uploadCompanyImage(
+      file: Express.Multer.File,
+      fileName: string,
+      moduleName: string
+    ): Promise<{ publicId: string; imageUrl: string }> {
+      return new Promise((resolve, reject) => {
+        try {
+          const publicId = this.createPublicUrl(moduleName, fileName).toString();
+          const transformValue = [
+            { quality: "auto:low" }, // Giảm chất lượng tự động để tối ưu dung lượng
+            { fetch_format: "auto" } // Chuyển đổi định dạng để giảm dung lượng
+          ];
+          const uploadStream = cloudinary.uploader.upload_stream(
+            {
+              public_id: publicId,
+              transformation: transformValue, // Áp dụng transformation
+              resource_type: 'auto'
+            },
+            (error, result) => {
+              if (error) return reject(error);
+  
+              resolve({
+                publicId: result.public_id, // Lưu publicId
+                imageUrl: result.secure_url, // Trả về URL ảnh
+              });
+            }
+          );
+  
+          // Đọc dữ liệu từ buffer và gửi tới Cloudinary
+          streamifier.createReadStream(file.buffer).pipe(uploadStream);
+        } catch (error) {
+          reject(error);
+        }
+      });
+    }
+
+
+    async uploadPageBanner(
+      file: Express.Multer.File,
+      fileName: string,
+      moduleName: string
+    ): Promise<{ publicId: string; imageUrl: string }> {
+      return new Promise((resolve, reject) => {
+        try {
+          const publicId = this.createPublicUrl(moduleName, fileName).toString();
+          const transformValue = [
+            { quality: "auto:low" }, // Giảm chất lượng tự động để tối ưu dung lượng
+            { fetch_format: "auto" } // Chuyển đổi định dạng để giảm dung lượng
+          ];
+          const uploadStream = cloudinary.uploader.upload_stream(
+            {
+              public_id: publicId,
+              transformation: transformValue, // Áp dụng transformation
+              resource_type: 'auto'
+            },
+            (error, result) => {
+              if (error) return reject(error);
+  
+              resolve({
+                publicId: result.public_id, // Lưu publicId
+                imageUrl: result.secure_url, // Trả về URL ảnh
+              });
+            }
+          );
+  
+          // Đọc dữ liệu từ buffer và gửi tới Cloudinary
+          streamifier.createReadStream(file.buffer).pipe(uploadStream);
+        } catch (error) {
+          reject(error);
+        }
+      });
+    }
 
 }

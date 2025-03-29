@@ -5,10 +5,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Banner } from './entities/banner.entity';
 import { User } from '../user/entities/user.entity';
 import { Feedback } from './entities/feedback.entity';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Banner, User, Feedback])
+    TypeOrmModule.forFeature([Banner, User, Feedback]),
+    CloudinaryModule,
   ],
   controllers: [MyjobController],
   providers: [MyjobService],
