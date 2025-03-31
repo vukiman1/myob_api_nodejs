@@ -24,12 +24,39 @@ export class MyjobService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
   ) {}
-  async createBanner(createBannerDto: CreateBannerDto) {
+  async createBanner(createBannerDto: CreateBannerDto2) {
+    console.log('createBannerDto', createBannerDto);
     const newBanner = this.bannerRepository.create({  ...createBannerDto });
     const savedBanner = await this.bannerRepository.save(newBanner);
     return savedBanner
   } 
+
+  async uploadBanner(bannerDto: any, id: string ) {
+    console.log(bannerDto)
+    try {
+      await this.bannerRepository.update(id, {
+        imageUrl: bannerDto.imageUrl,
+        description: bannerDto.description,
+        buttonLink: bannerDto.buttonLink,
+        isActive: bannerDto.isActive
+      });
+      return {
+        success: true,
+        message: 'Banner updated successfully',
+      };
+    } catch (error) {
+      console.error('Error uploading banner:', error);
+      throw error;
+    }
+  }
   
+  async deleteBanner(id: string) {
+    await this.bannerRepository.delete(id)
+    return {
+      success: true,
+      message: 'Banner deleted successfully',
+    };
+  }
 
   async createFeedback(createFeedBackDto: CreateFeedBackDto, email: string) {
     const user  = await this.userRepository.findOne({ where: { email } });
@@ -66,6 +93,16 @@ export class MyjobService {
       buttonLink: banner.buttonLink,
 
     }));
+  }
+
+  async uloadBanner(file: Express.Multer.File,) {
+    const imageUrl = await this.cloudinaryService.uploadBanner(
+      file,
+      'banner',
+      'banner'
+    )
+    return imageUrl
+
   }
 
   async adminGetAllBanner() {

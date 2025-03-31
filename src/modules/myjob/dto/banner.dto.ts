@@ -38,6 +38,12 @@ export class CreateBannerDto {
 }
 
 export class CreateBannerDto2 {
+    @ApiProperty({ example: 'https://res.cloudinary.com/dtnpj540t/image/upload/v1687282868/my-job/banners/web-banners/5.png', description: 'Link ảnh' })
+    @IsNotEmpty()
+    @IsString()
+    imageUrl: string
+
+
     @ApiProperty({ example: 'fb.com/vukiman1', description: 'Liên kết khi bấm bảo banner' })
     @IsNotEmpty()
     @IsString()
@@ -47,6 +53,12 @@ export class CreateBannerDto2 {
     @IsNotEmpty()
     @IsString()
     description: string;
+
+
+    @ApiProperty({ example: true, description: 'Trạng thái', default: true })
+    @IsNotEmpty()
+    @IsBoolean()
+    isActive: boolean
 
     @ApiProperty({ example: 'BANNER', description: 'Loại banner' })
     @IsNotEmpty()

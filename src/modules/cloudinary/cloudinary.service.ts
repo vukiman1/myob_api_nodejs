@@ -119,7 +119,9 @@ export class CloudinaryService {
       return new Promise((resolve, reject) => {
         try {
           const publicId = this.createPublicUrl(moduleName, fileName).toString();
-          const transformValue = this.transformValue(moduleName)
+          const transformValue = [
+            { fetch_format: "auto" } // Chuyển đổi định dạng để giảm dung lượng
+          ];
           const uploadStream = cloudinary.uploader.upload_stream(
             {
               public_id: publicId,
@@ -130,7 +132,6 @@ export class CloudinaryService {
               if (error) return reject(error);
   
               resolve({
-                publicId: result.public_id, // Lưu publicId
                 imageUrl: result.secure_url, // Trả về URL ảnh
               });
             }

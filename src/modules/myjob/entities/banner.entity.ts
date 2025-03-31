@@ -28,6 +28,14 @@ export class Banner {
     @Column({ type: 'enum', enum: BannerType, default: BannerType.BANNER})
     type: string;
 
+
+
+    @Column({ nullable: true  })
+    endDate: Date;
+
+    @Column({ nullable: true  })
+    isExpried: boolean;
+
     @CreateDateColumn()
     createAt: Date;
   

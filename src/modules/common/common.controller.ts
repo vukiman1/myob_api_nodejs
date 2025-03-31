@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Put } from '@nestjs/common';
 import { CommonService } from './common.service';
 import { CreateCityDto, CreateDistrictDto, CreateLocationDto } from './dto/location.dto';
 import { CreateCareerDto } from './dto/carrer.dto';
@@ -76,11 +76,38 @@ export class CommonController {
     return this.commonService.findAllCareer();
   }
 
-
+  @Delete('career/:id')
+  async removeCareer(@Param('id') id: string) {
+    const remove = await this.commonService.removeCareer(id);
+    return {
+      errors: {},
+      message: remove
+    }
+  }
   @Post('career')
-  async createCarrer(@Body() createCareerDto: CreateCareerDto) {
+  async createCarrer(@Body() createCareerDto: any) {
     const newCarrer = await this.commonService.create_career_service(createCareerDto);
     return newCarrer
+  }
+  @Patch('career/:id')
+  async updateCareer(@Body() createCareerDto: any, @Param('id') id: string) {
+    const newCarrer = await this.commonService.updateCareer(id, createCareerDto);
+    return {
+      errors: {},
+      message: 'Career updated successfully',
+      data: newCarrer
+    }
+  }
+
+  @Post('career/file')
+  async uploadCareerFile(@Body() file: Express.Multer.File) {
+    console.log(file)
+    // const imageUrl = await this.commonService.uploadCareerFile(file);
+    return {
+      errors: {},
+      message: 'Career file uploaded successfully',
+      imageUrl: 'imageUrl'
+    }
   }
 
   @Get('location')

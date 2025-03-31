@@ -189,6 +189,10 @@ export class InfoService {
     return await this.getCompanyImages(email);
   }
 
+  async deleteCompany(id: string): Promise<void> {
+    await this.companyRepository.delete(id);
+  }
+
   async deleteCompanyImage(imageId: number): Promise<void> {
     // Tìm hình ảnh cần xóa
     const companyImage = await this.companyImageRepository.findOne({
@@ -1534,7 +1538,11 @@ export class InfoService {
 
 
   async getAllCompany() {
-    return await this.companyRepository.find();
+    return await this.companyRepository.find(
+      {
+        relations: ['location', 'location.city', 'user'],
+      }
+    );
   }
   
 }

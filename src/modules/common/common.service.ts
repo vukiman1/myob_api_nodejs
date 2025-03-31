@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -18,10 +19,12 @@ import { Career } from './entities/carrer.entity';
 import { CreateCareerDto } from './dto/carrer.dto';
 import { Location } from './entities/location.entity';
 import { JobPost } from '../job/entities/job-post.entity';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Injectable()
 export class CommonService {
   constructor(
+    private readonly cloudinaryService: CloudinaryService,
     @InjectRepository(District)
     private districtRepository: Repository<District>,
 
@@ -228,17 +231,45 @@ export class CommonService {
   }
 
   async create_career_service(createCareerDto: CreateCareerDto) {
-    const career = await this.getCareerByName(createCareerDto.name);
-    if (career) {
-      throw new ForbiddenException(`Carrer existing`);
+    try {
+      // Kiểm tra dữ liệu đầu vào
+      console.log("Received createCareerDto:", createCareerDto);
+      if (!createCareerDto || !createCareerDto.name) {
+        throw new BadRequestException("Invalid input: name is required");
+      }
+  
+      // Kiểm tra career đã tồn tại chưa
+      const existingCareer = await this.getCareerByName(createCareerDto.name);
+      console.log("Existing career:", existingCareer);
+      if (existingCareer) {
+        throw new ConflictException(`Career with name "${createCareerDto.name}" already exists`);
+      }
+  
+      // Tạo và lưu career mới
+      const { name, iconUrl } = createCareerDto;
+      console.log("Creating career with name:", name, "and iconUrl:", iconUrl);
+      const newCareer = this.carrerRepository.create({ name, iconUrl });
+      const savedCareer = await this.carrerRepository.save(newCareer);
+      console.log("Saved career:", savedCareer);
+  
+      return savedCareer;
+    } catch (error) {
+      // Log lỗi chi tiết trước khi ném
+      console.error("Error in create_career_service:", error.message, error.stack);
+      throw error; // Ném lỗi để NestJS middleware xử lý
     }
-    const newCareer = this.carrerRepository.create({ ...createCareerDto });
-    const saveCareer = await this.carrerRepository.save(newCareer);
-    return saveCareer;
   }
 
   async findAllCareer(): Promise<any> {
-    return this.carrerRepository.find({});
+    return this.carrerRepository.find({
+      order: {
+        name: 'ASC'
+      }
+    });
+  }
+  async removeCareer(careerId: string): Promise<any> {
+    await this.carrerRepository.delete(careerId);
+    return `Career with id ${careerId} has been deleted`;
   }
 
   async getCareerByName(name: string): Promise<any> {
@@ -251,11 +282,20 @@ export class CommonService {
     return locations;
   }
 
+  async updateCareer(id: string, createCareerDto: any): Promise<any> {
+    const career = await this.carrerRepository.update(id, createCareerDto)
+  }
+
   async getLocationByName(address: string): Promise<any> {
     const location = await this.locationRepository.findOne({
       where: { address },
     });
     return location;
+  }
+
+  async uploadCareerFile(file: Express.Multer.File): Promise<any> {
+    const imageUrl = await this.cloudinaryService.uploadCompanyImage(file, 'career', 'career')
+    return imageUrl;
   }
   async getTopCareers(): Promise<any> {
     const query = this.jobPostRepository

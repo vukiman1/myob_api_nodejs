@@ -720,7 +720,15 @@ async getResumesAdmin(
   };
 }
 
-  
+@Delete('company/:id')
+async deleteCompany(@Req() req: any, @Param('id') id: string) {
+  await this.infoService.deleteCompany(id);
+  return {
+    errors: {},
+    message: "Delete company successfully",
+  };
+
+}
 
 }
 

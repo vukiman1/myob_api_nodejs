@@ -10,8 +10,9 @@ export class AdminUserService {
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
       ) {}
-    async getUsersInfo() {
+    async getUsersInfo(id: string) {
         return this.userRepository.find({
+            where: { id },
             relations: ['jobSeekerProfile', 'company'],
         });
     }

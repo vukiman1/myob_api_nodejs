@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, UseInterceptors, UploadedFile, Put } from '@nestjs/common';
 import { MyjobService } from './myjob.service';
 import { CreateBannerDto, CreateBannerDto2, UpdateBannerDto } from './dto/banner.dto';
 import { CreateFeedBackDto } from './dto/feedback.dto';
@@ -10,16 +10,22 @@ import { FileInterceptor } from '@nestjs/platform-express';
 export class MyjobController {
   constructor(private readonly myjobService: MyjobService) {}
 
-  @Post('web/banner')
-  createBanner(@Body() createBannerDto: CreateBannerDto) {
+  @Post('admin/banner')
+  createBanner(@Body() createBannerDto: CreateBannerDto2) {
     return this.myjobService.createBanner(createBannerDto);
   }
 
-  // @Post('web/banner2')
-  // @UseInterceptors(FileInterceptor('file'))
-  // createBanner2(@Body() createBannerDto2: CreateBannerDto2, @UploadedFile() file: Express.Multer.File) {
-  //   return this.myjobService.createBanner2(createBannerDto2, file);
-  // }
+  @Put('admin/banner/:id')
+  uploadBanner(@Body() bannerDto: any, @Param('id') id: string) {
+
+    return this.myjobService.uploadBanner(bannerDto, id);
+  }
+
+  @Delete('admin/banner/:id')
+  deleteBanner( @Param('id') id: string) {
+    return this.myjobService.deleteBanner(id);
+  }
+
 
   @Post('web/banner2')
   @UseInterceptors(FileInterceptor('file'))
@@ -42,6 +48,18 @@ export class MyjobController {
   @Get('admin/banner')
   async adminGetAllBanner() {
     const banner = await this.myjobService.adminGetAllBanner()
+    return {
+      errors: {},
+      data: banner
+    }
+  }
+
+  @Post('admin/banner/file')
+  @UseInterceptors(FileInterceptor('file'))
+  async uloadBanner(@UploadedFile() file: Express.Multer.File,) {
+    console.log(file)
+    
+    const banner = await this.myjobService.uloadBanner(file)
     return {
       errors: {},
       data: banner
