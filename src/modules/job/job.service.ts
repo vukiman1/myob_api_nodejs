@@ -27,6 +27,7 @@ import { CompanyFollowed } from '../info/entities/company-followed.entity';
 import moment from 'moment';
 import { EmployeeSendEmailDto } from './dto/employee-send-email.dto';
 import { NodemailerService } from '../nodemailer/nodemailer.service';
+import { relative } from 'path';
 
 @Injectable()
 export class JobService {
@@ -1255,7 +1256,15 @@ export class JobService {
   }
   
   async getAllJobPost() {
-    return await this.jobPostRepository.find();
+    return await this.jobPostRepository.find({
+      relations: ['company'],
+      select: {
+      company: {
+        companyImageUrl   : true,
+        companyName: true
+      }
+      }
+    });
   }
 
 }

@@ -1,5 +1,6 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch } from '@nestjs/common';
 import { AdminJobService } from './admin-job.service';
+import { UpdateJobPostDto } from './dto/update-job-post.dto';
 
 @Controller('admin-job')
 export class AdminJobController {
@@ -11,4 +12,11 @@ export class AdminJobController {
     const job = await this.adminJobService.getJobDetail(id);
     return job;
   }
+
+  @Patch("update/:id")
+  update(@Param('id') id: string, @Body() updateJobPostDto: UpdateJobPostDto) {
+    return this.adminJobService.updateJobPost(id, updateJobPostDto)
+  }
+
+
 }

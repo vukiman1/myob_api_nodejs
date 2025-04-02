@@ -764,5 +764,9 @@ export class InfoController2 {
     return await this.infoService.getAllCompany();
   }
 
+  @Get('admin/company/:id')
+  async getCompanyDetails(@Param('id') id: string) {
+    return await this.infoService.getCompanyDetails(id);
+  }
 
 }

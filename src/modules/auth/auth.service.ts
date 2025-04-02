@@ -3,6 +3,7 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -318,6 +319,25 @@ export class AuthService {
       const { id, roleName, email } = user;
       await this.userRepository.update(user.id, { lastLogin: new Date() });
       return { id, roleName, email };
+    }
+
+    throw new BadRequestException({
+      errorMessage: ['Mật khẩu không chính xác!']
+    });
+  }
+
+  async validateAdmin(validateAdminDto: any): Promise<any> {
+    const user = await this.findUserByEmail(validateAdminDto.email);
+    if (!user.isSupperuser) {
+      throw new UnauthorizedException({ errorMessage: "User không phải supper admin"})
+    }
+    if (
+      user &&
+      (await bcrypt.compare(validateAdminDto.password, user.password))
+    ) {
+      const { id, avatarUrl, email, lastLogin, createAt, fullName } = user;
+      await this.userRepository.update(user.id, { lastLogin: new Date() });
+      return { id, avatarUrl, email, lastLogin, createAt, fullName };
     }
 
     throw new BadRequestException({

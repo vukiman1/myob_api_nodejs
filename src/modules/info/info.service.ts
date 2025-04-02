@@ -1536,6 +1536,15 @@ export class InfoService {
     };
   }
 
+  async getCompanyDetails(id: string) {
+    const companyDetails = await this.companyRepository.findOne({
+      where : {id},
+      relations: ['user', 'location']
+    })
+    console.log(companyDetails)
+    return companyDetails
+  }
+
 
   async getAllCompany() {
     return await this.companyRepository.find(
