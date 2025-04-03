@@ -17,10 +17,17 @@ import { AuthGuard } from '@nestjs/passport';
 import { UpdateCompanyDto } from './dto/company.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateResumeDto } from './dto/create-resume.dto';
+import { MyjobService } from '../myjob/myjob.service';
+import { TypeEnums } from '../myjob/entities/notifications.entity';
 
 @Controller('info/web')
 export class InfoController {
-  constructor(private readonly infoService: InfoService) {}
+  constructor(
+    private readonly infoService: InfoService,
+    private readonly myJobService: MyjobService
+
+  )
+     {}
 
   @UseGuards(AuthGuard('jwt'))
   @Get('job-seeker-profiles/:id/resumes')
@@ -66,6 +73,14 @@ export class InfoController {
     @UploadedFile() file: Express.Multer.File
   ) {
     const createdResume = await this.infoService.createPrivateResume(createResumeDto, file, req.user.id);
+    await this.myJobService.createNotification(
+      {
+        title: `Hồ sơ ứng viên mới`,
+        message: `Ứng viên ${ req.user.fullName}  vừa tạo mới hồ sơ ứng tuyển`,
+        imageUrl:  req.user.avatarUrl,
+        type: TypeEnums.success,
+      }
+    )
     return {
       errors: {},
       data: createdResume,
@@ -432,6 +447,14 @@ export class InfoController {
       file,
       req.user.email,
     );
+    await this.myJobService.createNotification(
+      {
+        title: `Cập nhật công ty`,
+        message: `Công ty ${company.companyName} vừa thay đổi logo`,
+        imageUrl:  company.companyImageUrl,
+        type: TypeEnums.info,
+      }
+    )
     return {
       errors: {},
       data: company,
@@ -461,6 +484,14 @@ export class InfoController {
     @Param('id') id: number,
     @Body() updateCompanyDto: UpdateCompanyDto,
   ) {
+    await this.myJobService.createNotification(
+      {
+        title: `Cập nhật thông tin công ty`,
+        message: `Công ty ${updateCompanyDto.companyName} vừa cập nhật thông tin công ty`,
+        imageUrl: updateCompanyDto.companyImageUrl,
+        type: TypeEnums.info,
+      }
+    )
     return await this.infoService.updateCompany(id, updateCompanyDto);
   }
 
@@ -475,6 +506,14 @@ export class InfoController {
       file,
       req.user.email,
     );
+    await this.myJobService.createNotification(
+      {
+        title: `Cập nhật thông tin công ty`,
+        message: `Công ty ${company.companyName} vừa thêm ảnh mới`,
+        imageUrl: company.companyImageUrl,
+        type: TypeEnums.info,
+      }
+    )
     return {
       errors: {},
       data: company,
@@ -767,6 +806,11 @@ export class InfoController2 {
   @Get('admin/company/:id')
   async getCompanyDetails(@Param('id') id: string) {
     return await this.infoService.getCompanyDetails(id);
+  }
+
+  @Post('admin/update-company')
+  async uploadCompanyInfo(@Body() uploadCompanyDto: any): Promise<any> {
+    return this.infoService.uploadCompanyInfo(uploadCompanyDto);
   }
 
 }

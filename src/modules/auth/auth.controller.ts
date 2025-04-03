@@ -23,11 +23,16 @@ import { AuthGuard } from '@nestjs/passport';
 import { EmployerRegisterDto } from './dto/employer-auth.dto';
 import { UpDateUserDto } from './dto/user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { MyjobService } from '../myjob/myjob.service';
+import { TypeEnums } from '../myjob/entities/notifications.entity';
 
 @Controller('auth')
 export class AuthController {
   jwtService: any;
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly myJobService: MyjobService
+  ) {}
 
   //Job Seaker
   @Post('job-seeker/register')
@@ -36,6 +41,14 @@ export class AuthController {
   ): Promise<any> {
     const newJobSeeker =
       await this.authService.job_seeker_register_services(jobSeekerRegisterDto);
+      await this.myJobService.createNotification(
+        {
+          title: `Ứng viên đăng kí tài khoản`,
+          message: `Ứng viên ${newJobSeeker.fullName} đã tạo mới tài khoản`,
+          imageUrl: newJobSeeker.avatarUrl,
+          type: TypeEnums.info,
+        }
+      )
     return {
       message: 'Register successfully',
       user: newJobSeeker,
@@ -57,6 +70,22 @@ export class AuthController {
   async EmployerRegister(@Body() employeeRegisterDto: EmployerRegisterDto) {
     const newEmployer =
       await this.authService.employer_register_services(employeeRegisterDto);
+      await this.myJobService.createNotification(
+        {
+          title: `Nhà tuyển dụng đăng kí tài khoản`,
+          message: `Ứng viên ${newEmployer.user.fullName} đã tạo mới tài khoản`,
+          imageUrl: newEmployer.user.avatarUrl,
+          type: TypeEnums.info,
+        }
+      )
+      await this.myJobService.createNotification(
+        {
+          title: `Công ty mới tham gia`,
+          message: `Công ty ${newEmployer.companyName} đã tham gia trang web`,
+          imageUrl: newEmployer.companyCoverImageUrl,
+          type: TypeEnums.info,
+        }
+      )
     return newEmployer;
   }
 

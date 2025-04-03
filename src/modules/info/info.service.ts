@@ -1541,7 +1541,6 @@ export class InfoService {
       where : {id},
       relations: ['user', 'location']
     })
-    console.log(companyDetails)
     return companyDetails
   }
 
@@ -1552,6 +1551,38 @@ export class InfoService {
         relations: ['location', 'location.city', 'user'],
       }
     );
+  }
+
+  async uploadCompanyInfo(uploadCompanyDto: any): Promise<any> {
+    // Check if company with the same slug already exists
+    const existingCompany = await this.companyRepository.findOne({
+      where: { slug: uploadCompanyDto.slug },
+    })
+
+    if (existingCompany) {
+      // Update existing company
+      const updatedCompany = this.companyRepository.merge(existingCompany, {
+        ...uploadCompanyDto,
+        since: new Date(uploadCompanyDto.since),
+      })
+      return this.companyRepository.save(updatedCompany)
+    }
+
+    // Create new company
+    const company = this.companyRepository.create({
+      ...uploadCompanyDto,
+      since: new Date(uploadCompanyDto.since),
+    })
+
+    try {
+      return await this.companyRepository.save(company)
+    } catch (error) {
+      if (error.code === "23505") {
+        // PostgreSQL unique constraint violation code
+        throw new ConflictException("Company with this slug already exists")
+      }
+      throw error
+    }
   }
   
 }

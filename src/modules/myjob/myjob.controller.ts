@@ -5,13 +5,23 @@ import { CreateFeedBackDto } from './dto/feedback.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { UpdateFeedbackDto } from './dto/updateFeedback.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { CreateNotificationDto } from './dto/create-notification.dto';
+import { TypeEnums } from './entities/notifications.entity';
 
 @Controller('myjob')
 export class MyjobController {
   constructor(private readonly myjobService: MyjobService) {}
 
   @Post('admin/banner')
-  createBanner(@Body() createBannerDto: CreateBannerDto2) {
+  async createBanner(@Body() createBannerDto: CreateBannerDto2) {
+    await this.myjobService.createNotification(
+      {
+        title: `Cập nhật banner mới`,
+        message: `Admin vừa cập nhật banner mới`,
+        imageUrl: createBannerDto.imageUrl,
+        type: TypeEnums.success,
+      }
+    )
     return this.myjobService.createBanner(createBannerDto);
   }
 
@@ -81,8 +91,17 @@ export class MyjobController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('web/feedbacks')
-  createFeedback(@Req() req: any, @Body() createFeedBackDto: CreateFeedBackDto) {
-    return this.myjobService.createFeedback(createFeedBackDto, req.user.email);
+  async createFeedback(@Req() req: any, @Body() createFeedBackDto: CreateFeedBackDto) {
+    const feedback = await this.myjobService.createFeedback(createFeedBackDto, req.user.email);
+    await this.myjobService.createNotification(
+      {
+        title: `Feedback mới`,
+        message: `Người dùng ${feedback.user.fullName} vừa gửi phản hồi về trải nghiệm sử dụng`,
+        imageUrl: feedback.user.avatarUrl,
+        type: TypeEnums.info,
+      }
+    )
+    return feedback
   }
 
   @Post('web/feedbacks/status/:id')
@@ -117,4 +136,24 @@ export class MyjobController {
       data: feedback
   }
   }
+
+  @Post('web/notification')
+  async createNotification(@Body() createNotificationDto: CreateNotificationDto) {
+    const notification = await this.myjobService.createNotification(createNotificationDto)
+    return {
+      errors: {},
+      message: 'Notification created successfully',
+      notification
+    }
+  }
+
+  @Get('web/notification')
+  async getAllNotification() {
+    const notification = await this.myjobService.getAllNotification()
+    return {
+      errors: {},
+      data: notification
+    }
+  }
+
 }

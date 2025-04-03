@@ -9,6 +9,8 @@ import { User } from '../user/entities/user.entity';
 import { AuthService } from '../auth/auth.service';
 import { UpdateFeedbackDto } from './dto/updateFeedback.dto';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { CreateNotificationDto } from './dto/create-notification.dto';
+import { WebNotification } from './entities/notifications.entity';
 
 @Injectable()
 export class MyjobService {
@@ -23,6 +25,9 @@ export class MyjobService {
 
     @InjectRepository(User)
     private userRepository: Repository<User>,
+
+    @InjectRepository(WebNotification)
+    private webNotificationRepository: Repository<WebNotification>,
   ) {}
   async createBanner(createBannerDto: CreateBannerDto2) {
     console.log('createBannerDto', createBannerDto);
@@ -58,6 +63,13 @@ export class MyjobService {
     };
   }
 
+  async createNotification(createNotificationDto: CreateNotificationDto) {
+    const newNotification = this.webNotificationRepository.create({  ...createNotificationDto });
+    const savedNotification = await this.webNotificationRepository.save(newNotification);
+    console.log(savedNotification)
+    return savedNotification;
+  }
+
   async createFeedback(createFeedBackDto: CreateFeedBackDto, email: string) {
     const user  = await this.userRepository.findOne({ where: { email } });
     const newFeedback = this.feedbackRepository.create({  ...createFeedBackDto, user });
@@ -82,6 +94,9 @@ export class MyjobService {
     }));
   }
 
+  async getAllNotification() {
+    return await this.webNotificationRepository.find({})
+  }
 
   async getAllBaner() {
     const banners = await this.bannerRepository.find({});

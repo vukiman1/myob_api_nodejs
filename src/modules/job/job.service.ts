@@ -538,8 +538,13 @@ export class JobService {
 
   async createJobPostNotification(
     createJobPostNotificationDto: CreateJobPostNotificationDto,
+    userId: string
   ) {
     const { jobName, position, experience, salary, frequency, career, city } = createJobPostNotificationDto;
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
 
     // Fetch related entities (career and city) in parallel
     const [careerEntity, cityEntity] = await Promise.all([
@@ -553,6 +558,7 @@ export class JobService {
 
     // Create and save the notification
     const notification = this.jobPostNotificationRepository.create({
+      user: { id: userId }, // Ensure user ID is set correctly
       jobName,
       position,
       experience,

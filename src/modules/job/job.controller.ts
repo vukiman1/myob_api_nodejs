@@ -19,10 +19,16 @@ import { error } from 'console';
 import { CreateJobPostNotificationDto } from './dto/create-job-post-notification.dto';
 import { UpdateApplicationStatusDto } from './dto/activity-status.dto';
 import { EmployeeSendEmailDto } from './dto/employee-send-email.dto';
+import { MyjobService } from '../myjob/myjob.service';
+import { TypeEnums } from '../myjob/entities/notifications.entity';
 
 @Controller('job/web/')
 export class JobController {
-  constructor(private readonly jobService: JobService) {}
+  constructor(private readonly jobService: JobService,
+        private readonly myJobService: MyjobService
+    
+
+  ) {}
 
   @UseGuards(AuthGuard('jwt'))
   @Post('private-job-posts')
@@ -34,6 +40,15 @@ export class JobController {
       createJobPostDto,
       req.user.email,
     );
+
+    await this.myJobService.createNotification(
+      {
+        title: `Việc làm mới`,
+        message: `Công ty ${newJob.companyDict.companyName} vừa thêm 1 việc làm mới`,
+        imageUrl: newJob.companyDict.companyImageUrl,
+        type: TypeEnums.info,
+      }
+    )
     return {
       errors: {},
       data: newJob,
@@ -134,6 +149,14 @@ export class JobController {
       req.user.id,
       updateJobPostDto,
     );
+
+    await this.myJobService.createNotification(
+      {
+        title: `Cập nhật bài đăng`,
+        message: `Nhà tuyển dụng ${req.user.fullName} vừa cập nhật bài tuyển dụng`,
+        imageUrl: jobPost.companyDict.companyImageUrl,
+        type: TypeEnums.success,
+      })
     return {
       errors: {},
       data: jobPost,
@@ -219,7 +242,16 @@ export class JobController {
 
   @Post('job-seeker-job-posts-activity')
   async createJobPostActivity(@Body() createJobPostActivityDto: CreateJobPostActivityDto) {
+
       const result = await this.jobService.createJobPostActivity(createJobPostActivityDto);
+      await this.myJobService.createNotification(
+      {
+        title: `Ứng viên ứng tuyển việc làm`,
+        message: `Ứng viên vừa ứng tuyển vị trí ${result.jobPost.jobName}`,
+        imageUrl: result.user.avatarUrl,
+        type: TypeEnums.info,
+      }
+    )
       return {
         errors: {},
         data: result,
@@ -253,12 +285,13 @@ export class JobController {
       data: result,
     };
   }
-
+  @UseGuards(AuthGuard('jwt'))
   @Post('job-post-notifications')
   async createJobPostNotification(
+    @Req() req: any,
     @Body() createJobPostNotificationDto: CreateJobPostNotificationDto,
   ) {
-    const result = await this.jobService.createJobPostNotification(createJobPostNotificationDto);
+    const result = await this.jobService.createJobPostNotification(createJobPostNotificationDto, req.user.id,);
     return {
       errors: {},
       data: result,
