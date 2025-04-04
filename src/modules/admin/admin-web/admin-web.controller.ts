@@ -8,7 +8,7 @@ export class AdminWebController {
   
   
   @Get('dashboard')
-  async getDashboardData(@Query() filters: DashboardFilterDto) {
-    return this.adminWebService.getDashboardData(filters);
+  async getDashboardData() {
+    return this.adminWebService.getDashboardData();
   }
 }
