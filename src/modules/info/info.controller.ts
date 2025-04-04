@@ -450,7 +450,7 @@ export class InfoController {
     await this.myJobService.createNotification(
       {
         title: `Cập nhật công ty`,
-        message: `Công ty ${company.companyName} vừa thay đổi logo`,
+        message: `${company.companyName} vừa thay đổi ảnh bìa`,
         imageUrl:  company.companyImageUrl,
         type: TypeEnums.info,
       }
@@ -472,6 +472,14 @@ export class InfoController {
       file,
       req.user.email,
     );
+    await this.myJobService.createNotification(
+      {
+        title: `Cập nhật công ty`,
+        message: `${company.companyName} vừa thay đổi ảnh logo`,
+        imageUrl:  company.companyImageUrl,
+        type: TypeEnums.info,
+      }
+    )
     return {
       errors: {},
       data: company,
@@ -487,7 +495,7 @@ export class InfoController {
     await this.myJobService.createNotification(
       {
         title: `Cập nhật thông tin công ty`,
-        message: `Công ty ${updateCompanyDto.companyName} vừa cập nhật thông tin công ty`,
+        message: `${updateCompanyDto.companyName} vừa cập nhật thông tin công ty`,
         imageUrl: updateCompanyDto.companyImageUrl,
         type: TypeEnums.info,
       }
@@ -773,7 +781,10 @@ async deleteCompany(@Req() req: any, @Param('id') id: string) {
 
 @Controller('info')
 export class InfoController2 {
-  constructor(private readonly infoService: InfoService) {}
+  constructor(private readonly infoService: InfoService,
+    private readonly myJobService: MyjobService
+
+  ) {}
 
   @UseGuards(AuthGuard('jwt'))
   @Get('profile')
@@ -810,6 +821,14 @@ export class InfoController2 {
 
   @Post('admin/update-company')
   async uploadCompanyInfo(@Body() uploadCompanyDto: any): Promise<any> {
+    await this.myJobService.createNotification(
+      {
+        title: `Cập nhật logo công ty`,
+        message: `Cập nhật logo cho ${uploadCompanyDto.companyName}`,
+        imageUrl: uploadCompanyDto.companyImageUrl,
+        type: TypeEnums.info,
+      }
+    )
     return this.infoService.uploadCompanyInfo(uploadCompanyDto);
   }
 

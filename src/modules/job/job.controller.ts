@@ -40,7 +40,7 @@ export class JobController {
       createJobPostDto,
       req.user.email,
     );
-
+    console.log(newJob.companyDict)
     await this.myJobService.createNotification(
       {
         title: `Việc làm mới`,

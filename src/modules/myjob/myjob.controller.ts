@@ -67,8 +67,6 @@ export class MyjobController {
   @Post('admin/banner/file')
   @UseInterceptors(FileInterceptor('file'))
   async uloadBanner(@UploadedFile() file: Express.Multer.File,) {
-    console.log(file)
-    
     const banner = await this.myjobService.uloadBanner(file)
     return {
       errors: {},
@@ -154,6 +152,20 @@ export class MyjobController {
       errors: {},
       data: notification
     }
+  }
+
+  @Get('web/notification/new')
+  async getNewNotification() {
+    const notification = await this.myjobService.getNewNotification()
+    return {
+      errors: {},
+      data: notification
+    }
+  }
+
+  @Patch('web/notification/read/:id')
+  async markIsReadNoti(@Param('id') id: string) {
+    const notification = await this.myjobService.markIsReadNoti(id)
   }
 
 }

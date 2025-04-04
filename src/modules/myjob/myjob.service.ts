@@ -66,7 +66,6 @@ export class MyjobService {
   async createNotification(createNotificationDto: CreateNotificationDto) {
     const newNotification = this.webNotificationRepository.create({  ...createNotificationDto });
     const savedNotification = await this.webNotificationRepository.save(newNotification);
-    console.log(savedNotification)
     return savedNotification;
   }
 
@@ -95,7 +94,10 @@ export class MyjobService {
   }
 
   async getAllNotification() {
-    return await this.webNotificationRepository.find({})
+    return await this.webNotificationRepository.find({
+      where: {isDelete: false},
+      order: {id: 'DESC'},
+    })
   }
 
   async getAllBaner() {
@@ -110,6 +112,13 @@ export class MyjobService {
     }));
   }
 
+  async markIsReadNoti(id: string) {
+    const notification = await this.webNotificationRepository.findOne({ where: { id } });
+    await this.webNotificationRepository.update(id,
+      { read: !notification.read },
+    );
+    return { success: true };
+  }
   async uloadBanner(file: Express.Multer.File,) {
     const imageUrl = await this.cloudinaryService.uploadBanner(
       file,
@@ -190,5 +199,14 @@ export class MyjobService {
     const newBanner = this.bannerRepository.create({ ...createBannerDto2, imageUrl });
     const savedBanner = await this.bannerRepository.save(newBanner);
     return savedBanner
+  }
+
+  async getNewNotification() {
+    const notifications = await this.webNotificationRepository.find({
+      where: {isDelete: false, read: false},
+      order: {id: 'DESC'},
+      take: 5,
+    })
+    return notifications
   }
 }

@@ -24,7 +24,7 @@ export class WebNotification {
     imageUrl: string;
 
     @Column({default: 0})
-    isRead: boolean;
+    read: boolean;
 
     @Column({default: 0})
     isDelete: boolean;
@@ -33,5 +33,5 @@ export class WebNotification {
     type: string;
 
     @CreateDateColumn()
-    createAt: Date;
+    date: Date;
 }
