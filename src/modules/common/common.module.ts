@@ -8,10 +8,11 @@ import { Career } from './entities/carrer.entity';
 import { Location } from './entities/location.entity';
 import { JobPost } from '../job/entities/job-post.entity';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
+import { Analytics } from '../myjob/entities/analytics.entiti';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([City, District, Career, Location, JobPost]),
+    TypeOrmModule.forFeature([City, District, Career, Location, JobPost, Analytics]),
     CloudinaryModule
   ],
   controllers: [CommonController],

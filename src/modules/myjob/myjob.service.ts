@@ -64,7 +64,11 @@ export class MyjobService {
   }
 
   async createNotification(createNotificationDto: CreateNotificationDto) {
-    const newNotification = this.webNotificationRepository.create({  ...createNotificationDto });
+    const vietnamTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' });
+    const newNotification = this.webNotificationRepository.create({  
+      ...createNotificationDto,
+      date: new Date(vietnamTime)
+    });
     const savedNotification = await this.webNotificationRepository.save(newNotification);
     return savedNotification;
   }

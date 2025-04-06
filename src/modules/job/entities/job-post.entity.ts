@@ -4,6 +4,8 @@ import { Location } from 'src/modules/common/entities/location.entity';
 import { Company } from 'src/modules/info/entities/company.entity';
 import { User } from 'src/modules/user/entities/user.entity';
 import {
+  BeforeInsert,
+  BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
@@ -76,6 +78,12 @@ export class JobPost {
 
   @Column({ default: 0 })
   isExpired: boolean;
+  @BeforeInsert()
+  @BeforeUpdate()
+  updateIsExpired() {
+    const now = new Date();
+    this.isExpired = this.deadline < now;
+  }
 
   @Column()
   contactPersonName: string;
@@ -91,7 +99,7 @@ export class JobPost {
   @Column({ default: 0 })
   shares: number;
 
-  @Column({ default: 3 })
+  @Column({ default: 2 })
   status: number;
 
   @ManyToOne(() => User, (user) => user.jobPosts)

@@ -11,9 +11,13 @@ import moment from 'moment';
 import { Injectable } from '@nestjs/common';
 import { CompanyFollowed } from 'src/modules/info/entities/company-followed.entity';
 import { WebNotification } from 'src/modules/myjob/entities/notifications.entity';
+import Redis from 'ioredis';
+import { Cron } from '@nestjs/schedule';
+import { Analytics } from 'src/modules/myjob/entities/analytics.entiti';
 
 @Injectable()
 export class AdminWebService {
+  private redisClient: Redis;
     constructor(
         @InjectRepository(JobPost)
         private jobPostRepository: Repository<JobPost>,
@@ -40,30 +44,57 @@ export class AdminWebService {
         private companyFollowedRepository: Repository<CompanyFollowed>,
 
         @InjectRepository(WebNotification)
-        private webNotificationRepository: Repository<WebNotification>
+        private webNotificationRepository: Repository<WebNotification>,
 
-    ){}
+        @InjectRepository(Analytics)
+        private analyticsRepository: Repository<Analytics>,
+
+    ){
+      this.redisClient = new Redis('redis://default:s6FMEkcqRDQoQeBWkvcs8ODOJehQLkZn@redis-11639.crce178.ap-east-1-1.ec2.redns.redis-cloud.com:11639');
+    }
+
+    async dashBoardData() {
+      const cachedData = await this.redisClient.get("admin:dashboard");
+      if (cachedData) {
+        return JSON.parse(cachedData);
+      } else {
+        const data = await this.getDashboardData();
+        await this.redisClient.set("admin:dashboard", JSON.stringify(data), "EX", 600);
+        return data;
+      }
+    }
 
     async getDashboardData() {
-        return {
-          overview: await this.overViewWebData(),
-          jobPostTrends: await this.jobPostTrends(),
-          applicationTrends: await this.applicationTrends(),
-          conversionRate: await this.conversionRate(),
-          jobPostApprovalStats: await this.jobPostApprovalStats(),
-          companyPerformance: await this.companyPerformance(),
-          applicationByAcademicLevel: await this.applicationByAcademicLevel(),
-          mostViewedJobs: await this.mostViewedJobs(),
-          topCompanies: await this.topCompanies(),
-          popularJobFields: await this.popularJobFields(),
-          recentActivities: await this.recentActivities()
-       }
-      }
+      const [
+        overview, jobPostTrends, applicationTrends, conversionRate,
+        jobPostApprovalStats, companyPerformance, applicationByAcademicLevel,
+        mostViewedJobs, topCompanies, popularJobFields, recentActivities
+      ] = await Promise.all([
+        this.overViewWebData(),
+        this.jobPostTrends(),
+        this.applicationTrends(),
+        this.conversionRate(),
+        this.jobPostApprovalStats(),
+        this.companyPerformance(),
+        this.applicationByAcademicLevel(),
+        this.mostViewedJobs(),
+        this.topCompanies(),
+        this.popularJobFields(),
+        this.recentActivities()
+      ]);
+      return {
+        overview, jobPostTrends, applicationTrends, conversionRate,
+        jobPostApprovalStats, companyPerformance, applicationByAcademicLevel,
+        mostViewedJobs, topCompanies, popularJobFields, recentActivities
+      };
+    }
+    
 
     async overViewWebData() {
         const totalJobPosts = await this.jobPostRepository.count();
         const totalCompanies = await this.companyRepository.count();
         const totalUsers = await this.userRepository.count();
+        const totalWebViews = await this.analyticsRepository.findOne({ where: { id: 1 }, select: ['job_seeker_views'] });
         const totalApplications = await this.jobPostActivityRepository.count();
         const jobPostsPendingApproval = await this.jobPostRepository.count({ where: { status: 1 } });
         const jobPostsExpired = await this.jobPostRepository.count({ where: { isExpired: true } });
@@ -79,7 +110,8 @@ export class AdminWebService {
           totalApplications,
           jobPostsPendingApproval,
           jobPostsExpired,
-          newUsersThisWeek
+          newUsersThisWeek,
+          totalWebViews: totalWebViews.job_seeker_views,
         }
     }
 
@@ -192,10 +224,11 @@ export class AdminWebService {
       .createQueryBuilder('jobPostActivity')
       .select('COUNT(*)', 'totalApplies')
       .getRawOne();
+    const webViews = await this.analyticsRepository.findOne({ where: { id: 1 }, select: ['job_seeker_views'] });
     return {
       views: views?.totalViews || 0,
       applies: applies?.totalApplies || 0,
-      rate: (applies?.totalApplies / views.totalViews).toFixed(2) 
+      rate: (applies?.totalApplies / webViews.job_seeker_views).toFixed(2) 
     };
   }
 
@@ -224,17 +257,17 @@ export class AdminWebService {
           where: { jobPost: { company: { id: company.id } } },
         });
 
-        const hires = await this.jobPostActivityRepository.count({
-          where: { jobPost: { company: { id: company.id } }, status: 6 },
-        });
+        // const hires = await this.jobPostActivityRepository.count({
+        //   where: { jobPost: { company: { id: company.id } }, status: 6 },
+        // });
 
-        const hireRate = applications > 0 ? ((hires / applications) * 100).toFixed(1) : 0;
-
+        const hireRate = (applications/totalJobPosts *100).toFixed(2);
+        // console.log(hireRate)
         return {
           companyName: company.companyName,
           jobPosts: totalJobPosts,
           applications,
-          hireRate: parseFloat(hireRate.toString()),
+          hireRate
         };
       })
     );
@@ -353,5 +386,13 @@ export class AdminWebService {
       createAt: activity.date,
     }))
   }
+
+  @Cron('*/5 * * * *')
+  async handleCron() {
+    const data = await this.getDashboardData();
+    await this.redisClient.set("admin:dashboard", JSON.stringify(data), "EX", 600);
+  }
+
+
 
 }

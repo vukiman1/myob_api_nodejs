@@ -120,6 +120,27 @@ export class InfoService {
     return results;
   }
 
+  async setCompanyDelete(id: string) {
+    const company = await this.companyRepository.findOne({ where: { id } });
+    if (!company) {
+      throw new NotFoundException('Công ty không tồn tại.');
+    }
+    // Xóa công ty
+    await this.companyRepository.save({ ...company, isDelete: true });
+
+
+  }
+
+  async setCompanyReturn(id: string) {
+    const company = await this.companyRepository.findOne({ where: { id } });
+    if (!company) {
+      throw new NotFoundException('Công ty không tồn tại.');
+    }
+    // Xóa công ty
+    await this.companyRepository.save({ ...company, isDelete: false });
+
+  }
+
   async updateCompanyAvatar(
     file: Express.Multer.File,
     email: string,
@@ -1463,6 +1484,7 @@ export class InfoService {
           userDict: {
             id: resume.user?.id,
             fullName: resume.user?.fullName,
+            avatarUrl: resume.user?.avatarUrl,
           },
           jobSeekerProfileDict: {
             id: resume.jobSeekerProfile?.id,
@@ -1546,11 +1568,14 @@ export class InfoService {
 
 
   async getAllCompany() {
-    return await this.companyRepository.find(
-      {
+    try {
+      return await this.companyRepository.find({
         relations: ['location', 'location.city', 'user'],
-      }
-    );
+      });
+    } catch (error) {
+      console.error('Error getting all companies:', error);
+      throw new InternalServerErrorException('Error retrieving companies');
+    }
   }
 
   async uploadCompanyInfo(uploadCompanyDto: any): Promise<any> {

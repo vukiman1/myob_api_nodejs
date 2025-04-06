@@ -32,6 +32,6 @@ export class WebNotification {
     @Column({enum:TypeEnums})
     type: string;
 
-    @CreateDateColumn()
+    @Column({ type: 'timestamptz', nullable: true })
     date: Date;
 }

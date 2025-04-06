@@ -7,11 +7,12 @@ import { User } from '../user/entities/user.entity';
 import { Feedback } from './entities/feedback.entity';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { WebNotification } from './entities/notifications.entity';
+import { Analytics } from './entities/analytics.entiti';
 
 @Global()
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Banner, User, Feedback, WebNotification]),
+    TypeOrmModule.forFeature([Banner, User, Feedback, WebNotification, Analytics]),
     CloudinaryModule,
   ],
   controllers: [MyjobController],

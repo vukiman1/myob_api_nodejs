@@ -20,6 +20,7 @@ import { CreateCareerDto } from './dto/carrer.dto';
 import { Location } from './entities/location.entity';
 import { JobPost } from '../job/entities/job-post.entity';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { Analytics } from '../myjob/entities/analytics.entiti';
 
 @Injectable()
 export class CommonService {
@@ -39,6 +40,9 @@ export class CommonService {
 
     @InjectRepository(JobPost)
     private jobPostRepository: Repository<JobPost>,
+
+    @InjectRepository(Analytics)
+    private analyticsRepository: Repository<Analytics>,
   ) {}
 
   async create_district_service(
@@ -173,9 +177,13 @@ export class CommonService {
   }
 
   async getAllConfig() {
-    const cities = await this.findAllCity();
-    const careers = await this.findAllCareer();
-
+    const [cities, careers]= await Promise.all([
+      this.findAllCity(),
+      this.findAllCareer(),
+      this.updateAnalytics(),
+    ])
+    // const cities = await this.findAllCity();
+    // const careers = await this.findAllCareer();
     const dataConfigList = [
       { key: 'GENDER', label: 'gender' },
       { key: 'MARITAL_STATUS', label: 'maritalStatus' },
@@ -297,6 +305,24 @@ export class CommonService {
     const imageUrl = await this.cloudinaryService.uploadCompanyImage(file, 'career', 'career')
     return imageUrl;
   }
+
+  async updateAnalytics() {
+    try {
+      // Sử dụng `increment` để tăng giá trị mà không cần phải `findOne` trước
+      const result = await this.analyticsRepository.increment({ id: 1 }, 'job_seeker_views', 1);
+      // Nếu không có bản ghi với id=1, tạo mới
+      if (result.affected === 0) {
+        await this.analyticsRepository.save({ id: 1, job_seeker_views: 1 });
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Error in updateAnalytics:', error.message);
+      throw error;
+    }
+  }
+  
+
   async getTopCareers(): Promise<any> {
     const query = this.jobPostRepository
       .createQueryBuilder('job_post')

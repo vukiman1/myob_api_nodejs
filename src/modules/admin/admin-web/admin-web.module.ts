@@ -11,9 +11,12 @@ import { Resume } from 'src/modules/info/entities/resume.entity';
 import { Career } from 'src/modules/common/entities/carrer.entity';
 import { CompanyFollowed } from 'src/modules/info/entities/company-followed.entity';
 import { WebNotification } from 'src/modules/myjob/entities/notifications.entity';
+import { ScheduleModule } from '@nestjs/schedule';
+import { Analytics } from 'src/modules/myjob/entities/analytics.entiti';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, JobSeekerProfile, JobPost, Company, JobPostActivity, Resume, Career, CompanyFollowed, WebNotification])],
+  imports: [TypeOrmModule.forFeature([User, Analytics,JobSeekerProfile, JobPost, Company, JobPostActivity, Resume, Career, CompanyFollowed, WebNotification]),
+  ScheduleModule.forRoot()],
   controllers: [AdminWebController],
   providers: [AdminWebService],
 })

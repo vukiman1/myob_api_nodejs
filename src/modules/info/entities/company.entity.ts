@@ -86,6 +86,9 @@ export class Company {
   @JoinColumn()
   user: User;
 
+  @Column({ default: 0 })
+  isDelete: boolean
+
   @OneToMany(() => JobPost, (jobPost) => jobPost.company)
   jobPosts: JobPost[];
 

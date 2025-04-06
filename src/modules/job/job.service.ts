@@ -1273,4 +1273,24 @@ export class JobService {
     });
   }
 
+  async updateJobPostStatus(jobPostId: number, status: number) {
+    const job = await this.jobPostRepository.findOne({ where: { id: jobPostId } });
+    if (!job) {
+      throw new NotFoundException('Job post not found');
+    }
+    job.status = status;
+    return await this.jobPostRepository.save(job);
+  }
+
+  async getJobDetails(id: string) {
+    const jobPost = await this.jobPostRepository.findOne({
+      where: { id: Number(id) },
+      relations: ['company', 'location.city', 'career', 'user']
+    });
+    if (!jobPost) {
+      throw new NotFoundException('Job post not found');
+    }
+    return jobPost;
+  }
+
 }

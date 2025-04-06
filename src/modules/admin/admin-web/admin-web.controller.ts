@@ -9,6 +9,6 @@ export class AdminWebController {
   
   @Get('dashboard')
   async getDashboardData() {
-    return this.adminWebService.getDashboardData();
+    return this.adminWebService.dashBoardData();
   }
 }

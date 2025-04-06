@@ -9,6 +9,7 @@ import {
   Query,
   Put,
   Delete,
+  Patch,
 } from '@nestjs/common';
 import { JobService } from './job.service';
 
@@ -487,6 +488,30 @@ export class JobController {
    @Get('admin/getAllJobPost')
     async getAllJobPost() {
       return await this.jobService.getAllJobPost();
+    }
+
+    @Get('admin/job-posts/detail/:id')
+    async getJobDetails(@Param('id') id) {
+      return await this.jobService.getJobDetails(id);
+    }
+
+    @Patch('admin/job-posts/status/:id/:status')
+    async updateJobPostStatus(@Param('id') id: number, @Param('status') status: number) {
+      try {
+      const res = await this.jobService.updateJobPostStatus(id, status);
+      return {
+        errors: {},
+        success: true,
+        message: 'Job status updated successfully',
+        res: res
+      };
+      } catch (error) {
+      return {
+        errors: { message: error.message },
+        success: false,
+        message: 'Failed to update job status' 
+      };
+      }
     }
     
 }

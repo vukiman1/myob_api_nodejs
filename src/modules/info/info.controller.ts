@@ -11,6 +11,7 @@ import {
   Post,
   Delete,
   Query,
+  Patch,
 } from '@nestjs/common';
 import { InfoService } from './info.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -811,12 +812,31 @@ export class InfoController2 {
 
   @Get('admin/getAllCompany')
   async getAllCompany() {
+    // return 'ok'
     return await this.infoService.getAllCompany();
   }
 
   @Get('admin/company/:id')
   async getCompanyDetails(@Param('id') id: string) {
     return await this.infoService.getCompanyDetails(id);
+  }
+
+  @Delete('admin/company/:id')
+  async setCompanyDelete(@Param('id') id: string) {
+    await this.infoService.setCompanyDelete(id);
+    return {
+      errors: {},
+      message: 'Xóa công ty thành công',
+    }
+  }
+
+  @Patch('admin/company/:id')
+  async setCompanyReturn(@Param('id') id: string) {
+     await this.infoService.setCompanyReturn(id);
+     return {
+      errors: {},
+      message: 'Khôi phục công ty thành công',
+     }
   }
 
   @Post('admin/update-company')
