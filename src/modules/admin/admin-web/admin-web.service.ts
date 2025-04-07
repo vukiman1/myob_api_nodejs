@@ -53,16 +53,16 @@ export class AdminWebService {
       this.redisClient = new Redis('redis://default:s6FMEkcqRDQoQeBWkvcs8ODOJehQLkZn@redis-11639.crce178.ap-east-1-1.ec2.redns.redis-cloud.com:11639');
     }
 
-    // async dashBoardData() {
-    //   const cachedData = await this.redisClient.get("admin:dashboard");
-    //   if (cachedData) {
-    //     return JSON.parse(cachedData);
-    //   } else {
-    //     const data = await this.getDashboardData();
-    //     await this.redisClient.set("admin:dashboard", JSON.stringify(data), "EX", 600);
-    //     return data;
-    //   }
-    // }
+    async dashBoardData() {
+      const cachedData = await this.redisClient.get("admin:dashboard");
+      if (cachedData) {
+        return JSON.parse(cachedData);
+      } else {
+        const data = await this.getDashboardData();
+        await this.redisClient.set("admin:dashboard", JSON.stringify(data), "EX", 600);
+        return data;
+      }
+    }
 
     async getDashboardData() {
       const [
@@ -387,11 +387,11 @@ export class AdminWebService {
     }))
   }
 
-  // @Cron('*/5 * * * *')
-  // async handleCron() {
-  //   const data = await this.getDashboardData();
-  //   await this.redisClient.set("admin:dashboard", JSON.stringify(data), "EX", 600);
-  // }
+  @Cron('*/5 * * * *')
+  async handleCron() {
+    const data = await this.getDashboardData();
+    await this.redisClient.set("admin:dashboard", JSON.stringify(data), "EX", 600);
+  }
 
 
 
