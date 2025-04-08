@@ -54,6 +54,15 @@ export class MyjobController {
     }
   }
 
+  @Get('web/popup')
+  async getPopups() {
+    const popups = await this.myjobService.getPopups()
+    return {
+      errors: {},
+      data: popups
+    }
+  }
+
 
   @Get('admin/banner')
   async adminGetAllBanner() {
@@ -79,9 +88,22 @@ export class MyjobController {
     return this.myjobService.updateBanner(id, updateBannerDto);
   }
 
+  
+
   @Delete('web/banner/:id')
   removeBanner(@Param('id') id: string) {
     return this.myjobService.removeBanner(id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('web/banner/user')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadBannerUser(@Body() link: any, @UploadedFile() file: Express.Multer.File, @Req() req: any) {
+    const imageUrl = await this.myjobService.uploadBannerUser(file, req.user.id, link.link);
+    return {
+      errors: {},
+      data: imageUrl
+    }
   }
 
 

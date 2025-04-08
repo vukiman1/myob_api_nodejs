@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Column, CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { User } from "src/modules/user/entities/user.entity";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 export enum BannerType {
     BANNER = 'BANNER',
@@ -28,6 +29,9 @@ export class Banner {
     @Column({ type: 'enum', enum: BannerType, default: BannerType.BANNER})
     type: string;
 
+    @ManyToOne(() => User, { nullable: true })
+    @JoinColumn()
+    user: User;
 
 
     @Column({ nullable: true  })

@@ -37,9 +37,9 @@ export class MyjobService {
   } 
 
   async uploadBanner(bannerDto: any, id: string ) {
-    console.log(bannerDto)
     try {
       await this.bannerRepository.update(id, {
+        type: bannerDto.type,
         imageUrl: bannerDto.imageUrl,
         description: bannerDto.description,
         buttonLink: bannerDto.buttonLink,
@@ -62,6 +62,49 @@ export class MyjobService {
       message: 'Banner deleted successfully',
     };
   }
+
+  async uploadBannerUser(file: Express.Multer.File, userId: string, link: string) {
+    console.log(link, file, userId)
+
+    try {
+      // Upload image and get the URL
+      const { secure_url } = await this.cloudinaryService.uploadPageBanner2(
+        file,
+        'banner',
+        'banner'
+      );
+
+      // Calculate end date (7 days from now)
+      const endDate = new Date(Date.now() + (7 * 24 * 60 * 60 * 1000));
+
+      // Description for the banner
+      const description = `Banner created by user ${userId}`;
+
+      // Find the user who uploaded the banner
+      const user = await this.userRepository.findOne({ where: { id: userId } });
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      // Create the new banner object
+      const newBanner = this.bannerRepository.create({
+        imageUrl: secure_url,
+        user,
+        endDate,
+        buttonLink: link,
+        description,
+      });
+
+      // Save the new banner to the database
+      const savedBanner = await this.bannerRepository.save(newBanner);
+      return savedBanner;
+      
+    } catch (error) {
+      console.error('Error uploading banner:', error);
+      throw new Error('Failed to upload banner: ' + error.message);
+    }
+  }
+  
 
   async createNotification(createNotificationDto: CreateNotificationDto) {
     const vietnamTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' });
@@ -105,9 +148,11 @@ export class MyjobService {
   }
 
   async getAllBaner() {
-    const banners = await this.bannerRepository.find({});
-    const activeBanners = banners.filter(banner => banner.isActive === true);
-    return activeBanners.map(banner => ({
+    const banners = await this.bannerRepository.find({
+      where: {isActive: true, type: 'BANNER'}
+    });
+
+    return banners.map(banner => ({
       id: banner.id,
       imageUrl: banner.imageUrl,
       description: banner.description,
@@ -212,5 +257,19 @@ export class MyjobService {
       take: 5,
     })
     return notifications
+  }
+
+  async getPopups() {
+    const popups = await this.bannerRepository.find({
+      where: {type: 'POPUP', isActive: true},
+    });
+
+    return popups.map(popup => ({
+      id: popup.id,
+      imageUrl: popup.imageUrl,
+      description: popup.description,
+      buttonLink: popup.buttonLink,
+
+    }));
   }
 }

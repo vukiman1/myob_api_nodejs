@@ -218,4 +218,41 @@ export class CloudinaryService {
       });
     }
 
+
+    async uploadPageBanner2(
+      file: Express.Multer.File,
+      fileName: string,
+      moduleName: string
+    ): Promise<{ publicId: string; secure_url: string }> {
+      return new Promise((resolve, reject) => {
+        try {
+          const publicId = this.createPublicUrl(moduleName, fileName).toString();
+          const transformValue = [
+            { quality: "auto:low" }, // Giảm chất lượng tự động để tối ưu dung lượng
+            { fetch_format: "auto" } // Chuyển đổi định dạng để giảm dung lượng
+          ];
+          const uploadStream = cloudinary.uploader.upload_stream(
+            {
+              public_id: publicId,
+              transformation: transformValue, // Áp dụng transformation
+              resource_type: 'auto'
+            },
+            (error, result) => {
+              if (error) return reject(error);
+  
+              resolve({
+                publicId: result.public_id, // Lưu publicId
+                secure_url: result.secure_url, // Trả về URL ảnh
+              });
+            }
+          );
+  
+          // Đọc dữ liệu từ buffer và gửi tới Cloudinary
+          streamifier.createReadStream(file.buffer).pipe(uploadStream);
+        } catch (error) {
+          reject(error);
+        }
+      });
+    }
+
 }
