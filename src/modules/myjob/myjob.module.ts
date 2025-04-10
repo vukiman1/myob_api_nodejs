@@ -8,12 +8,14 @@ import { Feedback } from './entities/feedback.entity';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { WebNotification } from './entities/notifications.entity';
 import { Analytics } from './entities/analytics.entiti';
+import { PaymentModule } from '../payment/payment.module';
 
 @Global()
 @Module({
   imports: [
     TypeOrmModule.forFeature([Banner, User, Feedback, WebNotification, Analytics]),
     CloudinaryModule,
+    PaymentModule
   ],
   controllers: [MyjobController],
   providers: [MyjobService],

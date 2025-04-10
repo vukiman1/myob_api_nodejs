@@ -26,6 +26,11 @@ export class PaymentController {
     };
   }
 
+  // @Post('/create')
+  // async createPayment() {
+
+  // }
+
   @UseGuards(AuthGuard('jwt'))
   @Get('/getHistory')
   async getHistory( @Req() req: any) {

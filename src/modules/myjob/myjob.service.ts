@@ -1,4 +1,4 @@
-import { Injectable, UploadedFile } from '@nestjs/common';
+import { BadRequestException, Injectable, UploadedFile } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {  CreateBannerDto, CreateBannerDto2, UpdateBannerDto } from './dto/banner.dto';
@@ -11,6 +11,8 @@ import { UpdateFeedbackDto } from './dto/updateFeedback.dto';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { WebNotification } from './entities/notifications.entity';
+import { PaymentService } from '../payment/payment.service';
+import { TransactionType } from '../payment/entities/payment.entity';
 
 @Injectable()
 export class MyjobService {
@@ -28,6 +30,8 @@ export class MyjobService {
 
     @InjectRepository(WebNotification)
     private webNotificationRepository: Repository<WebNotification>,
+
+    private paymentService: PaymentService
   ) {}
   async createBanner(createBannerDto: CreateBannerDto2) {
     console.log('createBannerDto', createBannerDto);
@@ -63,9 +67,7 @@ export class MyjobService {
     };
   }
 
-  async uploadBannerUser(file: Express.Multer.File, userId: string, link: string) {
-    console.log(link, file, userId)
-
+  async uploadBannerUser(file: Express.Multer.File, userId: string, link: string, type: string) {
     try {
       // Upload image and get the URL
       const { secure_url } = await this.cloudinaryService.uploadPageBanner2(
@@ -76,7 +78,7 @@ export class MyjobService {
 
       // Calculate end date (7 days from now)
       const endDate = new Date(Date.now() + (7 * 24 * 60 * 60 * 1000));
-
+      const money = 8000
       // Description for the banner
       const description = `Banner created by user ${userId}`;
 
@@ -85,16 +87,24 @@ export class MyjobService {
       if (!user) {
         throw new Error('User not found');
       }
+      if (user.money < 8000) {
+        throw new BadRequestException('User not enought money')
+      }
+
+      // await this.userRepository.update({})
 
       // Create the new banner object
       const newBanner = this.bannerRepository.create({
         imageUrl: secure_url,
         user,
+        isActive: false,
+        type,
         endDate,
         buttonLink: link,
         description,
       });
 
+      await this.paymentService.createTransaction(money, TransactionType.PURCHASE, userId, "PURCHASE")
       // Save the new banner to the database
       const savedBanner = await this.bannerRepository.save(newBanner);
       return savedBanner;

@@ -154,7 +154,7 @@ export class JobController {
     await this.myJobService.createNotification(
       {
         title: `Cập nhật bài đăng`,
-        message: `Nhà tuyển dụng ${req.user.fullName} vừa cập nhật bài tuyển dụng`,
+        message: `Nhà tuyển dụng ${req.user.fullName} vừa cập nhật bài tuyển dụng, hãy xem xét và phê duyệt`,
         imageUrl: jobPost.companyDict.companyImageUrl,
         type: TypeEnums.success,
       })

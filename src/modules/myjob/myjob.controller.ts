@@ -98,8 +98,16 @@ export class MyjobController {
   @UseGuards(AuthGuard('jwt'))
   @Post('web/banner/user')
   @UseInterceptors(FileInterceptor('file'))
-  async uploadBannerUser(@Body() link: any, @UploadedFile() file: Express.Multer.File, @Req() req: any) {
-    const imageUrl = await this.myjobService.uploadBannerUser(file, req.user.id, link.link);
+  async uploadBannerUser(@Body() link: any,@UploadedFile() file: Express.Multer.File, @Req() req: any) {
+    const imageUrl = await this.myjobService.uploadBannerUser(file, req.user.id, link.link, link.type);
+    await this.myjobService.createNotification(
+      {
+        title: `${link.type} mới`,
+        message: `Người dùng ${req.user.fullName} vừa đăng kí sử dụng dịch vụ Banner, hãy phê duyệt!`,
+        imageUrl: imageUrl.imageUrl,
+        type: TypeEnums.info,
+      }
+    )
     return {
       errors: {},
       data: imageUrl

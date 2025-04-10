@@ -4,6 +4,7 @@ import {
   IsDate,
   IsEmail,
   IsNumber,
+  IsOptional,
   IsString,
   ValidateNested,
 } from 'class-validator';
@@ -62,6 +63,11 @@ export class CreateJobPostDto {
 
   @IsNumber()
   quantity: number;
+
+  @IsOptional()
+  @IsNumber()
+  status?: number;
+
 
   @IsNumber()
   salaryMax: number;

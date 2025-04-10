@@ -3,9 +3,10 @@ import { UserService } from '../user/user.service';
 import { AuthGuard } from '@nestjs/passport';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { PaymentHistory } from './entities/payment.entity';
+import { PaymentHistory, TransactionType } from './entities/payment.entity';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
+import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class PaymentService {
@@ -56,12 +57,12 @@ export class PaymentService {
                     if (transaction) {
                     // Lưu vào database
                             const paymentHistory = new PaymentHistory();
-                            paymentHistory.price = parseFloat(transaction.amount_in);
+                            paymentHistory.price = amount * 100
                             paymentHistory.method = method;
                             paymentHistory.status = 1;
                             paymentHistory.paymentId = paymentId; // Lưu ID gửi từ frontend
                             paymentHistory.user = { id: userId } as any;
-                            await this.userService.updateUserMoney(userId, amount);
+                            await this.userService.updateUserMoney(userId, amount * 100, "DEPOSIT");
                             await this.paymentHistoryRepository.save(paymentHistory);
                             return true;
                 }
@@ -71,6 +72,16 @@ export class PaymentService {
             console.error('Error checking transaction:', error);
             return false;
         }
+    }
+
+    async createTransaction(price: number, method: string,userId: string, type: string) {
+        const paymentHistory = new PaymentHistory();
+        paymentHistory.price = price
+        paymentHistory.transactionType = TransactionType.PURCHASE;
+        paymentHistory.status = 1;
+        paymentHistory.user = { id: userId } as any;
+        await this.paymentHistoryRepository.save(paymentHistory);
+        await this.userService.updateUserMoney(userId, price, type)
     }
 
     @UseGuards(AuthGuard('jwt'))

@@ -101,10 +101,7 @@ export class JobPost {
 
   @Column({ default: 1 })
   status: number;
-  @BeforeUpdate()
-  updateStatus() {
-    this.status =1
-  }
+
 
   @ManyToOne(() => User, (user) => user.jobPosts)
   @JoinColumn()

@@ -24,5 +24,6 @@ export class JobPostSaved {
 
   @UpdateDateColumn()
   updateAt: Date;
+
 }
 

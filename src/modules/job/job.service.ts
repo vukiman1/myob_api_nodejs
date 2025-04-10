@@ -84,7 +84,7 @@ export class JobService {
     const savedLocation = await this.locationRepository.save(newLocation);
     createJobPostDto.slug =
       (await this.generateSlug(createJobPostDto.jobName)) || 'no-name';
-
+    createJobPostDto.status = 1
     const newJobPost = this.jobPostRepository.create({
       ...createJobPostDto,
       location: savedLocation,
@@ -330,7 +330,7 @@ export class JobService {
     if (updateJobPostDto.jobName !== jobPost.jobName) {
       updateJobPostDto.slug = await this.generateSlug(updateJobPostDto.jobName);
     }
-
+    updateJobPostDto.status = 1;
     // Cập nhật các thông tin khác
     Object.assign(jobPost, updateJobPostDto);
 

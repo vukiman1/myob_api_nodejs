@@ -7,6 +7,7 @@ import { JobPostActivity } from 'src/modules/job/entities/job-post-activity.enti
 import { JobPostNotification } from 'src/modules/job/entities/job-post-notification.entity';
 import { JobPostSaved } from 'src/modules/job/entities/job-post-saved.entity';
 import { JobPost } from 'src/modules/job/entities/job-post.entity';
+import { PaymentHistory } from 'src/modules/payment/entities/payment.entity';
 import {
   Entity,
   Column,
@@ -73,6 +74,9 @@ export class User {
 
   @OneToMany(() => JobPost, (jobPost) => jobPost.user)
   jobPosts: JobPost[]; // Một User có thể có nhiều JobPost
+
+  @OneToMany(() => PaymentHistory, (paymentHistory) => paymentHistory.user)
+  paymentHistories: PaymentHistory[]; // Một User có thể có nhiều JobPost
 
   @OneToMany(() => JobPostActivity, (jobPostActivity) => jobPostActivity.user)
   jobPostActivity: JobPostActivity[]; 

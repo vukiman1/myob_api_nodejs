@@ -36,12 +36,16 @@ export class UserService {
     return result?.money ?? 0;
   }
 
-  async updateUserMoney(id: string, money: number): Promise<User> {
+  async updateUserMoney(id: string, money: number, type: string): Promise<User> {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
-    user.money = user.money + money;
+    if (type === "DEPOSIT") {
+      user.money = user.money + money;
+    } else if (type === "PURCHASE"){
+      user.money = user.money - money;
+    }
     return this.userRepository.save(user);
   }
 

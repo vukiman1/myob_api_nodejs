@@ -23,7 +23,7 @@ export class Banner {
     @Column({ nullable: true  })
     buttonLink: string;
 
-    @Column({  default: 1 })
+    @Column({  default: 0 })
     isActive: boolean;
 
     @Column({ type: 'enum', enum: BannerType, default: BannerType.BANNER})
