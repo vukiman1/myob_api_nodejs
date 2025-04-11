@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, UploadedFile } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
+import { LessThan } from 'typeorm';
 import {  CreateBannerDto, CreateBannerDto2, UpdateBannerDto } from './dto/banner.dto';
 import { Banner } from './entities/banner.entity';
 import { CreateFeedBackDto } from './dto/feedback.dto';
@@ -13,6 +14,8 @@ import { CreateNotificationDto } from './dto/create-notification.dto';
 import { WebNotification } from './entities/notifications.entity';
 import { PaymentService } from '../payment/payment.service';
 import { TransactionType } from '../payment/entities/payment.entity';
+import { JobPost } from '../job/entities/job-post.entity';
+
 
 @Injectable()
 export class MyjobService {
@@ -27,6 +30,9 @@ export class MyjobService {
 
     @InjectRepository(User)
     private userRepository: Repository<User>,
+
+    @InjectRepository(JobPost)
+    private jobPostRepository: Repository<JobPost>,
 
     @InjectRepository(WebNotification)
     private webNotificationRepository: Repository<WebNotification>,
@@ -114,7 +120,46 @@ export class MyjobService {
       throw new Error('Failed to upload banner: ' + error.message);
     }
   }
+
+  async getPaymentService(userId: string) {
+    const jobService = await this.jobPostRepository.find({
+      where: {
+        user: { id: userId },
+        isUrgent: true,
+        deadline: MoreThan(new Date())
+        
+      },
+      select: ['id', 'jobName', 'isUrgent', 'deadline']
+    });
   
+    const bannerService = await this.bannerRepository.find({
+      where: {
+        user: { id: userId },
+        endDate: MoreThan(new Date()),
+        isExpried:false 
+      },
+      select: ['id', 'imageUrl', 'isActive', 'buttonLink', 'endDate', 'type']
+    });
+  
+    return {
+      jobService,
+      bannerService
+    };
+  }
+  
+  async updateBannerUrgent(id: string) {
+    const banner = await this.bannerRepository.findOne({ where: {id} });
+    banner.isActive = !banner.isActive;
+    await this.bannerRepository.save(banner);
+    return banner
+  }
+  
+  async updateJobPostUrgent(id: string) {
+    const jobpost = await this.jobPostRepository.findOne({ where: { id: Number(id) } });
+    jobpost.isUrgent = !jobpost.isUrgent;
+    await this.jobPostRepository.save(jobpost);
+    return jobpost
+  }
 
   async createNotification(createNotificationDto: CreateNotificationDto) {
     const vietnamTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' });

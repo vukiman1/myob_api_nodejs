@@ -9,11 +9,12 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { WebNotification } from './entities/notifications.entity';
 import { Analytics } from './entities/analytics.entiti';
 import { PaymentModule } from '../payment/payment.module';
+import { JobPost } from '../job/entities/job-post.entity';
 
 @Global()
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Banner, User, Feedback, WebNotification, Analytics]),
+    TypeOrmModule.forFeature([Banner, User, Feedback, WebNotification, Analytics, JobPost]),
     CloudinaryModule,
     PaymentModule
   ],

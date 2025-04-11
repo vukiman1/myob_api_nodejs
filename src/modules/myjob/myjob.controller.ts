@@ -103,7 +103,7 @@ export class MyjobController {
     await this.myjobService.createNotification(
       {
         title: `${link.type} mới`,
-        message: `Người dùng ${req.user.fullName} vừa đăng kí sử dụng dịch vụ Banner, hãy phê duyệt!`,
+        message: `Người dùng ${req.user.email} vừa đăng kí sử dụng dịch vụ, hãy phê duyệt!`,
         imageUrl: imageUrl.imageUrl,
         type: TypeEnums.info,
       }
@@ -196,6 +196,27 @@ export class MyjobController {
   @Patch('web/notification/read/:id')
   async markIsReadNoti(@Param('id') id: string) {
     const notification = await this.myjobService.markIsReadNoti(id)
+  }
+  
+  @UseGuards(AuthGuard('jwt'))
+  @Get('/payment-service')
+  async getPaymentService(@Req() req: any) {
+    const data = await this.myjobService.getPaymentService(req.user.id)
+    return data
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('/banner-active/:id')
+  async updateBannerUrgent(@Param('id') id: string) {
+    const banner = await this.myjobService.updateBannerUrgent(id);
+    return banner
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('/jobpost-urgent/:id') 
+  async updateJobPostUrgent(@Param('id') id: string){
+    const jobpost = await this.myjobService.updateJobPostUrgent(id);
+    return jobpost
   }
 
 }

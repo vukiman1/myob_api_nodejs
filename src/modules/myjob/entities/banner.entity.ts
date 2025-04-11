@@ -37,7 +37,7 @@ export class Banner {
     @Column({ nullable: true  })
     endDate: Date;
 
-    @Column({ nullable: true  })
+    @Column({ default: 0 , nullable: true })
     isExpried: boolean;
 
     @CreateDateColumn()
