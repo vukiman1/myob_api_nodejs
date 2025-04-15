@@ -1,11 +1,11 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { NodemailerService } from './nodemailer.service';
 import { NodemailerController } from './nodemailer.controller';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { mailerRegToken } from 'src/configs/mailer.config';
 
-
+@Global()
 @Module({
   imports: [
     ConfigModule, // Đảm bảo ConfigModule được import
@@ -22,5 +22,6 @@ import { mailerRegToken } from 'src/configs/mailer.config';
   ],
   controllers: [NodemailerController],
   providers: [NodemailerService],
+  exports: [NodemailerModule],
 })
 export class NodemailerModule {}

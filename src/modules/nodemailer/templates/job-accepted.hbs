@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f9;
+        margin: 0;
+        padding: 0;
+      }
+      a {
+        text-decoration: none;
+      }
+      .email-container {
+        max-width: 600px;
+        margin: 20px auto;
+        background: #ffffff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .header {
+        background-color: #4caf50;
+        color: #ffffff;
+        padding: 20px;
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        text-transform: uppercase;
+        line-height: 1.5;
+      }
+
+      .header img {
+        max-width: 120px;
+        margin-bottom: 10px;
+      }
+
+      .body {
+        padding: 20px;
+        color: #333333;
+        line-height: 1.6;
+      }
+
+      .body h2 {
+        font-size: 22px;
+        margin-bottom: 10px;
+        color: #4caf50;
+      }
+
+      .body p {
+        margin: 10px 0;
+      }
+
+      .button-container {
+        text-align: center;
+        margin-top: 20px;
+      }
+
+      .cta-button {
+        display: inline-block;
+        padding: 12px 24px;
+        background-color: #4caf50;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        font-weight: bold;
+      }
+
+      .footer {
+        background-color: #f5f5f5;
+        padding: 20px;
+        text-align: center;
+        font-size: 14px;
+      }
+
+      .footer a {
+        color: #4caf50;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-container">
+      <!-- Header -->
+      <div class="header">
+        <img
+          src="https://res.cloudinary.com/myjob/image/upload/v1734257017/myjob/logo/qirppmwk0v9muaseuspn.png"
+          alt="Logo"
+          style="display: block; margin: 0 auto; max-width: 120px;"
+        />
+        <span style="display: block; margin-top: 10px;">THÔNG BÁO TRÚNG TUYỂN</span>
+      </div>
+
+      <!-- Body -->
+      <div class="body">
+        <h2>Xin chào {{fullName}},</h2>
+        <p>Chúc mừng! Bạn đã được chọn cho vị trí <strong>{{jobName}}</strong> tại công ty <strong>{{companyName}}</strong>.</p>
+        
+        <p>Chi tiết công việc:</p>
+        <ul>
+          <li>Vị trí: {{jobName}}</li>
+          <li>Công ty: {{companyName}}</li>
+          <li>Địa điểm: {{location}}</li>
+        </ul>
+
+        <p>Vui lòng liên hệ với chúng tôi qua:</p>
+        <ul>
+          <li>Email: {{companyEmail}}</li>
+          <li>Số điện thoại: {{companyPhone}}</li>
+        </ul>
+
+        <div class="button-container">
+          <a
+            href="https://vieclam365.top/viec-lam/{{jobPostSlug}}"
+            class="cta-button"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Xem chi tiết công việc
+          </a>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <p>Bạn nhận được email này từ <a href="https://vieclam365.top">Việc làm 365</a>.</p>
+        <p>
+          Liên hệ với chúng tôi qua:
+          <a href="https://fb.com/vukiman1">Facebook</a> |
+          <a href="https://github.com/vukiman1">Github</a>
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

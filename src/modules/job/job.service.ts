@@ -454,6 +454,58 @@ export class JobService {
     return this.jobPostActivityRepository.save(jobPostActivity);
   }
 
+  async findUserIdByJobId(jobId: number): Promise<string> {
+    const jobPost = await this.jobPostRepository.findOne({
+      where: { id: jobId },
+      relations: ['user'],
+    });
+  
+    if (!jobPost) {
+      throw new NotFoundException('Job post not found');
+    }
+  
+    return jobPost.user.id;
+  }
+
+  async getActivityUserInfo(activityId: number): Promise<{
+    userId: string;
+    companyImageUrl: string;
+    fullName: string;
+    jobName: string;
+    companyName: string;
+    location: string;
+    companyEmail: string;
+    companyPhone: string;
+    jobPostSlug: string;
+  }> {
+    const activity = await this.jobPostActivityRepository.findOne({
+      where: { id: activityId },
+      relations: [
+        'user',
+        'jobPost',
+        'jobPost.company',
+        'jobPost.location',
+        'jobPost.location.city',
+        'jobPost.location.district'
+      ],
+    });
+
+    if (!activity) {
+      throw new NotFoundException('Activity not found');
+    }
+
+    return {
+      userId: activity.user.id,
+      companyImageUrl: activity.jobPost.company.companyImageUrl,
+      fullName: activity.user.fullName,
+      jobName: activity.jobPost.jobName,
+      companyName: activity.jobPost.company.companyName,
+      location: `${activity.jobPost.location.address}, ${activity.jobPost.location.district.name}, ${activity.jobPost.location.city.name}`,
+      companyEmail: activity.jobPost.company.companyEmail,
+      companyPhone: activity.jobPost.company.companyPhone,
+      jobPostSlug: activity.jobPost.slug
+    };
+  }
 
   async getJobPostActivities(page: number, pageSize: number, userId: string) {
     const skip = (page - 1) * pageSize;
@@ -481,6 +533,7 @@ export class JobService {
     return {
       count: totalCount,
       results,
+      userId: userId
     };
   }
 
@@ -662,6 +715,7 @@ export class JobService {
       where: { id: activityId, isDeleted: false }, // Chỉ cập nhật nếu chưa bị xóa
     });
     activity.status = status;
+    
     await this.jobPostActivityRepository.save(activity);
   }
 
@@ -1291,6 +1345,37 @@ export class JobService {
       throw new NotFoundException('Job post not found');
     }
     return jobPost;
+  }
+
+  async getSuggestedJobTitles(query: string): Promise<any> {
+    // Kiểm tra query hợp lệ
+    if (!query || query.length < 2) {
+      return [];
+    }
+
+    try {
+      // Query từ database với điều kiện cơ bản
+      const suggestions = await this.jobPostRepository
+        .createQueryBuilder('job')
+        .select([
+          'DISTINCT job.jobName as title',
+        ])
+        .where('LOWER(job.jobName) LIKE LOWER(:query)', { 
+          query: `%${query}%` 
+        })
+        .andWhere('job.status = :status', { status: 3 }) // Chỉ lấy job active
+        .andWhere('job.deadline >= :now', { now: new Date() }) // Chưa hết hạn
+        .orderBy('job.jobName', 'ASC')
+        .limit(10)
+        .getRawMany();
+
+      // Format kết quả trả về
+      return suggestions.map(item => item.title);
+
+    } catch (error) {
+      console.error('Error in getSuggestedJobTitles:', error);
+      return [];
+    }
   }
 
 }

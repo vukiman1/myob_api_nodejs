@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, UseInterceptors, UploadedFile, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, UseInterceptors, UploadedFile, Put, Query } from '@nestjs/common';
 import { MyjobService } from './myjob.service';
 import { CreateBannerDto, CreateBannerDto2, UpdateBannerDto } from './dto/banner.dto';
 import { CreateFeedBackDto } from './dto/feedback.dto';
@@ -7,6 +7,7 @@ import { UpdateFeedbackDto } from './dto/updateFeedback.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { TypeEnums } from './entities/notifications.entity';
+import { NotificationQueryDto } from './entities/getnoti.dto';
 
 @Controller('myjob')
 export class MyjobController {
@@ -94,6 +95,29 @@ export class MyjobController {
   removeBanner(@Param('id') id: string) {
     return this.myjobService.removeBanner(id);
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('client-notifications')
+  async getNotifications(
+    @Query() query: NotificationQueryDto,
+    @Req() req: any
+  ) {
+    console.log(req.user)
+    const userId = req.user.id; // Lấy userId từ JWT token
+    const notifications = await this.myjobService.getNotifications({
+      ...query,
+      userId,
+    }, 
+    req.user.roleName
+  );
+
+    return {
+      errors: {},
+      success: true,
+      data: notifications
+    };
+  }
+
 
   @UseGuards(AuthGuard('jwt'))
   @Post('web/banner/user')

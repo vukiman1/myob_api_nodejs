@@ -290,6 +290,10 @@ export class AuthService {
   }
 
   async forgotPassword(forgotPasswordDto: any) {
+    const user = await this.findUserByEmail(forgotPasswordDto.email);
+    if(!user) {
+      throw new NotFoundException({message: 'User not found'});
+    }
     const payload = { email: forgotPasswordDto.email};
     const Token = this.jwtService.sign(payload, {
       secret: process.env.JWT_SECRET, // Secret key từ .env
@@ -413,6 +417,40 @@ export class AuthService {
 
     // Tạo slug mới với số tiếp theo
     return `${baseSlug}-${maxNumber + 1}`;
+  }
+
+  async changePassword(changePasswordDto: any, email: string) {
+    const { oldPassword, newPassword, confirmPassword } = changePasswordDto;
+    
+    if (newPassword !== confirmPassword) {
+      throw new BadRequestException({
+        errorMessage: ['Mật khẩu mới và xác nhận mật khẩu không khớp!']
+      });
+    }
+
+    const user = await this.findUserByEmail(email);
+    if (!user) {
+      throw new NotFoundException({
+        errorMessage: ['Không tìm thấy người dùng!']
+      });
+    }
+
+    const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
+    if (!isPasswordValid) {
+      throw new BadRequestException({
+        errorMessage: ['Mật khẩu không chính xác!']
+      });
+    }
+
+    const isOldPassword = await bcrypt.compare(newPassword, user.password);
+    if (isOldPassword) {
+      throw new BadRequestException({
+        errorMessage: ['Mật khẩu mới không được trùng với mật khẩu cũ!']
+      });
+    }
+
+    user.password = await this.hashPassword(newPassword);
+    await this.userRepository.save(user);
   }
 
   async convertGoogleToken(googleToken: string) {

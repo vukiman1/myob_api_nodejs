@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JobPost } from 'src/modules/job/entities/job-post.entity';
 import { Repository, In } from 'typeorm';
 import { UpdateJobPostDto } from './dto/update-job-post.dto';
 import { User } from 'src/modules/user/entities/user.entity';
+import { PaymentService } from 'src/modules/payment/payment.service';
+import { TransactionType } from 'src/modules/payment/entities/payment.entity';
 
 @Injectable()
 export class AdminJobService {
@@ -11,7 +13,8 @@ export class AdminJobService {
     constructor(
          @InjectRepository(JobPost)
         private readonly jobPostRepository: Repository<JobPost>,
-
+        private paymentService: PaymentService,
+        
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
     ) {}
@@ -62,14 +65,25 @@ export class AdminJobService {
         }));
     }
 
-    async updateMultipleStatus(ids: any, userid: string) {
-        const userMoney = await this.userRepository.findOne({ where: { id: userid } });
+    async updateMultipleStatus(ids: any, userId: string) {
+        const userMoney = await this.userRepository.findOne({ where: { id: userId } });
+        console.log(ids, ids.length)
         const totalMoney = ids.length * 2000
         if (userMoney.money < totalMoney) {
             throw new Error('Not enough money to update status');
         }
-
-        await this.userRepository.update({ id: userid }, { money: userMoney.money - totalMoney });
+   
+        const money = 2000
+              // Find the user who uploaded the banner
+              const user = await this.userRepository.findOne({ where: { id: userId } });
+              if (!user) {
+                throw new Error('User not found');
+              }
+              if (user.money < 8000) {
+                throw new BadRequestException('User not enought money')
+              }
+        await this.userRepository.update({ id: userId }, { money: userMoney.money - totalMoney });
+        await this.paymentService.createTransaction(money, TransactionType.PURCHASE, userId, "PURCHASE")
 
 
         return this.jobPostRepository.update(

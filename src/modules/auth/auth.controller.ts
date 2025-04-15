@@ -25,6 +25,7 @@ import { UpDateUserDto } from './dto/user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MyjobService } from '../myjob/myjob.service';
 import { TypeEnums } from '../myjob/entities/notifications.entity';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -113,6 +114,13 @@ export class AuthController {
     return { data: {
       redirectLoginUrl: '/dang-nhap-ung-vien'
     } };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Put('change-password')
+  async changePassword(@Body() changePasswordDto: ChangePasswordDto, @Req() req: any) {
+    await this.authService.changePassword(changePasswordDto, req.user.email);
+    return { message: 'Password has been updated successfully!' };
   }
 
   @Get('admin/user-info/:id')

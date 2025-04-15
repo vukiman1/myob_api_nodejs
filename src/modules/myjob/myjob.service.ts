@@ -15,7 +15,8 @@ import { WebNotification } from './entities/notifications.entity';
 import { PaymentService } from '../payment/payment.service';
 import { TransactionType } from '../payment/entities/payment.entity';
 import { JobPost } from '../job/entities/job-post.entity';
-
+import { NotificationQueryDto } from './entities/getnoti.dto';
+import { NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class MyjobService {
@@ -35,7 +36,7 @@ export class MyjobService {
     private jobPostRepository: Repository<JobPost>,
 
     @InjectRepository(WebNotification)
-    private webNotificationRepository: Repository<WebNotification>,
+    private webbannerRepository: Repository<WebNotification>,
 
     private paymentService: PaymentService
   ) {}
@@ -161,13 +162,21 @@ export class MyjobService {
     return jobpost
   }
 
-  async createNotification(createNotificationDto: CreateNotificationDto) {
+  async createNotification(createNotificationDto: CreateNotificationDto, userId?: string) {
     const vietnamTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' });
-    const newNotification = this.webNotificationRepository.create({  
+      console.log(userId)
+    let user = null;
+    if (userId) {
+      user = await this.userRepository.findOne({ where: { id: userId } });
+    }
+
+    const newNotification = this.webbannerRepository.create({  
       ...createNotificationDto,
-      date: new Date(vietnamTime)
+      date: new Date(vietnamTime),
+      user: user
     });
-    const savedNotification = await this.webNotificationRepository.save(newNotification);
+
+    const savedNotification = await this.webbannerRepository.save(newNotification);
     return savedNotification;
   }
 
@@ -196,8 +205,8 @@ export class MyjobService {
   }
 
   async getAllNotification() {
-    return await this.webNotificationRepository.find({
-      where: {isDelete: false},
+    return await this.webbannerRepository.find({
+      where: {isDelete: false, user: null},
       order: {id: 'DESC'},
     })
   }
@@ -217,8 +226,8 @@ export class MyjobService {
   }
 
   async markIsReadNoti(id: string) {
-    const notification = await this.webNotificationRepository.findOne({ where: { id } });
-    await this.webNotificationRepository.update(id,
+    const notification = await this.webbannerRepository.findOne({ where: { id } });
+    await this.webbannerRepository.update(id,
       { read: !notification.read },
     );
     return { success: true };
@@ -306,7 +315,7 @@ export class MyjobService {
   }
 
   async getNewNotification() {
-    const notifications = await this.webNotificationRepository.find({
+    const notifications = await this.webbannerRepository.find({
       where: {isDelete: false, read: false},
       order: {id: 'DESC'},
       take: 5,
@@ -326,5 +335,124 @@ export class MyjobService {
       buttonLink: popup.buttonLink,
 
     }));
+  }
+  async getNotifications(query: NotificationQueryDto, roleName: string) {
+    const { userId, page = 1, limit = 5 } = query;
+    const skip = (page - 1) * limit;
+    let defaultNotifications = []
+
+    // Tạo notifications mặc định
+    if (roleName === 'EMPLOYER') {
+       defaultNotifications = [
+        {
+          id: "welcome-1",
+          message: "Chào mừng bạn đến với hệ thống tìm kiếm việc làm!",
+          type: "SYSTEM",
+          title: "Chào mừng",
+          isDelete: false,
+          read: false,
+          date: new Date(Date.now() - 300000).toISOString(), // 5 minutes ago
+        },
+        {
+          id: "welcome-2",
+          message: "Cập nhật hồ sơ để nhận được nhiều cơ hội việc làm phù hợp hơn.",
+          type: "SYSTEM",
+          title: "Hoàn thiện hồ sơ của bạn",
+          isDelete: false,
+          read: false,
+          date: new Date(Date.now() - 600000).toISOString(), // 10 minutes ago
+        },
+        {
+          id: "welcome-3",
+          message: "Có nhiều việc làm mới phù hợp với kỹ năng của bạn. Xem ngay!",
+          type: "SYSTEM",
+          title: "Khám phá việc làm mới",
+          isDelete: false,
+          read: false,
+          date: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
+        },
+  
+      ];
+    } else {
+       defaultNotifications = [
+        {
+          id: "welcome-1",
+          message: "Chào mừng bạn đến với hệ thống tìm kiếm việc làm!",
+          type: "SYSTEM",
+          title: "Chào mừng",
+          isDelete: false,
+          read: false,
+          date: new Date(Date.now() - 300000).toISOString(), // 5 minutes ago
+        },
+        {
+          id: "welcome-2",
+          message: "Đăng tin tuyển dụng để nhận được nhiều ứng viên phù hợp hơn.",
+          type: "SYSTEM",
+          title: "Tạo mới tin tuyển dụng",
+          isDelete: false,
+          read: false,
+          date: new Date(Date.now() - 600000).toISOString(), // 10 minutes ago
+        }
+  
+      ];
+    }
+   
+
+    // Query notifications của user từ database
+    const userNotifications = await this.webbannerRepository.find({
+      where: {
+        user: { id: userId.toString() },
+        isDelete: false,
+      },
+      order: {
+        date: 'DESC',
+      },
+      skip,
+      take: limit,
+    });
+
+    // // Format user notifications
+    const formattedUserNotifications = userNotifications.map(notification => ({
+      id: notification.id,
+      message: notification.message,
+      imageUrl: notification.imageUrl ,
+      type: notification.type,
+      title: notification.title,
+      isDelete: notification.isDelete,
+      read: notification.read,
+      date: notification.date.toISOString(),
+    }));
+
+    // // Merge và sort notifications theo thời gian
+    const allNotifications = [ ...formattedUserNotifications]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, limit);
+    const d2 = [...allNotifications, ...defaultNotifications]
+    // Tính total pages
+    const total = await this.webbannerRepository.count({
+      where: { user: { id: userId.toString() }, isDelete: false },
+    });
+
+    return {
+      notifications: d2,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil((total + defaultNotifications.length) / limit),
+        totalItems: total + defaultNotifications.length,
+      }
+    };
+  }
+
+  async findUserIdByJobId(jobId: number): Promise<string> {
+    const jobPost = await this.jobPostRepository.findOne({
+      where: { id: jobId },
+      relations: ['user'],
+    });
+
+    if (!jobPost) {
+      throw new NotFoundException('Job post not found');
+    }
+
+    return jobPost.user.id;
   }
 }

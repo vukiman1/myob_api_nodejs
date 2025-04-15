@@ -10,24 +10,27 @@ import {
   Put,
   Delete,
   Patch,
+  UseInterceptors,
 } from '@nestjs/common';
 import { JobService } from './job.service';
 
 import { CreateJobPostDto } from './dto/job-post.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { CreateJobPostActivityDto } from './dto/create-job-post-activity.dto';
-import { error } from 'console';
 import { CreateJobPostNotificationDto } from './dto/create-job-post-notification.dto';
 import { UpdateApplicationStatusDto } from './dto/activity-status.dto';
 import { EmployeeSendEmailDto } from './dto/employee-send-email.dto';
 import { MyjobService } from '../myjob/myjob.service';
 import { TypeEnums } from '../myjob/entities/notifications.entity';
+import { DataConfigs } from 'src/constants/data.constant';
+import { NodemailerService } from '../nodemailer/nodemailer.service';
+
 
 @Controller('job/web/')
 export class JobController {
   constructor(private readonly jobService: JobService,
-        private readonly myJobService: MyjobService
-    
+        private readonly myJobService: MyjobService,
+        private readonly nodemailerService: NodemailerService
 
   ) {}
 
@@ -241,9 +244,10 @@ export class JobController {
     };
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Post('job-seeker-job-posts-activity')
   async createJobPostActivity(@Body() createJobPostActivityDto: CreateJobPostActivityDto) {
-
+      const usercompany = await this.jobService.findUserIdByJobId(createJobPostActivityDto.job_post)
       const result = await this.jobService.createJobPostActivity(createJobPostActivityDto);
       await this.myJobService.createNotification(
       {
@@ -252,6 +256,16 @@ export class JobController {
         imageUrl: result.user.avatarUrl,
         type: TypeEnums.info,
       }
+    )
+    
+    await this.myJobService.createNotification(
+      {
+        title: `Ứng viên ứng tuyển việc làm`,
+        message: `Ứng viên vừa ứng tuyển vị trí ${result.jobPost.jobName}`,
+        imageUrl: result.user.avatarUrl,
+        type: TypeEnums.info,
+      }
+      ,usercompany
     )
       return {
         errors: {},
@@ -359,6 +373,32 @@ export class JobController {
     @Body() payload: UpdateApplicationStatusDto,
   ): Promise<any> {
     await this.jobService.updateApplicationStatus(id, payload.status);
+    const info = await this.jobService.getActivityUserInfo(id);
+    console.log(info)
+    if(payload.status === 5) {
+      await this.nodemailerService.sendJobAcceptedEmail(
+        info.companyEmail,
+        {
+          fullName: info.fullName,
+          jobName: info.jobName,
+          companyName: info.companyName,
+          location: info.location,
+          companyEmail: info.companyEmail,
+          companyPhone: info.companyPhone,
+          jobPostSlug: info.jobPostSlug,
+        }
+      )
+    }
+
+    await this.myJobService.createNotification(
+      {
+        title: `Thông báo từ nhà tuyển dụng`,
+        message: `Nhà tuyển dụng đã cập nhật trạng thái hồ sơ của bạn là ${DataConfigs.APPLICATION_STATUS[payload.status-1].name}`,
+        imageUrl: info.companyImageUrl,
+        type: TypeEnums.info,
+      }
+      ,info.userId
+    )
     return { errors: {}, data: null };
   }
 
@@ -513,5 +553,13 @@ export class JobController {
       };
       }
     }
-    
+
+  @Get('search/job-suggest-title')
+  async getSuggestedJobTitles(@Query() query: any) {
+    const suggestions = await this.jobService.getSuggestedJobTitles(query.q);
+    return {
+      errors: {},
+      data: suggestions
+    };
+  }
 }

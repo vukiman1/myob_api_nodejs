@@ -71,5 +71,29 @@ export class NodemailerService {
           },
         });
       }
+
+      async sendJobAcceptedEmail(
+        candidateEmail: string,
+        data: {
+          fullName: string;
+          jobName: string;
+          companyName: string;
+          location: string;
+          companyEmail: string;
+          companyPhone: string;
+          jobPostSlug: string;
+        }
+      ) {
+        await this.mailService.sendMail({
+          to: candidateEmail,
+          subject: `Chúc mừng! Bạn đã trúng tuyển vị trí ${data.jobName} tại ${data.companyName}`,
+          template: './job-accepted',
+          context: {
+            ...data
+          },
+        });
+      }
+
+      
 }
 

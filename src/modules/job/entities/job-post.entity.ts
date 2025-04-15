@@ -9,6 +9,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -23,12 +24,14 @@ export class JobPost {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index('IDX_JOB_NAME')
   @Column()
   jobName: string;
 
   @Column()
   slug: string;
-
+  
+  @Index('IDX_JOB_DEADLINE')
   @Column()
   deadline: Date;
 
@@ -99,6 +102,7 @@ export class JobPost {
   @Column({ default: 0 })
   shares: number;
 
+  @Index('IDX_JOB_STATUS')
   @Column({ default: 1 })
   status: number;
 

@@ -21,4 +21,8 @@ export class CreateNotificationDto {
     @IsNotEmpty()
     @IsEnum(TypeEnums)
     type: TypeEnums;
+
+    @IsOptional()
+    @IsString()
+    userId?: string;
 }
