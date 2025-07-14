@@ -16,6 +16,14 @@ services:
     restart: always
     ports:
       - '${REDIS_PORT:-6379}:6379'
+  app:
+    build: .
+    container_name: adonis-app
+    ports:
+      - '8888:8888'
+    depends_on:
+      - postgresql
+      - redis
 
 volumes:
   postgresql-data:
