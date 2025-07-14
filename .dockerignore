@@ -19,8 +19,6 @@ log/
 .github/
 .git*
 
-.env
-.env*
 .*cache
 
 .editorconfig
