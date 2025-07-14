@@ -1,6 +1,8 @@
 services:
   postgresql:
     image: postgres:16-alpine
+    env_file:
+      - .env
     ports:
       - '${DB_PORT:-5432}:5432'
     restart: always
@@ -19,6 +21,8 @@ services:
 
   redis:
     image: redis:7-alpine
+    env_file:
+      - .env
     volumes:
       - ${REDIS_DATA:-redis-data}:/data
     restart: always
