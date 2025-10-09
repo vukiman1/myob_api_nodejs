@@ -1,17 +1,14 @@
-import { ConfigType, registerAs } from '@nestjs/config'
+import { ConfigType, registerAs } from '@nestjs/config';
 
+import { DataSource, DataSourceOptions } from 'typeorm';
 
-import { DataSource, DataSourceOptions } from 'typeorm'
-
-import { env, envBoolean, envNumber } from '../global/env'
-import { User } from 'src/modules/user/entities/user.entity'
-import { JobSeekerProfile } from 'src/modules/info/entities/job_seeker_profle.entities'
-
-
+import { env, envBoolean, envNumber } from '../global/env';
+import { User } from 'src/modules/user/entities/user.entity';
+import { JobSeekerProfile } from 'src/modules/info/entities/job_seeker_profle.entities';
 
 const dataSourceOptions: DataSourceOptions = {
   type: 'postgres',
-  host: env('DB_HOST', 'localhost'),
+  host: env('DB_HOST', 'postgres'),
   port: envNumber('DB_PORT', 5432),
   username: env('DB_USERNAME', 'postgres'),
   password: env('DB_PASSWORD', 'kiman0102'),
@@ -21,18 +18,17 @@ const dataSourceOptions: DataSourceOptions = {
   //   rejectUnauthorized: false, // Nếu bạn không có chứng chỉ SSL hợp lệ
   // },
   // entities: [User, JobSeekerProfile],
-//   migrations: ['dist/migrations/*{.ts,.js}'],
-}
-export const dbRegToken = 'database'
+  //   migrations: ['dist/migrations/*{.ts,.js}'],
+};
+export const dbRegToken = 'database';
 
 export const DatabaseConfig = registerAs(
   dbRegToken,
   (): DataSourceOptions => dataSourceOptions,
-)
+);
 
+export type IDatabaseConfig = ConfigType<typeof DatabaseConfig>;
 
-export type IDatabaseConfig = ConfigType<typeof DatabaseConfig>
+const dataSource = new DataSource(dataSourceOptions);
 
-const dataSource = new DataSource(dataSourceOptions)
-
-export default dataSource
+export default dataSource;
