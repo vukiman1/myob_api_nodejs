@@ -10,9 +10,9 @@ const dataSourceOptions: DataSourceOptions = {
   type: 'postgres',
   host: env('DB_HOST', 'localhost'),
   port: envNumber('DB_PORT', 32771),
-  username: env('DB_USERNAME', 'postgres'),
-  password: env('DB_PASSWORD', 'kiman0102'),
-  database: env('DB_DATABASE', 'MyJobAPI'),
+  username: env('DB_USERNAME', 'admin'),
+  password: env('DB_PASSWORD', 'admin'),
+  database: env('DB_DATABASE', 'myapp_db'),
   synchronize: true,
   // ssl: {
   //   rejectUnauthorized: false, // Nếu bạn không có chứng chỉ SSL hợp lệ
