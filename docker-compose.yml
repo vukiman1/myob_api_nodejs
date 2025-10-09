@@ -27,7 +27,7 @@ services:
       - ${REDIS_DATA:-redis-data}:/data
     restart: always
     ports:
-      - '${REDIS_PORT:-6379}:6379'
+      - '${REDIS_PORT:-6377}:6379'
     command: redis-server --appendonly yes
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
@@ -55,7 +55,7 @@ services:
       - DB_PASSWORD=${DB_PASSWORD:-Sup3rS3cr3T}
       - DB_NAME=${DB_NAME:-myapp}
       - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - REDIS_PORT=6377
     restart: unless-stopped
 
 volumes:

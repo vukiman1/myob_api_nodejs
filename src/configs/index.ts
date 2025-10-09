@@ -1,36 +1,45 @@
 import { AppConfig, appRegToken, IAppConfig } from './app.config';
 import { DatabaseConfig, dbRegToken, IDatabaseConfig } from './database.config';
 import { IMailerConfig, MailerConfig, mailerRegToken } from './mailer.config';
-import { ISecurityConfig, SecurityConfig, securityRegToken } from './security.config';
-import { ISwaggerConfig, SwaggerConfig, swaggerRegToken } from './swagger.config';
+import { IRedisConfig, RedisConfig, redisRegToken } from './redis.config';
+import {
+  ISecurityConfig,
+  SecurityConfig,
+  securityRegToken,
+} from './security.config';
+import {
+  ISwaggerConfig,
+  SwaggerConfig,
+  swaggerRegToken,
+} from './swagger.config';
 
-export * from './app.config'
-export * from './swagger.config'
-export * from './database.config'
-export * from './security.config'
+export * from './app.config';
+export * from './swagger.config';
+export * from './database.config';
+export * from './redis.config';
+export * from './security.config';
 
 export interface AllConfigType {
-    [appRegToken]: IAppConfig,
-    [swaggerRegToken]: ISwaggerConfig,
-    [dbRegToken]: IDatabaseConfig,
-    [securityRegToken]: ISecurityConfig,
-    [mailerRegToken]: IMailerConfig;
+  [appRegToken]: IAppConfig;
+  [swaggerRegToken]: ISwaggerConfig;
+  [dbRegToken]: IDatabaseConfig;
+  [redisRegToken]: IRedisConfig;
+  [securityRegToken]: ISecurityConfig;
+  [mailerRegToken]: IMailerConfig;
 }
-
 
 // Define RecordNamePaths type if it's not imported from somewhere else
 type RecordNamePaths<T> = {
-    [K in keyof T]: K extends string ? K : never
-}[keyof T]
+  [K in keyof T]: K extends string ? K : never;
+}[keyof T];
 
-
-export type ConfigKeyPaths = RecordNamePaths<AllConfigType>
-
+export type ConfigKeyPaths = RecordNamePaths<AllConfigType>;
 
 export default {
-    AppConfig,
-    DatabaseConfig,
-    SwaggerConfig,
-    SecurityConfig,
-    MailerConfig,
+  AppConfig,
+  DatabaseConfig,
+  RedisConfig,
+  SwaggerConfig,
+  SecurityConfig,
+  MailerConfig,
 };
