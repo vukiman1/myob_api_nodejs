@@ -8,8 +8,8 @@ import { JobSeekerProfile } from 'src/modules/info/entities/job_seeker_profle.en
 
 const dataSourceOptions: DataSourceOptions = {
   type: 'postgres',
-  host: env('DB_HOST', 'postgres'),
-  port: envNumber('DB_PORT', 5432),
+  host: env('DB_HOST', 'localhost'),
+  port: envNumber('DB_PORT', 32771),
   username: env('DB_USERNAME', 'postgres'),
   password: env('DB_PASSWORD', 'kiman0102'),
   database: env('DB_DATABASE', 'MyJobAPI'),
