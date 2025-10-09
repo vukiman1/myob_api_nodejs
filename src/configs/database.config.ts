@@ -8,8 +8,8 @@ import { JobSeekerProfile } from 'src/modules/info/entities/job_seeker_profle.en
 
 const dataSourceOptions: DataSourceOptions = {
   type: 'postgres',
-  host: env('DB_HOST', 'localhost'),
-  port: envNumber('DB_PORT', 32771),
+  host: env('DB_HOST', 'postgresql'),
+  port: envNumber('DB_PORT', 5432),
   username: env('DB_USERNAME', 'admin'),
   password: env('DB_PASSWORD', 'admin'),
   database: env('DB_DATABASE', 'myapp_db'),
@@ -20,6 +20,8 @@ const dataSourceOptions: DataSourceOptions = {
   // entities: [User, JobSeekerProfile],
   //   migrations: ['dist/migrations/*{.ts,.js}'],
 };
+
+console.log(dataSourceOptions);
 export const dbRegToken = 'database';
 
 export const DatabaseConfig = registerAs(
