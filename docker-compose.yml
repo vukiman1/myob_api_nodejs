@@ -4,11 +4,11 @@ services:
       - .env.production
     build: .
     container_name: vieclam365
-    ports:
-      - '8888:8888'
     restart: unless-stopped
     networks:
       - cloudflared
+    expose:
+      - '8000'
 networks:
   cloudflared:
     external: true
